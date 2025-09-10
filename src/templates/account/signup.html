@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create Account - TradeVision{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="flex justify-center">
+            <div class="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-lg">
+                <i class="fas fa-chart-line text-white text-2xl"></i>
+            </div>
+        </div>
+        <h2 class="mt-6 text-center text-3xl font-bold font-heading text-gray-900">
+            👉 Create Your TradeVision Account
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-600">
+            Or
+            <a href="{% url 'account_login' %}" class="font-medium text-primary-600 hover:text-primary-500 transition-colors duration-200">
+                sign in to your existing account
+            </a>
+        </p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-200">
+            <form method="post" action="{% url 'account_signup' %}" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Full Name -->
+                <div>
+                    <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name
+                    </label>
+                    {{ form.full_name }}
+                    {% if form.full_name.errors %}
+                        <div class="mt-1 text-sm text-danger-600">
+                            {{ form.full_name.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address
+                    </label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="mt-1 text-sm text-danger-600">
+                            {{ form.email.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Phone Number -->
+                <div>
+                    <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Phone Number
+                    </label>
+                    {{ form.phone_number }}
+                    {% if form.phone_number.errors %}
+                        <div class="mt-1 text-sm text-danger-600">
+                            {{ form.phone_number.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <p class="mt-1 text-xs text-gray-500">Include country code (e.g., +254700000000)</p>
+                </div>
+
+                <!-- Country -->
+                <div>
+                    <label for="{{ form.country.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Country
+                    </label>
+                    {{ form.country }}
+                    {% if form.country.errors %}
+                        <div class="mt-1 text-sm text-danger-600">
+                            {{ form.country.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Referral Code -->
+                {% if form.referral_code %}
+                <div>
+                    <label for="{{ form.referral_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Referral Code (Optional)
+                    </label>
+                    {{ form.referral_code }}
+                    {% if form.referral_code.errors %}
+                        <div class="mt-1 text-sm text-danger-600">
+                            {{ form.referral_code.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Password -->
+                <div>
+                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Password
+                    </label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}
+                        <div class="mt-1 text-sm text-danger-600">
+                            {{ form.password1.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Confirm Password -->
+                <div>
+                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Confirm Password
+                    </label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}
+                        <div class="mt-1 text-sm text-danger-600">
+                            {{ form.password2.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Terms and Conditions -->
+                <div class="flex items-center">
+                    <input id="terms" name="terms" type="checkbox" required class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                    <label for="terms" class="ml-2 block text-sm text-gray-900">
+                        ✅ I agree to the 
+                        <a href="{% url 'core:terms' %}" class="text-primary-600 hover:text-primary-500 transition-colors duration-200" target="_blank">Terms & Conditions</a> 
+                        and 
+                        <a href="{% url 'core:privacy' %}" class="text-primary-600 hover:text-primary-500 transition-colors duration-200" target="_blank">Privacy Policy</a>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-primary hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 transform hover:scale-105">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Register & Get Started
+                    </button>
+                </div>
+            </form>
+
+            <!-- Security Note -->
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-shield-alt text-success-600 mr-2"></i>
+                    <p class="text-sm text-gray-600">
+                        🔒 Your information is protected with secure encryption and two-factor authentication (2FA).
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
