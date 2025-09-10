@@ -1,10 +1,272 @@
 {% extends 'base.html' %}
-{% block title %}Deposit Funds{% endblock %}
+{% load static %}
+
+{% block title %}Deposit Funds - TradeVision{% endblock %}
+
 {% block content %}
-<div class="max-w-xl mx-auto py-8">
-    <h1 class="text-2xl font-heading mb-6">Deposit Funds</h1>
-    <!-- Deposit form and payment methods -->
-    <p>Select a payment method to deposit funds into your wallet.</p>
-    <!-- List payment methods or show form -->
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold font-heading text-gray-900">Deposit Funds</h1>
+                    <p class="mt-2 text-gray-600">Add funds to your trading account to start investing</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-500">Current Balance</div>
+                    <div class="text-2xl font-bold text-primary-600">
+                        {{ wallet.balance|floatformat:2 }} {{ wallet.currency }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2">
+                <!-- Deposit Statistics -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Deposit Overview</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="text-center p-4 bg-gradient-success rounded-lg text-white">
+                            <div class="text-2xl font-bold">{{ deposit_stats.total_deposits|floatformat:2 }}</div>
+                            <div class="text-sm opacity-90">Total Deposits</div>
+                        </div>
+                        <div class="text-center p-4 bg-gradient-warning rounded-lg text-white">
+                            <div class="text-2xl font-bold">{{ deposit_stats.pending_deposits }}</div>
+                            <div class="text-sm opacity-90">Pending</div>
+                        </div>
+                        <div class="text-center p-4 bg-gradient-primary rounded-lg text-white">
+                            <div class="text-2xl font-bold">{{ deposit_stats.this_month_deposits|floatformat:2 }}</div>
+                            <div class="text-sm opacity-90">This Month</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-6">Choose Payment Method</h2>
+                    
+                    {% if payment_methods %}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {% for method in payment_methods %}
+                            <a href="{% url 'payments:deposit_method' method.name %}" 
+                               class="block p-6 border border-gray-200 rounded-lg hover:border-primary-300 hover:bg-primary-50 transition-all duration-200 group">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                                            {% if method.name == 'binance_pay' %}
+                                                <i class="fab fa-bitcoin text-white text-xl"></i>
+                                            {% elif method.name == 'mobile_money' %}
+                                                <i class="fas fa-mobile-alt text-white text-xl"></i>
+                                            {% elif method.name == 'bank_transfer' %}
+                                                <i class="fas fa-university text-white text-xl"></i>
+                                            {% elif method.name == 'p2p' %}
+                                                <i class="fas fa-users text-white text-xl"></i>
+                                            {% elif method.name == 'agent' %}
+                                                <i class="fas fa-user-tie text-white text-xl"></i>
+                                            {% else %}
+                                                <i class="fas fa-credit-card text-white text-xl"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors duration-200">
+                                                {{ method.display_name }}
+                                            </h3>
+                                            <p class="text-sm text-gray-500">
+                                                Fee: {{ method.processing_fee }}% | 
+                                                Time: {{ method.processing_time }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-arrow-right text-gray-400 group-hover:text-primary-600 transition-colors duration-200"></i>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-12">
+                            <i class="fas fa-credit-card text-gray-400 text-4xl mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No Payment Methods Available</h3>
+                            <p class="text-gray-500">Payment methods for your region are currently being set up.</p>
+                            <a href="{% url 'core:support_tickets' %}" class="inline-flex items-center mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                                <i class="fas fa-headset mr-2"></i>
+                                Contact Support
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Quick Deposit Info -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-info-circle text-primary-500 mr-2"></i>
+                        Deposit Information
+                    </h3>
+                    <div class="space-y-4 text-sm">
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-check text-success-500 mt-1"></i>
+                            <span class="text-gray-600">Minimum deposit: 10 {{ wallet.currency }}</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-check text-success-500 mt-1"></i>
+                            <span class="text-gray-600">Maximum deposit: 100,000 {{ wallet.currency }}</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-check text-success-500 mt-1"></i>
+                            <span class="text-gray-600">Instant processing for most methods</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-check text-success-500 mt-1"></i>
+                            <span class="text-gray-600">24/7 customer support</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-shield-alt text-success-500 mt-1"></i>
+                            <span class="text-gray-600">Bank-level security encryption</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Deposits -->
+                {% if recent_deposits %}
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-history text-primary-500 mr-2"></i>
+                        Recent Deposits
+                    </h3>
+                    <div class="space-y-3">
+                        {% for deposit in recent_deposits %}
+                        <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                            <div>
+                                <div class="font-medium text-gray-900">
+                                    {{ deposit.amount|floatformat:2 }} {{ deposit.currency }}
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    {{ deposit.created_at|date:"M d, Y" }}
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                    {% if deposit.status == 'completed' %}bg-success-100 text-success-800
+                                    {% elif deposit.status == 'pending' %}bg-warning-100 text-warning-800
+                                    {% elif deposit.status == 'processing' %}bg-primary-100 text-primary-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ deposit.status|title }}
+                                </span>
+                                <a href="{% url 'payments:transaction_detail' deposit.id %}" 
+                                   class="text-primary-600 hover:text-primary-700">
+                                    <i class="fas fa-external-link-alt text-xs"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <a href="{% url 'payments:transactions' %}?type=deposit" 
+                           class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                            View All Deposits <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Security Notice -->
+                <div class="bg-gradient-primary rounded-lg p-6 text-white">
+                    <h3 class="font-semibold mb-2">
+                        <i class="fas fa-shield-alt mr-2"></i>
+                        Secure Deposits
+                    </h3>
+                    <p class="text-sm opacity-90 mb-4">
+                        Your deposits are protected by bank-level encryption and secure payment processing.
+                    </p>
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-lock mr-2"></i>
+                        <span>SSL Encrypted • PCI Compliant</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Fee Calculator Modal -->
+<div x-data="{ showCalculator: false }" 
+     x-show="showCalculator" 
+     x-cloak
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+     @keydown.escape.window="showCalculator = false">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Fee Calculator</h3>
+            <button @click="showCalculator = false" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                <input type="number" id="calc-amount" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Enter amount">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+                <select id="calc-method" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    <option value="">Select method</option>
+                    {% for method in payment_methods %}
+                    <option value="{{ method.name }}" data-fee="{{ method.processing_fee }}">{{ method.display_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div id="calc-results" class="hidden bg-gray-50 rounded-lg p-4">
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>Amount:</span>
+                        <span id="calc-amount-display">0.00 {{ wallet.currency }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Processing Fee:</span>
+                        <span id="calc-fee-display">0.00 {{ wallet.currency }}</span>
+                    </div>
+                    <div class="flex justify-between font-semibold border-t pt-2">
+                        <span>You will receive:</span>
+                        <span id="calc-net-display">0.00 {{ wallet.currency }}</span>
+                    </div>
+                </div>
+            </div>
+            <button onclick="calculateFees()" class="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                Calculate Fees
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function calculateFees() {
+    const amount = parseFloat(document.getElementById('calc-amount').value);
+    const methodSelect = document.getElementById('calc-method');
+    const selectedOption = methodSelect.options[methodSelect.selectedIndex];
+    const fee = parseFloat(selectedOption.dataset.fee) || 0;
+    
+    if (!amount || !fee) {
+        alert('Please enter amount and select payment method');
+        return;
+    }
+    
+    const processingFee = amount * (fee / 100);
+    const netAmount = amount - processingFee;
+    
+    document.getElementById('calc-amount-display').textContent = `${amount.toFixed(2)} {{ wallet.currency }}`;
+    document.getElementById('calc-fee-display').textContent = `${processingFee.toFixed(2)} {{ wallet.currency }}`;
+    document.getElementById('calc-net-display').textContent = `${netAmount.toFixed(2)} {{ wallet.currency }}`;
+    document.getElementById('calc-results').classList.remove('hidden');
+}
+
+// Show fee calculator from anywhere
+function showFeeCalculator() {
+    document.querySelector('[x-data*="showCalculator"]').__x.$data.showCalculator = true;
+}
+</script>
 {% endblock %}

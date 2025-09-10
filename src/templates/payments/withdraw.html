@@ -1,10 +1,251 @@
+
 {% extends 'base.html' %}
-{% block title %}Withdraw Funds{% endblock %}
+{% load static %}
+
+{% block title %}Withdraw Funds - TradeVision{% endblock %}
+
 {% block content %}
-<div class="max-w-xl mx-auto py-8">
-    <h1 class="text-2xl font-heading mb-6">Withdraw Funds</h1>
-    <!-- Withdrawal form and payment methods -->
-    <p>Select a payment method to withdraw your profits.</p>
-    <!-- List payment methods or show form -->
-</div>
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold font-heading text-gray-900">Withdraw Funds</h1>
+                    <p class="mt-2 text-gray-600">Withdraw your profits to your preferred payment method</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-500">Available for Withdrawal</div>
+                    <div class="text-2xl font-bold text-success-600">
+                        {{ wallet.profit_balance|floatformat:2 }} {{ wallet.currency }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if wallet.profit_balance <= 0 %}
+        <!-- No Withdrawable Balance -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+            <div class="w-16 h-16 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-warning-600 text-2xl"></i>
+            </div>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">No Funds Available for Withdrawal</h2>
+            <p class="text-gray-600 mb-6">You need to have profits in your account before you can make a withdrawal.</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <a href="{% url 'trading:packages' %}" 
+                   class="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    Start Trading
+                </a>
+                <a href="{% url 'payments:deposit' %}" 
+                   class="inline-flex items-center px-6 py-3 bg-success-600 text-white rounded-lg hover:bg-success-700 transition-colors duration-200">
+                    <i class="fas fa-plus-circle mr-2"></i>
+                    Make Deposit
+                </a>
+            </div>
+        </div>
+        {% else %}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2">
+                <!-- Withdrawal Statistics -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Withdrawal Overview</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="text-center p-4 bg-gradient-warning rounded-lg text-white">
+                            <div class="text-2xl font-bold">{{ withdrawal_stats.total_withdrawals|floatformat:2 }}</div>
+                            <div class="text-sm opacity-90">Total Withdrawals</div>
+                        </div>
+                        <div class="text-center p-4 bg-gradient-primary rounded-lg text-white">
+                            <div class="text-2xl font-bold">{{ withdrawal_stats.pending_withdrawals }}</div>
+                            <div class="text-sm opacity-90">Pending</div>
+                        </div>
+                        <div class="text-center p-4 bg-gradient-success rounded-lg text-white">
+                            <div class="text-2xl font-bold">{{ withdrawal_stats.available_balance|floatformat:2 }}</div>
+                            <div class="text-sm opacity-90">Available</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Balance Breakdown -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Account Balance</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-sm text-gray-500">Total Balance</div>
+                                    <div class="text-xl font-semibold text-gray-900">
+                                        {{ wallet.total_balance|floatformat:2 }} {{ wallet.currency }}
+                                    </div>
+                                </div>
+                                <i class="fas fa-wallet text-gray-400 text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="bg-primary-50 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-sm text-primary-600">Trading Balance</div>
+                                    <div class="text-xl font-semibold text-primary-700">
+                                        {{ wallet.balance|floatformat:2 }} {{ wallet.currency }}
+                                    </div>
+                                </div>
+                                <i class="fas fa-chart-line text-primary-400 text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="bg-success-50 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-sm text-success-600">Profit Balance</div>
+                                    <div class="text-xl font-semibold text-success-700">
+                                        {{ wallet.profit_balance|floatformat:2 }} {{ wallet.currency }}
+                                    </div>
+                                </div>
+                                <i class="fas fa-arrow-up text-success-400 text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="bg-warning-50 rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-sm text-warning-600">Locked Balance</div>
+                                    <div class="text-xl font-semibold text-warning-700">
+                                        {{ wallet.locked_balance|floatformat:2 }} {{ wallet.currency }}
+                                    </div>
+                                </div>
+                                <i class="fas fa-lock text-warning-400 text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-6">Choose Withdrawal Method</h2>
+                    
+                    {% if payment_methods %}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {% for method in payment_methods %}
+                            <a href="{% url 'payments:withdraw_method' method.name %}" 
+                               class="block p-6 border border-gray-200 rounded-lg hover:border-success-300 hover:bg-success-50 transition-all duration-200 group">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-12 h-12 bg-gradient-success rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                                            {% if method.name == 'binance_pay' %}
+                                                <i class="fab fa-bitcoin text-white text-xl"></i>
+                                            {% elif method.name == 'mobile_money' %}
+                                                <i class="fas fa-mobile-alt text-white text-xl"></i>
+                                            {% elif method.name == 'bank_transfer' %}
+                                                <i class="fas fa-university text-white text-xl"></i>
+                                            {% elif method.name == 'p2p' %}
+                                                <i class="fas fa-users text-white text-xl"></i>
+                                            {% elif method.name == 'agent' %}
+                                                <i class="fas fa-user-tie text-white text-xl"></i>
+                                            {% else %}
+                                                <i class="fas fa-credit-card text-white text-xl"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold text-gray-900 group-hover:text-success-600 transition-colors duration-200">
+                                                {{ method.display_name }}
+                                            </h3>
+                                            <p class="text-sm text-gray-500">
+                                                Fee: {{ method.processing_fee }}% | 
+                                                Time: {{ method.processing_time }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-arrow-right text-gray-400 group-hover:text-success-600 transition-colors duration-200"></i>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-12">
+                            <i class="fas fa-credit-card text-gray-400 text-4xl mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No Withdrawal Methods Available</h3>
+                            <p class="text-gray-500">Withdrawal methods for your region are currently being set up.</p>
+                            <a href="{% url 'core:support_tickets' %}" class="inline-flex items-center mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                                <i class="fas fa-headset mr-2"></i>
+                                Contact Support
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Withdrawal Information -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-info-circle text-success-500 mr-2"></i>
+                        Withdrawal Information
+                    </h3>
+                    <div class="space-y-4 text-sm">
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-check text-success-500 mt-1"></i>
+                            <span class="text-gray-600">Minimum withdrawal: 10 {{ wallet.currency }}</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-check text-success-500 mt-1"></i>
+                            <span class="text-gray-600">Only profit balance can be withdrawn</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-check text-success-500 mt-1"></i>
+                            <span class="text-gray-600">Processing within 24-48 hours</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-check text-success-500 mt-1"></i>
+                            <span class="text-gray-600">24/7 customer support</span>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <i class="fas fa-shield-alt text-success-500 mt-1"></i>
+                            <span class="text-gray-600">Secure processing with verification</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Withdrawals -->
+                {% if recent_withdrawals %}
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-history text-success-500 mr-2"></i>
+                        Recent Withdrawals
+                    </h3>
+                    <div class="space-y-3">
+                        {% for withdrawal in recent_withdrawals %}
+                        <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                            <div>
+                                <div class="font-medium text-gray-900">
+                                    {{ withdrawal.amount|floatformat:2 }} {{ withdrawal.currency }}
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    {{ withdrawal.created_at|date:"M d, Y" }}
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                    {% if withdrawal.status == 'completed' %}bg-success-100 text-success-800
+                                    {% elif withdrawal.status == 'pending' %}bg-warning-100 text-warning-800
+                                    {% elif withdrawal.status == 'processing' %}bg-primary-100 text-primary-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ withdrawal.status|title }}
+                                </span>
+                                <a href="{% url 'payments:transaction_detail' withdrawal.id %}" 
+                                   class="text-primary-600 hover:text-primary-700">
+                                    <i class="fas fa-external-link-alt text-xs"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <a href="{% url 'payments:transactions' %}?type=withdrawal" 
+                           class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                            View All Withdrawals <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
 {% endblock %}

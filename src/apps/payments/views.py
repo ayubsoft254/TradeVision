@@ -40,10 +40,8 @@ class DepositView(LoginRequiredMixin, TemplateView):
         )
         
         # Get available payment methods for user's country
-        payment_methods = PaymentMethod.objects.filter(
-            is_active=True,
-            countries__contains=[user.country.code]
-        ).order_by('name')
+    # Fix: SQLite does not support contains lookup for JSONField
+    payment_methods = [m for m in PaymentMethod.objects.filter(is_active=True).order_by('name') if user.country.code in m.countries]
         
         # Get recent deposits
         recent_deposits = Transaction.objects.filter(
@@ -90,13 +88,13 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
         user = self.request.user
         
         # Get payment method
+        # Fix: SQLite does not support contains lookup for JSONField
         try:
-            payment_method = PaymentMethod.objects.get(
-                name=method_name,
-                is_active=True,
-                countries__contains=[user.country.code]
+            payment_method = next(
+                m for m in PaymentMethod.objects.filter(name=method_name, is_active=True)
+                if user.country.code in m.countries
             )
-        except PaymentMethod.DoesNotExist:
+        except StopIteration:
             messages.error(self.request, 'Invalid payment method selected.')
             return context
         
@@ -150,13 +148,13 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         method_name = self.kwargs.get('method')
         
+        # Fix: SQLite does not support contains lookup for JSONField
         try:
-            payment_method = PaymentMethod.objects.get(
-                name=method_name,
-                is_active=True,
-                countries__contains=[request.user.country.code]
+            payment_method = next(
+                m for m in PaymentMethod.objects.filter(name=method_name, is_active=True)
+                if request.user.country.code in m.countries
             )
-        except PaymentMethod.DoesNotExist:
+        except StopIteration:
             messages.error(request, 'Invalid payment method selected.')
             return redirect('payments:deposit')
         
@@ -243,10 +241,8 @@ class WithdrawView(LoginRequiredMixin, TemplateView):
         wallet = user.wallet
         
         # Get available payment methods for withdrawals
-        payment_methods = PaymentMethod.objects.filter(
-            is_active=True,
-            countries__contains=[user.country.code]
-        ).order_by('name')
+    # Fix: SQLite does not support contains lookup for JSONField
+    payment_methods = [m for m in PaymentMethod.objects.filter(is_active=True).order_by('name') if user.country.code in m.countries]
         
         # Get recent withdrawals
         recent_withdrawals = Transaction.objects.filter(
@@ -288,13 +284,13 @@ class WithdrawMethodView(LoginRequiredMixin, TemplateView):
         user = self.request.user
         
         # Get payment method
+        # Fix: SQLite does not support contains lookup for JSONField
         try:
-            payment_method = PaymentMethod.objects.get(
-                name=method_name,
-                is_active=True,
-                countries__contains=[user.country.code]
+            payment_method = next(
+                m for m in PaymentMethod.objects.filter(name=method_name, is_active=True)
+                if user.country.code in m.countries
             )
-        except PaymentMethod.DoesNotExist:
+        except StopIteration:
             messages.error(self.request, 'Invalid payment method selected.')
             return context
         
@@ -353,13 +349,13 @@ class WithdrawMethodView(LoginRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         method_name = self.kwargs.get('method')
         
+        # Fix: SQLite does not support contains lookup for JSONField
         try:
-            payment_method = PaymentMethod.objects.get(
-                name=method_name,
-                is_active=True,
-                countries__contains=[request.user.country.code]
+            payment_method = next(
+                m for m in PaymentMethod.objects.filter(name=method_name, is_active=True)
+                if request.user.country.code in m.countries
             )
-        except PaymentMethod.DoesNotExist:
+        except StopIteration:
             messages.error(request, 'Invalid payment method selected.')
             return redirect('payments:withdraw')
         
@@ -613,14 +609,20 @@ def get_payment_methods(request):
     """AJAX view to get available payment methods"""
     country_code = request.user.country.code
     
-    methods = PaymentMethod.objects.filter(
-        is_active=True,
-        countries__contains=[country_code]
-    ).values('name', 'display_name', 'processing_fee', 'processing_time')
-    
+    # Fix: SQLite does not support contains lookup for JSONField
+    methods = [
+        {
+            'name': m.name,
+            'display_name': m.display_name,
+            'processing_fee': m.processing_fee,
+            'processing_time': m.processing_time
+        }
+        for m in PaymentMethod.objects.filter(is_active=True)
+        if country_code in m.countries
+    ]
     return JsonResponse({
         'success': True,
-        'methods': list(methods)
+        'methods': methods
     })
 
 @login_required
@@ -631,10 +633,10 @@ def calculate_fees(request):
     
     try:
         amount = Decimal(amount)
-        payment_method = PaymentMethod.objects.get(
-            name=method_name,
-            is_active=True,
-            countries__contains=[request.user.country.code]
+        # Fix: SQLite does not support contains lookup for JSONField
+        payment_method = next(
+            m for m in PaymentMethod.objects.filter(name=method_name, is_active=True)
+            if request.user.country.code in m.countries
         )
         
         processing_fee = amount * (payment_method.processing_fee / 100)
