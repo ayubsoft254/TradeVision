@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Profit History{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <h1 class="text-2xl font-heading mb-6">Profit History</h1>
+    <!-- Profit statistics -->
+    <div class="mb-6">
+        <p><strong>Total Profits:</strong> {{ stats.total_profits }}</p>
+        <p><strong>Withdrawn Profits:</strong> {{ stats.withdrawn_profits }}</p>
+        <p><strong>Available Profits:</strong> {{ stats.available_profits }}</p>
+        <p><strong>Average Daily Profit:</strong> {{ stats.avg_daily_profit }}</p>
+    </div>
+    <!-- Profits table/list -->
+    {% if profits %}
+        <table class="w-full table-auto bg-white shadow card-shadow rounded-lg">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Investment</th>
+                    <th>Trade</th>
+                    <th>Withdrawn</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profit in profits %}
+                <tr>
+                    <td>{{ profit.date_earned|date:'M d, Y' }}</td>
+                    <td>{{ profit.amount }}</td>
+                    <td>{{ profit.investment.package.display_name }}</td>
+                    <td>{% if profit.trade %}Trade #{{ profit.trade.id }}{% else %}-{% endif %}</td>
+                    <td>{% if profit.is_withdrawn %}Yes{% else %}No{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No profit history found.</p>
+    {% endif %}
+</div>
+{% endblock %}

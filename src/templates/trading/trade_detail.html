@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Trade Details{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto py-8">
+    <h1 class="text-2xl font-heading mb-6">Trade Details</h1>
+    {% if trade %}
+        <div class="bg-white p-6 rounded-lg shadow card-shadow mb-6">
+            <p><strong>Package:</strong> {{ trade.investment.package.display_name }}</p>
+            <p><strong>Status:</strong> {{ trade.get_status_display }}</p>
+            <p><strong>Amount:</strong> {{ trade.trade_amount }}</p>
+            <p><strong>Profit Rate:</strong> {{ trade.profit_rate }}%</p>
+            <p><strong>Profit Amount:</strong> {{ trade.profit_amount }}</p>
+            <p><strong>Started:</strong> {{ trade.start_time|date:'M d, Y H:i' }}</p>
+            <p><strong>Completed:</strong> {{ trade.end_time|date:'M d, Y H:i' }}</p>
+        </div>
+        <h2 class="text-xl font-semibold mb-4">Profit History</h2>
+        {% if profit_history %}
+            <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                <p><strong>Date Earned:</strong> {{ profit_history.date_earned|date:'M d, Y' }}</p>
+                <p><strong>Amount:</strong> {{ profit_history.amount }}</p>
+            </div>
+        {% else %}
+            <p>No profit history for this trade.</p>
+        {% endif %}
+        <h2 class="text-xl font-semibold mb-4">Related Trades</h2>
+        {% if related_trades %}
+            <ul>
+                {% for t in related_trades %}
+                <li><a href="{% url 'trading:trade_detail' t.id %}" class="text-primary-600 hover:underline">Trade #{{ t.id }}</a></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No related trades.</p>
+        {% endif %}
+    {% else %}
+        <p>Trade not found.</p>
+    {% endif %}
+</div>
+{% endblock %}

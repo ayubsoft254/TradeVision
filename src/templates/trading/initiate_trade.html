@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Initiate Trade{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto py-8">
+    <h1 class="text-2xl font-heading mb-6">Initiate New Trade</h1>
+    {% if trading_allowed %}
+        <form method="post" class="bg-white p-6 rounded-lg shadow card-shadow">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="bg-primary-600 text-white px-4 py-2 rounded-lg mt-4">Initiate Trade</button>
+        </form>
+        <h2 class="text-xl font-semibold mt-8 mb-4">Available Investments</h2>
+        {% if available_investments %}
+            <ul>
+                {% for investment in available_investments %}
+                <li class="mb-2">{{ investment.package.display_name }} - {{ investment.total_investment }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No available investments for trading.</p>
+        {% endif %}
+    {% else %}
+        <div class="bg-warning-100 text-warning-800 p-4 rounded-lg">
+            <p>Trading is only allowed Monday to Friday, 8 AM to 6 PM.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

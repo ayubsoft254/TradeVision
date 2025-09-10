@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}My Investments{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto py-8">
+    <h1 class="text-2xl font-heading mb-6">My Investments</h1>
+    <!-- Investment statistics -->
+    <div class="mb-6">
+        <p><strong>Total Investments:</strong> {{ stats.total_investments }}</p>
+        <p><strong>Active Investments:</strong> {{ stats.active_investments }}</p>
+        <p><strong>Total Invested:</strong> {{ stats.total_invested }}</p>
+        <p><strong>Total Profits:</strong> {{ stats.total_profits }}</p>
+    </div>
+    <!-- Investments table/list -->
+    {% if investments %}
+        <table class="w-full table-auto bg-white shadow card-shadow rounded-lg">
+            <thead>
+                <tr>
+                    <th>Package</th>
+                    <th>Status</th>
+                    <th>Principal</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for investment in investments %}
+                <tr>
+                    <td>{{ investment.package.display_name }}</td>
+                    <td>{{ investment.get_status_display }}</td>
+                    <td>{{ investment.principal_amount }}</td>
+                    <td>{{ investment.created_at|date:'M d, Y' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No investments found.</p>
+    {% endif %}
+</div>
+{% endblock %}
