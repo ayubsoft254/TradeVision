@@ -1,0 +1,542 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if query %}Search Results for "{{ query }}"{% else %}Search{% endif %} - TradeVision{% endblock %}
+
+{% block content %}
+<!-- Search Header -->
+<section class="bg-gradient-bg text-white py-16">
+    <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl font-bold font-heading mb-4">
+            {% if query %}
+                Search Results
+            {% else %}
+                Search TradeVision
+            {% endif %}
+        </h1>
+        {% if query %}
+            <p class="text-xl text-gray-200">
+                {{ total_results }} result{{ total_results|pluralize }} found for "{{ query }}"
+            </p>
+        {% else %}
+            <p class="text-xl text-gray-200">Find answers, news, and information</p>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Search Form -->
+<section class="py-8 bg-white border-b border-gray-200">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <form method="get" action="{% url 'core:search' %}" class="relative">
+            <div class="flex">
+                <div class="relative flex-1">
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" 
+                           name="q" 
+                           value="{{ query }}"
+                           placeholder="Search for articles, FAQs, or any information..." 
+                           class="w-full pl-12 pr-4 py-4 text-lg border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                </div>
+                <button type="submit" 
+                        class="bg-primary-600 text-white px-8 py-4 rounded-r-lg hover:bg-primary-700 transition-colors duration-200 flex items-center">
+                    <i class="fas fa-search mr-2"></i>
+                    <span class="hidden sm:inline">Search</span>
+                </button>
+            </div>
+        </form>
+        
+        {% if query %}
+        <div class="mt-4 flex flex-wrap items-center gap-4 text-sm">
+            <span class="text-gray-600">Search in:</span>
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'core:search' %}?q={{ query }}" 
+                   class="px-3 py-1 rounded-full {% if not request.GET.type %}bg-primary-100 text-primary-800{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} transition-colors duration-200">
+                    All Results
+                </a>
+                <a href="{% url 'core:search' %}?q={{ query }}&type=faq" 
+                   class="px-3 py-1 rounded-full {% if request.GET.type == 'faq' %}bg-primary-100 text-primary-800{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} transition-colors duration-200">
+                    FAQ ({{ faq_count }})
+                </a>
+                <a href="{% url 'core:search' %}?q={{ query }}&type=news" 
+                   class="px-3 py-1 rounded-full {% if request.GET.type == 'news' %}bg-primary-100 text-primary-800{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %} transition-colors duration-200">
+                    News ({{ news_count }})
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Search Results -->
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {% if query %}
+            {% if results %}
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    <!-- Main Results -->
+                    <div class="lg:col-span-3">
+                        <div class="mb-6">
+                            <p class="text-gray-600">
+                                Showing {{ total_results }} result{{ total_results|pluralize }} for 
+                                <strong>"{{ query }}"</strong>
+                            </p>
+                        </div>
+                        
+                        <div class="space-y-8">
+                            {% for result in results %}
+                            <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-200">
+                                <!-- Result Header -->
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex items-center space-x-2">
+                                        {% if result.type == 'FAQ' %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <i class="fas fa-question-circle mr-1"></i>FAQ
+                                            </span>
+                                        {% elif result.type == 'News' %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <i class="fas fa-newspaper mr-1"></i>News
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                <i class="fas fa-file-text mr-1"></i>Page
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if result.date %}
+                                    <span class="text-sm text-gray-500">
+                                        {{ result.date|date:"M d, Y" }}
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Result Content -->
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                                        <a href="{{ result.url }}" 
+                                           class="hover:text-primary-600 transition-colors duration-200">
+                                            {{ result.title }}
+                                        </a>
+                                    </h3>
+                                    
+                                    <p class="text-gray-600 leading-relaxed mb-3">
+                                        {{ result.content|safe }}
+                                    </p>
+                                    
+                                    <div class="flex items-center justify-between">
+                                        <a href="{{ result.url }}" 
+                                           class="text-primary-600 hover:text-primary-700 font-medium text-sm">
+                                            {% if result.type == 'FAQ' %}
+                                                View Answer
+                                            {% elif result.type == 'News' %}
+                                                Read Article
+                                            {% else %}
+                                                View Page
+                                            {% endif %}
+                                            <i class="fas fa-arrow-right ml-1"></i>
+                                        </a>
+                                        
+                                        {% if result.relevance %}
+                                        <div class="flex items-center text-sm text-gray-500">
+                                            <span class="mr-2">Relevance:</span>
+                                            <div class="flex space-x-1">
+                                                {% for i in "12345"|make_list %}
+                                                    <div class="w-2 h-2 rounded-full {% if forloop.counter <= result.relevance %}bg-primary-500{% else %}bg-gray-300{% endif %}"></div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Load More Results -->
+                        {% if total_results > results|length %}
+                        <div class="text-center mt-12">
+                            <button onclick="loadMoreResults()" 
+                                    class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                                <i class="fas fa-plus mr-2"></i>Load More Results
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Search Sidebar -->
+                    <div class="lg:col-span-1">
+                        <div class="sticky top-24 space-y-6">
+                            <!-- Search Tips -->
+                            <div class="bg-blue-50 rounded-lg p-6">
+                                <h3 class="font-semibold text-gray-900 mb-3">
+                                    <i class="fas fa-lightbulb text-blue-600 mr-2"></i>Search Tips
+                                </h3>
+                                <ul class="text-sm text-gray-600 space-y-2">
+                                    <li>• Use specific keywords for better results</li>
+                                    <li>• Try different terms if you don't find what you need</li>
+                                    <li>• Use quotes for exact phrases</li>
+                                    <li>• Check spelling and try variations</li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Popular Searches -->
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                <h3 class="font-semibold text-gray-900 mb-4">Popular Searches</h3>
+                                <div class="space-y-2">
+                                    <a href="{% url 'core:search' %}?q=trading+packages" 
+                                       class="block text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200">
+                                        Trading packages
+                                    </a>
+                                    <a href="{% url 'core:search' %}?q=how+to+deposit" 
+                                       class="block text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200">
+                                        How to deposit
+                                    </a>
+                                    <a href="{% url 'core:search' %}?q=withdrawal+process" 
+                                       class="block text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200">
+                                        Withdrawal process
+                                    </a>
+                                    <a href="{% url 'core:search' %}?q=account+verification" 
+                                       class="block text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200">
+                                        Account verification
+                                    </a>
+                                    <a href="{% url 'core:search' %}?q=profit+calculation" 
+                                       class="block text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200">
+                                        Profit calculation
+                                    </a>
+                                    <a href="{% url 'core:search' %}?q=security+features" 
+                                       class="block text-sm text-gray-600 hover:text-primary-600 transition-colors duration-200">
+                                        Security features
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Quick Links -->
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                <h3 class="font-semibold text-gray-900 mb-4">Quick Links</h3>
+                                <div class="space-y-3">
+                                    <a href="{% url 'core:faq' %}" 
+                                       class="flex items-center text-gray-600 hover:text-primary-600 transition-colors duration-200">
+                                        <i class="fas fa-question-circle w-5 mr-3"></i>
+                                        <span class="text-sm">Browse All FAQs</span>
+                                    </a>
+                                    <a href="{% url 'core:contact' %}" 
+                                       class="flex items-center text-gray-600 hover:text-primary-600 transition-colors duration-200">
+                                        <i class="fas fa-envelope w-5 mr-3"></i>
+                                        <span class="text-sm">Contact Support</span>
+                                    </a>
+                                    <a href="{% url 'core:news_list' %}" 
+                                       class="flex items-center text-gray-600 hover:text-primary-600 transition-colors duration-200">
+                                        <i class="fas fa-newspaper w-5 mr-3"></i>
+                                        <span class="text-sm">Latest News</span>
+                                    </a>
+                                    {% if user.is_authenticated %}
+                                    <a href="{% url 'core:create_support_ticket' %}" 
+                                       class="flex items-center text-gray-600 hover:text-primary-600 transition-colors duration-200">
+                                        <i class="fas fa-ticket-alt w-5 mr-3"></i>
+                                        <span class="text-sm">Create Support Ticket</span>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Help Widget -->
+                            <div class="bg-gradient-primary text-white p-6 rounded-lg">
+                                <h3 class="font-semibold mb-3">
+                                    <i class="fas fa-life-ring mr-2"></i>Need More Help?
+                                </h3>
+                                <p class="text-sm opacity-90 mb-4">
+                                    Can't find what you're looking for? Our support team is here to help.
+                                </p>
+                                <a href="{% url 'core:contact' %}" 
+                                   class="block bg-white text-primary-600 text-center py-2 rounded font-medium text-sm hover:bg-gray-100 transition-colors duration-200">
+                                    Contact Support
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- No Results Found -->
+                <div class="text-center py-16 max-w-2xl mx-auto">
+                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-search text-gray-400 text-3xl"></i>
+                    </div>
+                    
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">No Results Found</h2>
+                    <p class="text-gray-600 mb-8 leading-relaxed">
+                        We couldn't find any results for "<strong>{{ query }}</strong>". 
+                        Try adjusting your search terms or browse our popular content below.
+                    </p>
+                    
+                    <!-- Search Suggestions -->
+                    <div class="bg-gray-50 rounded-lg p-6 mb-8">
+                        <h3 class="font-semibold text-gray-900 mb-4">Search Suggestions:</h3>
+                        <ul class="text-left space-y-2 text-gray-600">
+                            <li>• Check your spelling and try again</li>
+                            <li>• Use fewer or different keywords</li>
+                            <li>• Try more general terms</li>
+                            <li>• Browse our FAQ section for common questions</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Alternative Actions -->
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="{% url 'core:faq' %}" 
+                           class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                            <i class="fas fa-question-circle mr-2"></i>Browse FAQ
+                        </a>
+                        <a href="{% url 'core:contact' %}" 
+                           class="border border-primary-600 text-primary-600 px-6 py-3 rounded-lg hover:bg-primary-50 transition-colors duration-200">
+                            <i class="fas fa-envelope mr-2"></i>Contact Support
+                        </a>
+                        <a href="{% url 'core:news_list' %}" 
+                           class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                            <i class="fas fa-newspaper mr-2"></i>Latest News
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <!-- No Search Query -->
+            <div class="text-center py-16 max-w-2xl mx-auto">
+                <div class="w-24 h-24 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-search text-primary-600 text-3xl"></i>
+                </div>
+                
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Search TradeVision</h2>
+                <p class="text-gray-600 mb-8 leading-relaxed">
+                    Find answers to your questions, browse our latest news, or discover helpful resources.
+                </p>
+                
+                <!-- Popular Categories -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-200">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-question-circle text-blue-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Frequently Asked Questions</h3>
+                        <p class="text-sm text-gray-600 mb-4">Find quick answers to common questions about trading and our platform.</p>
+                        <a href="{% url 'core:faq' %}" 
+                           class="text-primary-600 hover:text-primary-700 font-medium text-sm">
+                            Browse FAQ <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-200">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-newspaper text-green-600 text-xl"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-900 mb-2">News & Updates</h3>
+                        <p class="text-sm text-gray-600 mb-4">Stay informed with the latest market insights and platform updates.</p>
+                        <a href="{% url 'core:news_list' %}" 
+                           class="text-primary-600 hover:text-primary-700 font-medium text-sm">
+                            Read News <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Quick Search Examples -->
+                <div class="text-left">
+                    <h3 class="font-semibold text-gray-900 mb-4 text-center">Try searching for:</h3>
+                    <div class="flex flex-wrap gap-2 justify-center">
+                        <a href="{% url 'core:search' %}?q=how+to+start+trading" 
+                           class="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm hover:bg-gray-200 transition-colors duration-200">
+                            How to start trading
+                        </a>
+                        <a href="{% url 'core:search' %}?q=minimum+deposit" 
+                           class="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm hover:bg-gray-200 transition-colors duration-200">
+                            Minimum deposit
+                        </a>
+                        <a href="{% url 'core:search' %}?q=withdrawal+time" 
+                           class="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm hover:bg-gray-200 transition-colors duration-200">
+                            Withdrawal time
+                        </a>
+                        <a href="{% url 'core:search' %}?q=account+security" 
+                           class="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm hover:bg-gray-200 transition-colors duration-200">
+                            Account security
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-focus search input
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput && !searchInput.value) {
+        searchInput.focus();
+    }
+});
+
+// Search form enhancement
+function enhanceSearchForm() {
+    const form = document.querySelector('form');
+    const input = document.querySelector('input[name="q"]');
+    
+    if (!form || !input) return;
+    
+    // Add search suggestions (you can populate this from your backend)
+    const suggestions = [
+        'trading packages',
+        'how to deposit',
+        'withdrawal process',
+        'account verification',
+        'profit calculation',
+        'security features',
+        'minimum investment',
+        'customer support'
+    ];
+    
+    // Create suggestions dropdown
+    const dropdown = document.createElement('div');
+    dropdown.className = 'absolute top-full left-0 right-0 bg-white border border-gray-300 border-t-0 rounded-b-lg shadow-lg hidden z-10';
+    dropdown.id = 'search-suggestions';
+    
+    input.parentElement.style.position = 'relative';
+    input.parentElement.appendChild(dropdown);
+    
+    // Show suggestions on focus
+    input.addEventListener('focus', function() {
+        if (this.value.length === 0) {
+            showSuggestions(suggestions.slice(0, 5));
+        }
+    });
+    
+    // Filter suggestions as user types
+    input.addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        if (query.length === 0) {
+            showSuggestions(suggestions.slice(0, 5));
+        } else if (query.length > 1) {
+            const filtered = suggestions.filter(s => s.includes(query)).slice(0, 5);
+            showSuggestions(filtered);
+        } else {
+            hideSuggestions();
+        }
+    });
+    
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!input.parentElement.contains(e.target)) {
+            hideSuggestions();
+        }
+    });
+    
+    function showSuggestions(items) {
+        if (items.length === 0) {
+            hideSuggestions();
+            return;
+        }
+        
+        dropdown.innerHTML = items.map(item => 
+            `<div class="px-4 py-2 hover:bg-gray-50 cursor-pointer" onclick="selectSuggestion('${item}')">
+                <i class="fas fa-search text-gray-400 mr-2"></i>${item}
+            </div>`
+        ).join('');
+        
+        dropdown.classList.remove('hidden');
+    }
+    
+    function hideSuggestions() {
+        dropdown.classList.add('hidden');
+    }
+    
+    // Global function for suggestion selection
+    window.selectSuggestion = function(suggestion) {
+        input.value = suggestion;
+        hideSuggestions();
+        form.submit();
+    };
+}
+
+// Highlight search terms in results
+function highlightSearchTerms() {
+    const query = new URLSearchParams(window.location.search).get('q');
+    if (!query) return;
+    
+    const terms = query.split(' ').filter(term => term.length > 2);
+    const resultContents = document.querySelectorAll('.search-result-content');
+    
+    resultContents.forEach(content => {
+        let html = content.innerHTML;
+        
+        terms.forEach(term => {
+            const regex = new RegExp(`(${term})`, 'gi');
+            html = html.replace(regex, '<mark class="bg-yellow-200 px-1 rounded">$1</mark>');
+        });
+        
+        content.innerHTML = html;
+    });
+}
+
+// Load more results functionality
+function loadMoreResults() {
+    // This would typically make an AJAX request to load more results
+    // For now, we'll just show a loading state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
+    button.disabled = true;
+    
+    // Simulate loading delay
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        // Here you would append new results to the page
+        alert('This feature would load more search results via AJAX');
+    }, 1500);
+}
+
+// Search analytics (track popular searches)
+function trackSearch() {
+    const query = new URLSearchParams(window.location.search).get('q');
+    if (query) {
+        // Send analytics data (replace with your analytics implementation)
+        console.log('Search tracked:', query);
+    }
+}
+
+// Initialize all enhancements
+document.addEventListener('DOMContentLoaded', function() {
+    enhanceSearchForm();
+    highlightSearchTerms();
+    trackSearch();
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + K to focus search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.querySelector('input[name="q"]');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+        }
+    }
+});
+
+// Search result click tracking
+document.querySelectorAll('a[href]').forEach(link => {
+    if (link.closest('.search-result')) {
+        link.addEventListener('click', function() {
+            const resultType = this.closest('.search-result').dataset.type;
+            const query = new URLSearchParams(window.location.search).get('q');
+            
+            // Track click analytics
+            console.log('Search result clicked:', {
+                query: query,
+                type: resultType,
+                url: this.href
+            });
+        });
+    }
+});
+</script>
+{% endblock %}
