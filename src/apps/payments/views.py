@@ -1,18 +1,17 @@
 # apps/payments/views.py
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.generic import TemplateView, ListView, DetailView, CreateView
-from django.urls import reverse_lazy
-from django.http import JsonResponse, Http404
-from django.db.models import Sum, Count, Q, Avg
+from django.http import JsonResponse
+from django.db.models import Sum, Avg
 from django.utils import timezone
 from django.conf import settings
-from django.core.paginator import Paginator
+from django.contrib.auth import get_user_model
 from decimal import Decimal
-import json
-from datetime import timedelta
+
+user = get_user_model()
 
 from .models import (
     PaymentMethod, Wallet, Transaction, DepositRequest,
@@ -24,6 +23,8 @@ from .forms import (
 )
 from apps.core.models import SystemLog
 from apps.trading.models import ProfitHistory
+
+User = get_user_model()
 
 class DepositView(LoginRequiredMixin, TemplateView):
     """Main deposit page with method selection"""
@@ -40,8 +41,8 @@ class DepositView(LoginRequiredMixin, TemplateView):
         )
         
         # Get available payment methods for user's country
-    # Fix: SQLite does not support contains lookup for JSONField
-    payment_methods = [m for m in PaymentMethod.objects.filter(is_active=True).order_by('name') if user.country.code in m.countries]
+        # Fix: SQLite does not support contains lookup for JSONField
+        payment_methods = [m for m in PaymentMethod.objects.filter(is_active=True).order_by('name') if user.country.code in m.countries]
         
         # Get recent deposits
         recent_deposits = Transaction.objects.filter(
@@ -241,8 +242,8 @@ class WithdrawView(LoginRequiredMixin, TemplateView):
         wallet = user.wallet
         
         # Get available payment methods for withdrawals
-    # Fix: SQLite does not support contains lookup for JSONField
-    payment_methods = [m for m in PaymentMethod.objects.filter(is_active=True).order_by('name') if user.country.code in m.countries]
+        # Fix: SQLite does not support contains lookup for JSONField
+        payment_methods = [m for m in PaymentMethod.objects.filter(is_active=True).order_by('name') if user.country.code in m.countries]
         
         # Get recent withdrawals
         recent_withdrawals = Transaction.objects.filter(
