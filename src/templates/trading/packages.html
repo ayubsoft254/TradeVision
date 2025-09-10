@@ -1,0 +1,417 @@
+{% extends 'base.html' %}
+
+{% block title %}Trading Packages - TradeVision{% endblock %}
+
+{% block extra_css %}
+<style>
+    .package-card {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .package-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    }
+    
+    .package-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #10b981, #f59e0b);
+    }
+    
+    .package-premium::before {
+        background: linear-gradient(90deg, #8b5cf6, #ec4899, #f59e0b);
+    }
+    
+    .profit-calculator {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+    
+    .recommended-badge {
+        background: linear-gradient(135deg, #10b981, #059669);
+        animation: pulse 2s infinite;
+    }
+    
+    .investment-input:focus {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        border-color: #3b82f6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold font-heading text-gray-900 mb-4">
+                Choose Your Trading Package
+            </h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Select a trading package that suits your investment goals. All packages include welcome bonuses and daily profit opportunities.
+            </p>
+            
+            <!-- Wallet Balance Display -->
+            <div class="mt-6 inline-flex items-center space-x-2 bg-white rounded-full px-6 py-3 shadow-md">
+                <i class="fas fa-wallet text-primary-600"></i>
+                <span class="text-gray-600">Available Balance:</span>
+                <span class="font-bold text-gray-900">{{ wallet.balance|floatformat:2 }} {{ wallet.currency }}</span>
+            </div>
+        </div>
+
+        <!-- Packages Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {% for package_info in packages %}
+            <div class="package-card bg-white rounded-2xl p-8 card-shadow
+                {% if package_info.package.name == 'premium' %}package-premium{% endif %}">
+                
+                <!-- Package Header -->
+                <div class="text-center mb-6">
+                    {% if package_info.package.name == 'premium' %}
+                        <div class="recommended-badge text-white px-3 py-1 rounded-full text-xs font-semibold mb-4 inline-block">
+                            MOST POPULAR
+                        </div>
+                    {% endif %}
+                    
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">
+                        {{ package_info.package.display_name }}
+                    </h3>
+                    
+                    <div class="text-4xl font-bold text-primary-600 mb-2">
+                        {{ package_info.package.profit_min }}%-{{ package_info.package.profit_max }}%
+                    </div>
+                    <p class="text-gray-500">Daily Profit Range</p>
+                </div>
+
+                <!-- Package Features -->
+                <div class="space-y-4 mb-8">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Minimum Investment</span>
+                        <span class="font-semibold">{{ package_info.min_investment|floatformat:0 }} {{ wallet.currency }}</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Welcome Bonus</span>
+                        <span class="font-semibold text-success-600">{{ package_info.package.welcome_bonus }}%</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Trading Duration</span>
+                        <span class="font-semibold">{{ package_info.package.duration_hours }} Hours</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Est. Monthly Profit</span>
+                        <span class="font-semibold text-primary-600">
+                            {{ package_info.monthly_profit|floatformat:0 }} {{ wallet.currency }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Current Investment Display -->
+                {% if package_info.user_investment %}
+                <div class="bg-primary-50 rounded-lg p-4 mb-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-primary-600 font-medium">Your Investment</span>
+                        <span class="text-sm font-semibold text-primary-700">
+                            {{ package_info.user_investment.total_invested|floatformat:2 }} {{ wallet.currency }}
+                        </span>
+                    </div>
+                    <div class="text-xs text-primary-500">
+                        {{ package_info.user_investment.count }} active investment{{ package_info.user_investment.count|pluralize }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Action Button -->
+                <div class="space-y-3">
+                    {% if package_info.can_afford %}
+                        <a href="{% url 'trading:invest' package_info.package.name %}" 
+                           class="w-full bg-gradient-primary text-white py-3 px-6 rounded-lg font-semibold text-center block hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                            {% if package_info.user_investment %}
+                                Add More Investment
+                            {% else %}
+                                Start Investing
+                            {% endif %}
+                        </a>
+                    {% else %}
+                        <button disabled 
+                                class="w-full bg-gray-300 text-gray-500 py-3 px-6 rounded-lg font-semibold cursor-not-allowed">
+                            Insufficient Balance
+                        </button>
+                        <a href="{% url 'payments:deposit' %}" 
+                           class="w-full border-2 border-primary-600 text-primary-600 py-2 px-6 rounded-lg font-medium text-center block hover:bg-primary-50 transition-colors duration-200 text-sm">
+                            Add Funds
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Package Benefits -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h4 class="font-semibold text-gray-900 mb-3">Package Benefits</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-success-500 mr-2"></i>
+                            {{ package_info.package.welcome_bonus }}% Welcome Bonus
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-success-500 mr-2"></i>
+                            Daily Profit Payments
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-success-500 mr-2"></i>
+                            24/7 Customer Support
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-success-500 mr-2"></i>
+                            Automated Trading
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Profit Calculator Section -->
+        <div class="profit-calculator rounded-2xl p-8 mb-12">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">
+                    Profit Calculator
+                </h2>
+                <p class="text-gray-600">
+                    Calculate your potential returns with our trading packages
+                </p>
+            </div>
+
+            <div class="max-w-2xl mx-auto bg-white rounded-xl p-6 shadow-lg">
+                <form id="calculator-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Package Selection -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Select Package
+                            </label>
+                            <select id="calc-package" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <option value="">Choose a package</option>
+                                {% for package_info in packages %}
+                                <option value="{{ package_info.package.id }}" 
+                                        data-min-stake="{{ package_info.package.min_stake }}"
+                                        data-welcome-bonus="{{ package_info.package.welcome_bonus }}"
+                                        data-profit-min="{{ package_info.package.profit_min }}"
+                                        data-profit-max="{{ package_info.package.profit_max }}">
+                                    {{ package_info.package.display_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Investment Amount -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Investment Amount ({{ wallet.currency }})
+                            </label>
+                            <input type="number" 
+                                   id="calc-amount" 
+                                   placeholder="Enter amount"
+                                   min="0" 
+                                   step="0.01"
+                                   class="investment-input w-full px-4 py-3 border border-gray-300 rounded-lg transition-all duration-200">
+                        </div>
+                    </div>
+
+                    <!-- Results Display -->
+                    <div id="calc-results" class="hidden mt-8 p-6 bg-gray-50 rounded-lg">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Projected Returns</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-primary-600" id="daily-profit">-</div>
+                                <div class="text-sm text-gray-500">Daily Profit Range</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-success-600" id="monthly-profit">-</div>
+                                <div class="text-sm text-gray-500">Monthly Potential</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-warning-600" id="yearly-profit">-</div>
+                                <div class="text-sm text-gray-500">Yearly Potential</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-4 bg-white rounded-lg border">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-gray-600">Investment Amount:</span>
+                                <span class="font-semibold" id="investment-display">-</span>
+                            </div>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-gray-600">Welcome Bonus:</span>
+                                <span class="font-semibold text-success-600" id="bonus-display">-</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Total Trading Amount:</span>
+                                <span class="font-semibold text-primary-600" id="total-display">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="bg-white rounded-2xl p-8 card-shadow">
+            <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">
+                Frequently Asked Questions
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">How do trading packages work?</h3>
+                        <p class="text-gray-600 text-sm">
+                            Choose a package, make an investment, and our automated trading system generates daily profits within the specified range.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">When are profits paid?</h3>
+                        <p class="text-gray-600 text-sm">
+                            Profits are calculated and paid daily after each 24-hour trading cycle is completed.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Can I withdraw my investment?</h3>
+                        <p class="text-gray-600 text-sm">
+                            Yes, you can withdraw your principal investment at any time, subject to our terms and conditions.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">What is the welcome bonus?</h3>
+                        <p class="text-gray-600 text-sm">
+                            A percentage bonus added to your investment that increases your total trading amount and potential profits.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">Are there any hidden fees?</h3>
+                        <p class="text-gray-600 text-sm">
+                            No hidden fees. All costs and profit sharing arrangements are clearly stated in our terms.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-semibold text-gray-900 mb-2">How secure are my funds?</h3>
+                        <p class="text-gray-600 text-sm">
+                            We use bank-level security and encryption to protect all user funds and personal information.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <a href="{% url 'core:faq' %}" class="text-primary-600 hover:text-primary-700 font-medium">
+                    View All FAQs <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Profit Calculator
+    const calcForm = document.getElementById('calculator-form');
+    const packageSelect = document.getElementById('calc-package');
+    const amountInput = document.getElementById('calc-amount');
+    const resultsDiv = document.getElementById('calc-results');
+
+    function updateCalculator() {
+        const packageOption = packageSelect.selectedOptions[0];
+        const amount = parseFloat(amountInput.value);
+        
+        if (!packageOption || !packageOption.value || !amount || amount <= 0) {
+            resultsDiv.classList.add('hidden');
+            return;
+        }
+        
+        const minStake = parseFloat(packageOption.dataset.minStake);
+        const welcomeBonus = parseFloat(packageOption.dataset.welcomeBonus);
+        const profitMin = parseFloat(packageOption.dataset.profitMin);
+        const profitMax = parseFloat(packageOption.dataset.profitMax);
+        
+        if (amount < minStake) {
+            resultsDiv.classList.add('hidden');
+            amountInput.setCustomValidity(`Minimum investment is ${minStake} {{ wallet.currency }}`);
+            return;
+        } else {
+            amountInput.setCustomValidity('');
+        }
+        
+        // Calculations
+        const bonus = amount * (welcomeBonus / 100);
+        const totalTradingAmount = amount + bonus;
+        const minDailyProfit = totalTradingAmount * (profitMin / 100);
+        const maxDailyProfit = totalTradingAmount * (profitMax / 100);
+        const avgDailyProfit = (minDailyProfit + maxDailyProfit) / 2;
+        const monthlyProfit = avgDailyProfit * 22; // 22 trading days
+        const yearlyProfit = avgDailyProfit * 260; // 260 trading days
+        
+        // Update display
+        document.getElementById('daily-profit').textContent = 
+            `${minDailyProfit.toFixed(2)} - ${maxDailyProfit.toFixed(2)} {{ wallet.currency }}`;
+        document.getElementById('monthly-profit').textContent = 
+            `~${monthlyProfit.toFixed(0)} {{ wallet.currency }}`;
+        document.getElementById('yearly-profit').textContent = 
+            `~${yearlyProfit.toFixed(0)} {{ wallet.currency }}`;
+        document.getElementById('investment-display').textContent = 
+            `${amount.toFixed(2)} {{ wallet.currency }}`;
+        document.getElementById('bonus-display').textContent = 
+            `+${bonus.toFixed(2)} {{ wallet.currency }}`;
+        document.getElementById('total-display').textContent = 
+            `${totalTradingAmount.toFixed(2)} {{ wallet.currency }}`;
+        
+        resultsDiv.classList.remove('hidden');
+    }
+
+    packageSelect.addEventListener('change', updateCalculator);
+    amountInput.addEventListener('input', updateCalculator);
+
+    // Real-time AJAX calculator (optional enhancement)
+    function fetchCalculation() {
+        const packageId = packageSelect.value;
+        const amount = amountInput.value;
+        
+        if (packageId && amount) {
+            fetch(`{% url 'trading:package_calculator' %}?package_id=${packageId}&amount=${amount}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update with server-calculated values if needed
+                        console.log('Server calculation:', data.data);
+                    }
+                })
+                .catch(error => console.log('Calculator error:', error));
+        }
+    }
+
+    // Add loading states to buttons
+    document.querySelectorAll('a[href*="invest"]').forEach(button => {
+        button.addEventListener('click', function() {
+            if (!this.classList.contains('cursor-not-allowed')) {
+                showLoading();
+            }
+        });
+    });
+</script>
+{% endblock %}

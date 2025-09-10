@@ -1,0 +1,437 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Invest in {{ package.display_name }} - TradeVision{% endblock %}
+
+{% block extra_css %}
+<style>
+    .investment-form {
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        border: 1px solid rgba(59, 130, 246, 0.1);
+    }
+    
+    .package-highlight {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    }
+    
+    .investment-input:focus {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        border-color: #3b82f6;
+        transform: scale(1.02);
+    }
+    
+    .calculation-card {
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    }
+    
+    .profit-animation {
+        animation: profit-pulse 2s infinite;
+    }
+    
+    @keyframes profit-pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .step-indicator {
+        transition: all 0.3s ease;
+    }
+    
+    .step-indicator.active {
+        background: linear-gradient(135deg, #10b981, #059669);
+        transform: scale(1.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Progress Indicator -->
+        <div class="mb-8">
+            <div class="flex items-center justify-center space-x-4">
+                <div class="step-indicator active w-10 h-10 rounded-full text-white flex items-center justify-center text-sm font-semibold">
+                    1
+                </div>
+                <div class="w-16 h-1 bg-gray-200"></div>
+                <div class="step-indicator w-10 h-10 bg-gray-200 rounded-full text-gray-500 flex items-center justify-center text-sm font-semibold">
+                    2
+                </div>
+                <div class="w-16 h-1 bg-gray-200"></div>
+                <div class="step-indicator w-10 h-10 bg-gray-200 rounded-full text-gray-500 flex items-center justify-center text-sm font-semibold">
+                    3
+                </div>
+            </div>
+            <div class="flex justify-center mt-2">
+                <div class="text-center">
+                    <div class="text-sm font-medium text-gray-900">Choose Amount</div>
+                    <div class="text-xs text-gray-500">Step 1 of 3</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold font-heading text-gray-900 mb-2">
+                Invest in {{ package.display_name }}
+            </h1>
+            <p class="text-gray-600">
+                Set your investment amount and start earning daily profits
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Investment Form -->
+            <div class="order-2 lg:order-1">
+                <div class="investment-form rounded-2xl p-8 card-shadow">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6">
+                        Investment Details
+                    </h2>
+
+                    <form method="post" id="investment-form">
+                        {% csrf_token %}
+                        
+                        <!-- Investment Amount -->
+                        <div class="mb-6">
+                            <label for="{{ form.principal_amount.id_for_label }}" 
+                                   class="block text-sm font-medium text-gray-700 mb-2">
+                                Investment Amount ({{ wallet.currency }})
+                            </label>
+                            
+                            <div class="relative">
+                                {{ form.principal_amount }}
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <span class="text-gray-500 text-sm">{{ wallet.currency }}</span>
+                                </div>
+                            </div>
+                            
+                            {% if form.principal_amount.errors %}
+                                <div class="mt-2 text-sm text-danger-600">
+                                    {{ form.principal_amount.errors.0 }}
+                                </div>
+                            {% endif %}
+                            
+                            {% if form.principal_amount.help_text %}
+                                <div class="mt-2 text-sm text-gray-500">
+                                    {{ form.principal_amount.help_text }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Quick Amount Buttons -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">
+                                Quick Select
+                            </label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button type="button" 
+                                        onclick="setAmount({{ package.min_stake }})"
+                                        class="quick-amount-btn py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                                    Minimum<br>
+                                    <span class="text-primary-600 font-semibold">{{ package.min_stake|floatformat:0 }}</span>
+                                </button>
+                                
+                                <button type="button" 
+                                        onclick="setAmount({{ package.min_stake|mul:5 }})"
+                                        class="quick-amount-btn py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                                    Recommended<br>
+                                    <span class="text-primary-600 font-semibold">{{ package.min_stake|mul:5|floatformat:0 }}</span>
+                                </button>
+                                
+                                <button type="button" 
+                                        onclick="setAmount({{ package.min_stake|mul:10 }})"
+                                        class="quick-amount-btn py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                                    High Return<br>
+                                    <span class="text-primary-600 font-semibold">{{ package.min_stake|mul:10|floatformat:0 }}</span>
+                                </button>
+                                
+                                <button type="button" 
+                                        onclick="setAmount({{ wallet.balance }})"
+                                        class="quick-amount-btn py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                                        {% if wallet.balance < package.min_stake %}disabled{% endif %}>
+                                    Maximum<br>
+                                    <span class="text-primary-600 font-semibold">{{ wallet.balance|floatformat:0 }}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Wallet Balance -->
+                        <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-600">Available Balance</span>
+                                <span class="font-semibold text-gray-900">
+                                    {{ wallet.balance|floatformat:2 }} {{ wallet.currency }}
+                                </span>
+                            </div>
+                            {% if wallet.balance < package.min_stake %}
+                                <div class="mt-2 text-sm text-danger-600">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    Insufficient balance. Minimum required: {{ package.min_stake }} {{ wallet.currency }}
+                                </div>
+                                <a href="{% url 'payments:deposit' %}" 
+                                   class="mt-2 inline-flex items-center text-sm text-primary-600 hover:text-primary-700">
+                                    <i class="fas fa-plus-circle mr-1"></i>Add Funds
+                                </a>
+                            {% endif %}
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" 
+                                id="submit-btn"
+                                class="w-full bg-gradient-primary text-white py-4 px-6 rounded-lg font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                {% if wallet.balance < package.min_stake %}disabled{% endif %}>
+                            <span id="submit-text">
+                                <i class="fas fa-rocket mr-2"></i>Start Investment
+                            </span>
+                            <span id="submit-loading" class="hidden">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>Processing...
+                            </span>
+                        </button>
+
+                        <div class="mt-4 text-center">
+                            <a href="{% url 'trading:packages' %}" 
+                               class="text-sm text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-arrow-left mr-1"></i>Back to Packages
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Package Info & Calculations -->
+            <div class="order-1 lg:order-2 space-y-6">
+                <!-- Package Overview -->
+                <div class="package-highlight rounded-2xl p-6 text-white card-shadow">
+                    <h3 class="text-xl font-semibold mb-4">{{ package.display_name }}</h3>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <div class="text-sm opacity-90">Daily Profit</div>
+                            <div class="text-2xl font-bold">{{ package.profit_min }}%-{{ package.profit_max }}%</div>
+                        </div>
+                        <div>
+                            <div class="text-sm opacity-90">Welcome Bonus</div>
+                            <div class="text-2xl font-bold">{{ package.welcome_bonus }}%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2 text-sm opacity-90">
+                        <div class="flex justify-between">
+                            <span>Trading Duration:</span>
+                            <span>{{ package.duration_hours }} Hours</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Minimum Investment:</span>
+                            <span>{{ package.min_stake }} {{ wallet.currency }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Calculations -->
+                <div class="calculation-card rounded-2xl p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-calculator mr-2 text-primary-600"></i>
+                        Profit Projection
+                    </h3>
+                    
+                    <div id="calculation-results" class="space-y-4">
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-chart-line text-4xl mb-2"></i>
+                            <p>Enter an amount to see profit calculations</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Disclaimer -->
+                <div class="bg-warning-50 border border-warning-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <i class="fas fa-exclamation-triangle text-warning-600 mt-1 mr-3"></i>
+                        <div class="text-sm">
+                            <h4 class="font-semibold text-warning-800 mb-1">Investment Risk Notice</h4>
+                            <p class="text-warning-700">
+                                All investments carry risk. Past performance does not guarantee future results. 
+                                Only invest what you can afford to lose.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Features -->
+                <div class="bg-white rounded-lg p-6 card-shadow">
+                    <h3 class="font-semibold text-gray-900 mb-4">Security & Trust</h3>
+                    <ul class="space-y-3 text-sm text-gray-600">
+                        <li class="flex items-center">
+                            <i class="fas fa-shield-alt text-success-500 mr-3"></i>
+                            Bank-level encryption
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-lock text-success-500 mr-3"></i>
+                            Secure fund storage
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-headset text-success-500 mr-3"></i>
+                            24/7 customer support
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-history text-success-500 mr-3"></i>
+                            Transparent trading history
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const amountInput = document.getElementById('{{ form.principal_amount.id_for_label }}');
+    const submitBtn = document.getElementById('submit-btn');
+    const resultsDiv = document.getElementById('calculation-results');
+    
+    // Package data
+    const packageData = {
+        minStake: {{ package.min_stake }},
+        welcomeBonus: {{ package.welcome_bonus }},
+        profitMin: {{ package.profit_min }},
+        profitMax: {{ package.profit_max }},
+        currency: '{{ wallet.currency }}'
+    };
+
+    function setAmount(amount) {
+        amountInput.value = amount;
+        amountInput.focus();
+        updateCalculations();
+    }
+
+    function updateCalculations() {
+        const amount = parseFloat(amountInput.value) || 0;
+        
+        if (amount < packageData.minStake) {
+            resultsDiv.innerHTML = `
+                <div class="text-center text-gray-500 py-4">
+                    <i class="fas fa-info-circle text-2xl mb-2"></i>
+                    <p class="text-sm">Minimum investment: ${packageData.minStake} ${packageData.currency}</p>
+                </div>
+            `;
+            submitBtn.disabled = true;
+            return;
+        }
+
+        // Calculate projections
+        const welcomeBonus = amount * (packageData.welcomeBonus / 100);
+        const totalTradingAmount = amount + welcomeBonus;
+        const minDailyProfit = totalTradingAmount * (packageData.profitMin / 100);
+        const maxDailyProfit = totalTradingAmount * (packageData.profitMax / 100);
+        const avgDailyProfit = (minDailyProfit + maxDailyProfit) / 2;
+        const monthlyProfit = avgDailyProfit * 22;
+        const yearlyProfit = avgDailyProfit * 260;
+
+        resultsDiv.innerHTML = `
+            <div class="space-y-4">
+                <!-- Investment Breakdown -->
+                <div class="bg-white rounded-lg p-4 border">
+                    <h4 class="font-semibold text-gray-900 mb-3">Investment Breakdown</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Your Investment:</span>
+                            <span class="font-semibold">${amount.toFixed(2)} ${packageData.currency}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Welcome Bonus (${packageData.welcomeBonus}%):</span>
+                            <span class="font-semibold text-success-600">+${welcomeBonus.toFixed(2)} ${packageData.currency}</span>
+                        </div>
+                        <div class="flex justify-between border-t pt-2">
+                            <span class="text-gray-900 font-medium">Total Trading Amount:</span>
+                            <span class="font-bold text-primary-600">${totalTradingAmount.toFixed(2)} ${packageData.currency}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profit Projections -->
+                <div class="bg-gradient-to-r from-success-50 to-primary-50 rounded-lg p-4 border">
+                    <h4 class="font-semibold text-gray-900 mb-3 profit-animation">
+                        <i class="fas fa-chart-line mr-2 text-success-600"></i>Profit Projections
+                    </h4>
+                    <div class="grid grid-cols-1 gap-3">
+                        <div class="text-center">
+                            <div class="text-lg font-bold text-success-600">
+                                ${minDailyProfit.toFixed(2)} - ${maxDailyProfit.toFixed(2)}
+                            </div>
+                            <div class="text-xs text-gray-500">Daily Profit Range</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 text-center">
+                            <div>
+                                <div class="text-sm font-semibold text-primary-600">
+                                    ~${monthlyProfit.toFixed(0)}
+                                </div>
+                                <div class="text-xs text-gray-500">Monthly</div>
+                            </div>
+                            <div>
+                                <div class="text-sm font-semibold text-primary-600">
+                                    ~${yearlyProfit.toFixed(0)}
+                                </div>
+                                <div class="text-xs text-gray-500">Yearly</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROI Information -->
+                <div class="text-center text-xs text-gray-500 bg-gray-50 rounded p-3">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Projected ROI: ~${(avgDailyProfit / amount * 365 * 100).toFixed(0)}% annually
+                </div>
+            </div>
+        `;
+
+        // Check wallet balance
+        const walletBalance = {{ wallet.balance }};
+        submitBtn.disabled = amount > walletBalance;
+    }
+
+    // Form submission handling
+    document.getElementById('investment-form').addEventListener('submit', function(e) {
+        const submitText = document.getElementById('submit-text');
+        const submitLoading = document.getElementById('submit-loading');
+        
+        submitText.classList.add('hidden');
+        submitLoading.classList.remove('hidden');
+        submitBtn.disabled = true;
+        
+        // Show loading overlay
+        showLoading();
+    });
+
+    // Real-time calculations
+    amountInput.addEventListener('input', updateCalculations);
+    
+    // Initial calculation if amount is pre-filled
+    if (amountInput.value) {
+        updateCalculations();
+    }
+
+    // Input validation
+    amountInput.addEventListener('blur', function() {
+        const amount = parseFloat(this.value) || 0;
+        if (amount > 0 && amount < packageData.minStake) {
+            this.setCustomValidity(`Minimum investment is ${packageData.minStake} ${packageData.currency}`);
+            this.reportValidity();
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && document.activeElement === amountInput) {
+            e.preventDefault();
+            if (!submitBtn.disabled) {
+                document.getElementById('investment-form').submit();
+            }
+        }
+    });
+</script>
+{% endblock %}
