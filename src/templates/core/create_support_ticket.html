@@ -1,0 +1,420 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Support Ticket - TradeVision{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<section class="bg-gradient-bg text-white py-16">
+    <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl font-bold font-heading mb-4">Create Support Ticket</h1>
+        <p class="text-xl text-gray-200">Get help from our support team</p>
+    </div>
+</section>
+
+<!-- Quick Help -->
+<section class="py-8 bg-blue-50 border-b border-blue-100">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-start space-x-4">
+            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <i class="fas fa-lightbulb text-blue-600"></i>
+            </div>
+            <div>
+                <h3 class="font-semibold text-blue-900 mb-2">Before creating a ticket...</h3>
+                <p class="text-blue-800 mb-3">
+                    You might find a quick answer in our FAQ section or existing resources.
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <a href="{% url 'core:faq' %}" 
+                       class="text-blue-700 hover:text-blue-800 font-medium text-sm">
+                        <i class="fas fa-question-circle mr-1"></i>Browse FAQ
+                    </a>
+                    <a href="{% url 'core:search' %}" 
+                       class="text-blue-700 hover:text-blue-800 font-medium text-sm">
+                        <i class="fas fa-search mr-1"></i>Search Help
+                    </a>
+                    <a href="{% url 'core:contact' %}" 
+                       class="text-blue-700 hover:text-blue-800 font-medium text-sm">
+                        <i class="fas fa-envelope mr-1"></i>Contact Info
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Ticket Form -->
+<section class="py-16 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <form method="post" class="space-y-8" id="ticket-form">
+            {% csrf_token %}
+            
+            <!-- Subject -->
+            <div>
+                <label for="id_subject" class="block text-sm font-medium text-gray-700 mb-2">
+                    Subject *
+                </label>
+                <input type="text" 
+                       name="subject" 
+                       id="id_subject" 
+                       required
+                       placeholder="Brief description of your issue"
+                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                <p class="text-sm text-gray-500 mt-1">
+                    Be specific and descriptive (e.g., "Unable to withdraw funds" instead of "Problem")
+                </p>
+            </div>
+            
+            <!-- Category -->
+            <div>
+                <label for="id_category" class="block text-sm font-medium text-gray-700 mb-2">
+                    Category *
+                </label>
+                <select name="category" 
+                        id="id_category" 
+                        required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    <option value="">Select a category</option>
+                    <option value="account">Account Issues</option>
+                    <option value="trading">Trading & Investments</option>
+                    <option value="payments">Deposits & Withdrawals</option>
+                    <option value="technical">Technical Support</option>
+                    <option value="billing">Billing & Fees</option>
+                    <option value="security">Security Concerns</option>
+                    <option value="general">General Questions</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            
+            <!-- Priority -->
+            <div>
+                <label for="id_priority" class="block text-sm font-medium text-gray-700 mb-2">
+                    Priority *
+                </label>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <label class="priority-option relative cursor-pointer">
+                        <input type="radio" name="priority" value="low" class="sr-only" required>
+                        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-green-300 transition-colors duration-200">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-4 h-4 bg-green-500 rounded-full"></div>
+                                <div>
+                                    <div class="font-medium text-gray-900">Low</div>
+                                    <div class="text-sm text-gray-500">General questions</div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <label class="priority-option relative cursor-pointer">
+                        <input type="radio" name="priority" value="medium" class="sr-only" required>
+                        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-yellow-300 transition-colors duration-200">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                                <div>
+                                    <div class="font-medium text-gray-900">Medium</div>
+                                    <div class="text-sm text-gray-500">Account issues</div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                    
+                    <label class="priority-option relative cursor-pointer">
+                        <input type="radio" name="priority" value="high" class="sr-only" required>
+                        <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors duration-200">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-4 h-4 bg-red-500 rounded-full"></div>
+                                <div>
+                                    <div class="font-medium text-gray-900">High</div>
+                                    <div class="text-sm text-gray-500">Urgent problems</div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Description -->
+            <div>
+                <label for="id_description" class="block text-sm font-medium text-gray-700 mb-2">
+                    Description *
+                </label>
+                <textarea name="description" 
+                          id="id_description" 
+                          rows="8" 
+                          required
+                          placeholder="Please provide detailed information about your issue, including any error messages, steps you've taken, and when the problem started..."
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-vertical"></textarea>
+                <div class="flex justify-between items-center mt-2">
+                    <div class="text-sm text-gray-500">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Include as much detail as possible for faster resolution
+                    </div>
+                    <div id="char-counter" class="text-sm text-gray-500"></div>
+                </div>
+            </div>
+            
+            <!-- Helpful Tips -->
+            <div class="bg-gray-50 rounded-lg p-6">
+                <h3 class="font-semibold text-gray-900 mb-3">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                    Tips for Better Support
+                </h3>
+                <ul class="space-y-2 text-sm text-gray-600">
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i>
+                        Include screenshots if you're experiencing visual issues
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i>
+                        Mention your browser and device if reporting technical problems
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i>
+                        Provide transaction IDs for payment-related issues
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check text-green-500 mr-2 mt-0.5 text-xs"></i>
+                        Describe the exact steps that led to the problem
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                <div class="text-sm text-gray-500">
+                    <i class="fas fa-clock mr-1"></i>
+                    Our team typically responds within 24 hours
+                </div>
+                
+                <div class="flex space-x-4">
+                    <a href="{% url 'core:support_tickets' %}" 
+                       class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200 font-medium">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium">
+                        <i class="fas fa-paper-plane mr-2"></i>Create Ticket
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation and enhancement
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('ticket-form');
+    const descriptionField = document.getElementById('id_description');
+    const charCounter = document.getElementById('char-counter');
+    const priorityOptions = document.querySelectorAll('.priority-option');
+    
+    // Character counter
+    function updateCharCounter() {
+        const length = descriptionField.value.length;
+        const maxLength = 5000;
+        charCounter.textContent = `${length}/${maxLength} characters`;
+        
+        if (length > maxLength * 0.9) {
+            charCounter.classList.add('text-red-500');
+        } else {
+            charCounter.classList.remove('text-red-500');
+        }
+    }
+    
+    descriptionField.addEventListener('input', updateCharCounter);
+    updateCharCounter();
+    
+    // Priority selection styling
+    priorityOptions.forEach(option => {
+        const radio = option.querySelector('input[type="radio"]');
+        const border = option.querySelector('div');
+        
+        radio.addEventListener('change', function() {
+            // Reset all borders
+            priorityOptions.forEach(opt => {
+                opt.querySelector('div').classList.remove('border-green-400', 'border-yellow-400', 'border-red-400', 'bg-green-50', 'bg-yellow-50', 'bg-red-50');
+                opt.querySelector('div').classList.add('border-gray-200');
+            });
+            
+            // Highlight selected option
+            if (this.checked) {
+                const value = this.value;
+                border.classList.remove('border-gray-200');
+                
+                if (value === 'low') {
+                    border.classList.add('border-green-400', 'bg-green-50');
+                } else if (value === 'medium') {
+                    border.classList.add('border-yellow-400', 'bg-yellow-50');
+                } else if (value === 'high') {
+                    border.classList.add('border-red-400', 'bg-red-50');
+                }
+            }
+        });
+    });
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const subject = document.getElementById('id_subject').value.trim();
+        const category = document.getElementById('id_category').value;
+        const priority = document.querySelector('input[name="priority"]:checked');
+        const description = descriptionField.value.trim();
+        
+        if (!subject) {
+            e.preventDefault();
+            showError('Please enter a subject for your ticket');
+            return;
+        }
+        
+        if (subject.length < 10) {
+            e.preventDefault();
+            showError('Subject must be at least 10 characters long');
+            return;
+        }
+        
+        if (!category) {
+            e.preventDefault();
+            showError('Please select a category');
+            return;
+        }
+        
+        if (!priority) {
+            e.preventDefault();
+            showError('Please select a priority level');
+            return;
+        }
+        
+        if (!description) {
+            e.preventDefault();
+            showError('Please provide a description of your issue');
+            return;
+        }
+        
+        if (description.length < 20) {
+            e.preventDefault();
+            showError('Description must be at least 20 characters long');
+            return;
+        }
+        
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Creating Ticket...';
+        submitBtn.disabled = true;
+    });
+    
+    // Auto-save draft
+    let draftTimer;
+    const fields = [
+        document.getElementById('id_subject'),
+        document.getElementById('id_category'),
+        descriptionField
+    ];
+    
+    fields.forEach(field => {
+        if (field) {
+            field.addEventListener('input', function() {
+                clearTimeout(draftTimer);
+                draftTimer = setTimeout(saveDraft, 2000);
+            });
+        }
+    });
+    
+    // Load saved draft
+    loadDraft();
+    
+    function saveDraft() {
+        const draft = {
+            subject: document.getElementById('id_subject').value,
+            category: document.getElementById('id_category').value,
+            description: descriptionField.value,
+            priority: document.querySelector('input[name="priority"]:checked')?.value
+        };
+        
+        if (draft.subject || draft.description) {
+            localStorage.setItem('support_ticket_draft', JSON.stringify(draft));
+            showDraftStatus('Draft saved automatically');
+        }
+    }
+    
+    function loadDraft() {
+        const saved = localStorage.getItem('support_ticket_draft');
+        if (saved) {
+            try {
+                const draft = JSON.parse(saved);
+                
+                if (draft.subject) document.getElementById('id_subject').value = draft.subject;
+                if (draft.category) document.getElementById('id_category').value = draft.category;
+                if (draft.description) descriptionField.value = draft.description;
+                if (draft.priority) {
+                    const priorityRadio = document.querySelector(`input[name="priority"][value="${draft.priority}"]`);
+                    if (priorityRadio) {
+                        priorityRadio.checked = true;
+                        priorityRadio.dispatchEvent(new Event('change'));
+                    }
+                }
+                
+                showDraftStatus('Previous draft loaded');
+                updateCharCounter();
+            } catch (e) {
+                console.error('Error loading draft:', e);
+            }
+        }
+    }
+    
+    function showDraftStatus(message) {
+        let status = document.getElementById('draft-status');
+        if (!status) {
+            status = document.createElement('div');
+            status.id = 'draft-status';
+            status.className = 'text-xs text-green-600 mt-1';
+            charCounter.parentElement.appendChild(status);
+        }
+        
+        status.textContent = message;
+        setTimeout(() => {
+            status.textContent = '';
+        }, 3000);
+    }
+    
+    function showError(message) {
+        alert(message); // In production, use a better error display
+    }
+    
+    // Clear draft on successful submission
+    form.addEventListener('submit', function() {
+        localStorage.removeItem('support_ticket_draft');
+    });
+});
+
+// Category-based suggestions
+const categoryDescriptions = {
+    'account': 'Issues with login, registration, profile settings, or account verification.',
+    'trading': 'Questions about trading packages, investments, profits, or trading strategies.',
+    'payments': 'Problems with deposits, withdrawals, payment methods, or transaction status.',
+    'technical': 'Website errors, app crashes, loading issues, or other technical problems.',
+    'billing': 'Questions about fees, charges, billing statements, or payment processing.',
+    'security': 'Concerns about account security, suspicious activity, or data protection.',
+    'general': 'General questions about our services, policies, or how things work.',
+    'other': 'Issues that don\'t fit into the above categories.'
+};
+
+document.getElementById('id_category').addEventListener('change', function() {
+    const selected = this.value;
+    let suggestion = document.getElementById('category-suggestion');
+    
+    if (selected && categoryDescriptions[selected]) {
+        if (!suggestion) {
+            suggestion = document.createElement('p');
+            suggestion.id = 'category-suggestion';
+            suggestion.className = 'text-sm text-blue-600 mt-1 italic';
+            this.parentElement.appendChild(suggestion);
+        }
+        suggestion.textContent = categoryDescriptions[selected];
+    } else if (suggestion) {
+        suggestion.remove();
+    }
+});
+</script>
+{% endblock %}
