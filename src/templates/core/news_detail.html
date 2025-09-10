@@ -1,0 +1,587 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ news_article.title }} - TradeVision{% endblock %}
+
+{% block meta_description %}{{ news_article.excerpt|default:news_article.content|truncatewords:25|striptags }}{% endblock %}
+
+{% block og_title %}{{ news_article.title }} - TradeVision{% endblock %}
+{% block og_description %}{{ news_article.excerpt|default:news_article.content|truncatewords:25|striptags }}{% endblock %}
+{% block og_image %}{% if news_article.featured_image %}{{ news_article.featured_image.url }}{% else %}/static/images/og-image.jpg{% endif %}{% endblock %}
+
+{% block content %}
+<!-- Article Header -->
+<section class="py-16 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb -->
+        <nav class="mb-8">
+            <ol class="flex items-center space-x-2 text-sm text-gray-500">
+                <li><a href="{% url 'core:home' %}" class="hover:text-primary-600 transition-colors duration-200">Home</a></li>
+                <li><i class="fas fa-chevron-right text-xs"></i></li>
+                <li><a href="{% url 'core:news_list' %}" class="hover:text-primary-600 transition-colors duration-200">News</a></li>
+                <li><i class="fas fa-chevron-right text-xs"></i></li>
+                <li class="text-gray-900 truncate">{{ news_article.title|truncatewords:5 }}</li>
+            </ol>
+        </nav>
+        
+        <!-- Article Meta -->
+        <div class="mb-8">
+            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
+                <span class="flex items-center">
+                    <i class="fas fa-calendar mr-2"></i>
+                    <time datetime="{{ news_article.publish_date|date:'Y-m-d' }}">
+                        {{ news_article.publish_date|date:"F d, Y" }}
+                    </time>
+                </span>
+                <span class="flex items-center">
+                    <i class="fas fa-eye mr-2"></i>
+                    {{ news_article.view_count }} views
+                </span>
+                <span class="flex items-center">
+                    <i class="fas fa-clock mr-2"></i>
+                    {% widthratio news_article.content|wordcount 200 1 %} min read
+                </span>
+                {% if news_article.author %}
+                <span class="flex items-center">
+                    <i class="fas fa-user mr-2"></i>
+                    {{ news_article.author.get_full_name|default:news_article.author.username }}
+                </span>
+                {% endif %}
+            </div>
+            
+            <!-- Article Title -->
+            <h1 class="text-4xl md:text-5xl font-bold font-heading text-gray-900 leading-tight mb-6">
+                {{ news_article.title }}
+            </h1>
+            
+            <!-- Article Excerpt -->
+            {% if news_article.excerpt %}
+            <p class="text-xl text-gray-600 leading-relaxed mb-8">
+                {{ news_article.excerpt }}
+            </p>
+            {% endif %}
+            
+            <!-- Share Buttons -->
+            <div class="flex items-center space-x-4 py-4 border-t border-b border-gray-200">
+                <span class="text-sm font-medium text-gray-700">Share:</span>
+                <button onclick="shareArticle('facebook')" 
+                        class="flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors duration-200">
+                    <i class="fab fa-facebook"></i>
+                    <span class="hidden sm:inline">Facebook</span>
+                </button>
+                <button onclick="shareArticle('twitter')" 
+                        class="flex items-center space-x-2 text-blue-400 hover:text-blue-500 transition-colors duration-200">
+                    <i class="fab fa-twitter"></i>
+                    <span class="hidden sm:inline">Twitter</span>
+                </button>
+                <button onclick="shareArticle('linkedin')" 
+                        class="flex items-center space-x-2 text-blue-700 hover:text-blue-800 transition-colors duration-200">
+                    <i class="fab fa-linkedin"></i>
+                    <span class="hidden sm:inline">LinkedIn</span>
+                </button>
+                <button onclick="shareArticle('telegram')" 
+                        class="flex items-center space-x-2 text-blue-500 hover:text-blue-600 transition-colors duration-200">
+                    <i class="fab fa-telegram"></i>
+                    <span class="hidden sm:inline">Telegram</span>
+                </button>
+                <button onclick="copyLink()" 
+                        class="flex items-center space-x-2 text-gray-600 hover:text-gray-700 transition-colors duration-200">
+                    <i class="fas fa-link"></i>
+                    <span class="hidden sm:inline">Copy Link</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Article Content -->
+<section class="pb-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-3">
+                <article class="prose prose-lg max-w-none">
+                    <!-- Featured Image -->
+                    {% if news_article.featured_image %}
+                    <div class="mb-8">
+                        <img src="{{ news_article.featured_image.url }}" 
+                             alt="{{ news_article.title }}" 
+                             class="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg">
+                        {% if news_article.image_caption %}
+                        <p class="text-sm text-gray-500 mt-2 text-center italic">{{ news_article.image_caption }}</p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Article Content -->
+                    <div class="prose-content">
+                        {{ news_article.content|linebreaks }}
+                    </div>
+                    
+                    <!-- Article Tags -->
+                    {% if news_article.tags.all %}
+                    <div class="mt-8 pt-8 border-t border-gray-200">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-sm font-medium text-gray-700">Tags:</span>
+                            {% for tag in news_article.tags.all %}
+                            <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm hover:bg-gray-200 transition-colors duration-200">
+                                {{ tag.name }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </article>
+                
+                <!-- Article Footer -->
+                <div class="mt-12 pt-8 border-t border-gray-200">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                        <!-- Author Info -->
+                        {% if news_article.author %}
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                                {% if news_article.author.profile.avatar %}
+                                    <img src="{{ news_article.author.profile.avatar.url }}" 
+                                         alt="{{ news_article.author.get_full_name }}"
+                                         class="w-full h-full rounded-full object-cover">
+                                {% else %}
+                                    <i class="fas fa-user text-gray-400"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-900">
+                                    {{ news_article.author.get_full_name|default:news_article.author.username }}
+                                </p>
+                                <p class="text-sm text-gray-500">Author</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Share Again -->
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm text-gray-500">Share this article:</span>
+                            <div class="flex space-x-2">
+                                <button onclick="shareArticle('facebook')" 
+                                        class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center hover:bg-blue-200 transition-colors duration-200">
+                                    <i class="fab fa-facebook text-sm"></i>
+                                </button>
+                                <button onclick="shareArticle('twitter')" 
+                                        class="w-8 h-8 bg-blue-100 text-blue-400 rounded-full flex items-center justify-center hover:bg-blue-200 transition-colors duration-200">
+                                    <i class="fab fa-twitter text-sm"></i>
+                                </button>
+                                <button onclick="shareArticle('linkedin')" 
+                                        class="w-8 h-8 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center hover:bg-blue-200 transition-colors duration-200">
+                                    <i class="fab fa-linkedin text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="sticky top-24 space-y-8">
+                    <!-- Table of Contents (if article is long) -->
+                    {% if news_article.content|wordcount > 500 %}
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Table of Contents</h3>
+                        <div id="toc-content" class="space-y-2 text-sm">
+                            <!-- Generated by JavaScript -->
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Related Articles -->
+                    {% if related_news %}
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Related Articles</h3>
+                        <div class="space-y-4">
+                            {% for article in related_news %}
+                            <div class="flex space-x-3">
+                                <div class="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                    {% if article.featured_image %}
+                                        <img src="{{ article.featured_image.url }}" 
+                                             alt="{{ article.title }}" 
+                                             class="w-full h-full object-cover rounded-lg">
+                                    {% else %}
+                                        <i class="fas fa-newspaper text-gray-400"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <a href="{% url 'core:news_detail' article.slug %}" 
+                                       class="text-sm font-medium text-gray-900 line-clamp-2 mb-1 hover:text-primary-600 transition-colors duration-200">
+                                        {{ article.title }}
+                                    </a>
+                                    <p class="text-xs text-gray-500">
+                                        {{ article.publish_date|date:"M d" }}
+                                    </p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <a href="{% url 'core:news_list' %}" 
+                               class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                                View All Articles <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Newsletter Signup -->
+                    <div class="bg-gradient-primary text-white p-6 rounded-lg">
+                        <h3 class="text-lg font-bold mb-3">Stay Informed</h3>
+                        <p class="text-sm opacity-90 mb-4">Subscribe to get the latest trading news and market insights.</p>
+                        <form class="space-y-3" onsubmit="subscribeNewsletter(event)">
+                            <input type="email" 
+                                   id="sidebar-newsletter-email"
+                                   placeholder="Your email address" 
+                                   class="w-full px-3 py-2 rounded text-gray-900 text-sm focus:ring-2 focus:ring-white focus:ring-opacity-50">
+                            <button type="submit" 
+                                    class="w-full bg-white text-primary-600 py-2 rounded font-medium text-sm hover:bg-gray-100 transition-colors duration-200">
+                                Subscribe
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    {% if user.is_authenticated %}
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <a href="{% url 'trading:dashboard' %}" 
+                               class="flex items-center text-gray-700 hover:text-primary-600 transition-colors duration-200">
+                                <i class="fas fa-tachometer-alt w-5 mr-3"></i>
+                                <span class="text-sm">View Dashboard</span>
+                            </a>
+                            <a href="{% url 'trading:packages' %}" 
+                               class="flex items-center text-gray-700 hover:text-primary-600 transition-colors duration-200">
+                                <i class="fas fa-box w-5 mr-3"></i>
+                                <span class="text-sm">Trading Packages</span>
+                            </a>
+                            <a href="{% url 'payments:deposit' %}" 
+                               class="flex items-center text-gray-700 hover:text-primary-600 transition-colors duration-200">
+                                <i class="fas fa-plus-circle w-5 mr-3"></i>
+                                <span class="text-sm">Make Deposit</span>
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                        <h3 class="font-semibold text-gray-900 mb-3">Start Trading Today</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Join thousands of successful traders and start generating profits.
+                        </p>
+                        <a href="{% url 'account_signup' %}" 
+                           class="block bg-primary-600 text-white text-center py-2 rounded-lg font-medium text-sm hover:bg-primary-700 transition-colors duration-200">
+                            Create Account
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Market Summary Widget -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Market Summary</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Active Trades</span>
+                                <span class="text-sm font-medium text-green-600">+15.7%</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Total Volume</span>
+                                <span class="text-sm font-medium text-gray-900">$2.5M</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Success Rate</span>
+                                <span class="text-sm font-medium text-blue-600">94.2%</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <a href="{% url 'trading:packages' %}" 
+                               class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                                View Trading Packages <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Related Articles Section -->
+{% if related_news %}
+<section class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">You Might Also Like</h2>
+            <p class="text-lg text-gray-600">Discover more insights and updates from TradeVision</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% for article in related_news %}
+            <article class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                {% if article.featured_image %}
+                    <img src="{{ article.featured_image.url }}" 
+                         alt="{{ article.title }}" 
+                         class="w-full h-48 object-cover">
+                {% else %}
+                    <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                        <i class="fas fa-newspaper text-gray-400 text-3xl"></i>
+                    </div>
+                {% endif %}
+                
+                <div class="p-6">
+                    <div class="text-sm text-gray-500 mb-2">
+                        {{ article.publish_date|date:"M d, Y" }}
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
+                        {{ article.title }}
+                    </h3>
+                    <p class="text-gray-600 mb-4 line-clamp-3">
+                        {{ article.excerpt|default:article.content|truncatewords:20 }}
+                    </p>
+                    <a href="{% url 'core:news_detail' article.slug %}" 
+                       class="text-primary-600 hover:text-primary-700 font-medium">
+                        Read More <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Newsletter Success Modal -->
+<div id="newsletter-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg p-8 max-w-md mx-4">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Successfully Subscribed!</h3>
+            <p class="text-gray-600 mb-6">
+                Thank you for subscribing to our newsletter. You'll receive the latest updates in your inbox.
+            </p>
+            <button onclick="closeNewsletterModal()" 
+                    class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Copy Link Success Message -->
+<div id="copy-success" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg hidden z-50">
+    <i class="fas fa-check mr-2"></i>Link copied to clipboard!
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Social sharing functions
+function shareArticle(platform) {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent(document.title);
+    const text = encodeURIComponent("{{ news_article.excerpt|default:news_article.title|striptags }}");
+    
+    let shareUrl = '';
+    
+    switch(platform) {
+        case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+            break;
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
+            break;
+        case 'linkedin':
+            shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+            break;
+        case 'telegram':
+            shareUrl = `https://t.me/share/url?url=${url}&text=${text}`;
+            break;
+    }
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
+}
+
+// Copy link function
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href).then(function() {
+        showCopySuccess();
+    }).catch(function() {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = window.location.href;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showCopySuccess();
+    });
+}
+
+function showCopySuccess() {
+    const message = document.getElementById('copy-success');
+    message.classList.remove('hidden');
+    setTimeout(() => {
+        message.classList.add('hidden');
+    }, 3000);
+}
+
+// Newsletter subscription
+function subscribeNewsletter(event) {
+    event.preventDefault();
+    const email = document.getElementById('sidebar-newsletter-email').value;
+    
+    if (!email) {
+        alert('Please enter your email address');
+        return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('Please enter a valid email address');
+        return;
+    }
+    
+    // Simulate subscription
+    setTimeout(() => {
+        document.getElementById('newsletter-modal').classList.remove('hidden');
+        document.getElementById('sidebar-newsletter-email').value = '';
+    }, 500);
+}
+
+function closeNewsletterModal() {
+    document.getElementById('newsletter-modal').classList.add('hidden');
+}
+
+// Generate Table of Contents
+function generateTOC() {
+    const content = document.querySelector('.prose-content');
+    const tocContainer = document.getElementById('toc-content');
+    
+    if (!content || !tocContainer) return;
+    
+    const headings = content.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    
+    if (headings.length === 0) {
+        tocContainer.parentElement.style.display = 'none';
+        return;
+    }
+    
+    headings.forEach((heading, index) => {
+        // Add ID to heading if it doesn't have one
+        if (!heading.id) {
+            heading.id = `heading-${index}`;
+        }
+        
+        // Create TOC link
+        const link = document.createElement('a');
+        link.href = `#${heading.id}`;
+        link.textContent = heading.textContent;
+        link.className = 'block text-gray-600 hover:text-primary-600 transition-colors duration-200 py-1';
+        
+        // Add indentation based on heading level
+        const level = parseInt(heading.tagName.charAt(1));
+        if (level > 2) {
+            link.style.paddingLeft = `${(level - 2) * 12}px`;
+        }
+        
+        tocContainer.appendChild(link);
+    });
+}
+
+// Smooth scrolling for TOC links
+function initSmoothScrolling() {
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+}
+
+// Reading progress indicator
+function initReadingProgress() {
+    const article = document.querySelector('article');
+    if (!article) return;
+    
+    // Create progress bar
+    const progressBar = document.createElement('div');
+    progressBar.className = 'fixed top-0 left-0 w-0 h-1 bg-primary-600 z-50 transition-all duration-150';
+    document.body.appendChild(progressBar);
+    
+    window.addEventListener('scroll', () => {
+        const articleTop = article.offsetTop;
+        const articleHeight = article.offsetHeight;
+        const windowHeight = window.innerHeight;
+        const scrolled = window.pageYOffset;
+        
+        const progress = Math.max(0, Math.min(100, 
+            ((scrolled - articleTop + windowHeight) / articleHeight) * 100
+        ));
+        
+        progressBar.style.width = `${progress}%`;
+    });
+}
+
+// Initialize everything when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    generateTOC();
+    initSmoothScrolling();
+    initReadingProgress();
+});
+
+// Handle modal clicks
+document.getElementById('newsletter-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeNewsletterModal();
+    }
+});
+
+// Enhanced prose styling for better readability
+function enhanceProseContent() {
+    const proseContent = document.querySelector('.prose-content');
+    if (!proseContent) return;
+    
+    // Add styling classes to elements
+    proseContent.querySelectorAll('p').forEach(p => {
+        p.classList.add('mb-4', 'leading-relaxed');
+    });
+    
+    proseContent.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(heading => {
+        heading.classList.add('font-bold', 'text-gray-900', 'mt-8', 'mb-4');
+    });
+    
+    proseContent.querySelectorAll('ul, ol').forEach(list => {
+        list.classList.add('my-4', 'pl-6');
+    });
+    
+    proseContent.querySelectorAll('li').forEach(item => {
+        item.classList.add('mb-2');
+    });
+    
+    proseContent.querySelectorAll('blockquote').forEach(quote => {
+        quote.classList.add('border-l-4', 'border-primary-500', 'pl-4', 'my-6', 'italic', 'text-gray-700');
+    });
+    
+    proseContent.querySelectorAll('a').forEach(link => {
+        link.classList.add('text-primary-600', 'hover:text-primary-700', 'underline');
+    });
+}
+
+// Call prose enhancement after DOM load
+document.addEventListener('DOMContentLoaded', enhanceProseContent);
+</script>
+{% endblock %}

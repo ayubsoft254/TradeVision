@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}About Us - TradeVision{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-gradient-bg text-white py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-4xl mx-auto">
+            <h1 class="text-5xl font-bold font-heading mb-6">About TradeVision</h1>
+            <p class="text-xl text-gray-200 leading-relaxed">
+                Empowering individuals worldwide with innovative trading solutions and transparent financial growth opportunities.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Company Story -->
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Our Story</h2>
+                <div class="space-y-4 text-gray-600 text-lg leading-relaxed">
+                    <p>
+                        Founded in 2020, TradeVision emerged from a simple yet powerful vision: to democratize access to profitable trading opportunities for everyone, regardless of their experience level or capital size.
+                    </p>
+                    <p>
+                        Our team of financial experts, software engineers, and market analysts came together to create a platform that combines cutting-edge technology with proven trading strategies, making it possible for anyone to participate in the global financial markets.
+                    </p>
+                    <p>
+                        Today, we serve thousands of traders worldwide, managing millions in investments and consistently delivering profitable returns through our automated trading systems.
+                    </p>
+                </div>
+            </div>
+            <div class="relative">
+                <div class="bg-gradient-primary p-8 rounded-2xl text-white">
+                    <h3 class="text-2xl font-bold mb-6">Our Mission</h3>
+                    <p class="text-lg leading-relaxed">
+                        To provide accessible, transparent, and profitable trading opportunities that empower individuals to achieve financial freedom through smart investment strategies.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics -->
+<section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">Our Impact</h2>
+            <p class="text-xl text-gray-600">Numbers that speak to our commitment and success</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="text-center bg-white p-8 rounded-lg shadow-lg">
+                <div class="text-4xl font-bold text-primary-600 mb-2">{{ stats.total_users|floatformat:0 }}+</div>
+                <div class="text-gray-600">Active Traders</div>
+            </div>
+            <div class="text-center bg-white p-8 rounded-lg shadow-lg">
+                <div class="text-4xl font-bold text-green-600 mb-2">${{ stats.total_invested|floatformat:0 }}M</div>
+                <div class="text-gray-600">Total Invested</div>
+            </div>
+            <div class="text-center bg-white p-8 rounded-lg shadow-lg">
+                <div class="text-4xl font-bold text-yellow-600 mb-2">${{ stats.total_profits_paid|floatformat:0 }}K</div>
+                <div class="text-gray-600">Profits Distributed</div>
+            </div>
+            <div class="text-center bg-white p-8 rounded-lg shadow-lg">
+                <div class="text-4xl font-bold text-blue-600 mb-2">{{ stats.platform_uptime }}%</div>
+                <div class="text-gray-600">Platform Uptime</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Team Values -->
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">Our Core Values</h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                These principles guide everything we do and shape our relationship with our traders.
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Value 1 -->
+            <div class="text-center">
+                <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-eye text-white text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-semibold text-gray-900 mb-4">Transparency</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    We believe in complete transparency in all our operations, from trading strategies to fee structures.
+                </p>
+            </div>
+            
+            <!-- Value 2 -->
+            <div class="text-center">
+                <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-shield-alt text-white text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-semibold text-gray-900 mb-4">Security</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Your funds and data are protected by industry-leading security measures and protocols.
+                </p>
+            </div>
+            
+            <!-- Value 3 -->
+            <div class="text-center">
+                <div class="w-20 h-20 bg-gradient-to-r from-yellow-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-users text-white text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-semibold text-gray-900 mb-4">Community</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    We foster a supportive community where traders can learn, grow, and succeed together.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Technology -->
+<section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+                <h2 class="text-4xl font-bold text-gray-900 mb-6">Advanced Technology</h2>
+                <div class="space-y-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-blue-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">AI-Powered Trading</h3>
+                            <p class="text-gray-600">Our sophisticated algorithms analyze market data in real-time to identify profitable opportunities.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-chart-line text-green-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Risk Management</h3>
+                            <p class="text-gray-600">Advanced risk assessment tools ensure optimal portfolio protection and profit maximization.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-sync text-purple-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-2">Automated Execution</h3>
+                            <p class="text-gray-600">Lightning-fast trade execution ensures you never miss profitable opportunities.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="relative">
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <div class="text-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900">Platform Reliability</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Uptime</span>
+                            <span class="font-semibold text-green-600">{{ stats.platform_uptime }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-green-500 h-2 rounded-full" style="width: {{ stats.platform_uptime }}%"></div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Response Time</span>
+                            <span class="font-semibold text-blue-600">&lt; 100ms</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Security Score</span>
+                            <span class="font-semibold text-purple-600">AAA+</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-20 bg-gradient-bg text-white">
+    <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+        <h2 class="text-4xl font-bold font-heading mb-6">Ready to Join Our Community?</h2>
+        <p class="text-xl text-gray-200 mb-8">
+            Start your trading journey with a platform you can trust.
+        </p>
+        
+        {% if not user.is_authenticated %}
+        <a href="{% url 'account_signup' %}" 
+           class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 inline-block">
+            <i class="fas fa-user-plus mr-2"></i>Get Started Today
+        </a>
+        {% else %}
+        <a href="{% url 'trading:dashboard' %}" 
+           class="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 inline-block">
+            <i class="fas fa-tachometer-alt mr-2"></i>Go to Dashboard
+        </a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

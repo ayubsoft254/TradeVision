@@ -1,0 +1,420 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}News & Updates - TradeVision{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-gradient-bg text-white py-16">
+    <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+        <h1 class="text-4xl font-bold font-heading mb-4">News & Updates</h1>
+        <p class="text-xl text-gray-200">Stay informed with the latest developments and market insights</p>
+    </div>
+</section>
+
+<!-- News Articles -->
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {% if news_list %}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Main Content -->
+                <div class="lg:col-span-2">
+                    {% for article in news_list %}
+                        {% if forloop.first %}
+                            <!-- Featured Article -->
+                            <article class="mb-12">
+                                <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                                    {% if article.featured_image %}
+                                        <img src="{{ article.featured_image.url }}" 
+                                             alt="{{ article.title }}" 
+                                             class="w-full h-64 md:h-80 object-cover">
+                                    {% else %}
+                                        <div class="w-full h-64 md:h-80 bg-gradient-primary flex items-center justify-center">
+                                            <i class="fas fa-newspaper text-white text-6xl"></i>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="p-8">
+                                        <div class="flex items-center space-x-4 text-sm text-gray-500 mb-4">
+                                            <span class="bg-primary-100 text-primary-800 px-3 py-1 rounded-full font-medium">Featured</span>
+                                            <span><i class="fas fa-calendar mr-1"></i>{{ article.publish_date|date:"M d, Y" }}</span>
+                                            <span><i class="fas fa-eye mr-1"></i>{{ article.view_count }} views</span>
+                                        </div>
+                                        
+                                        <h1 class="text-3xl font-bold text-gray-900 mb-4 leading-tight">
+                                            {{ article.title }}
+                                        </h1>
+                                        
+                                        <p class="text-lg text-gray-600 mb-6 leading-relaxed">
+                                            {{ article.excerpt|default:article.content|truncatewords:30 }}
+                                        </p>
+                                        
+                                        <a href="{% url 'core:news_detail' article.slug %}" 
+                                           class="inline-flex items-center bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors duration-200">
+                                            Read Full Article <i class="fas fa-arrow-right ml-2"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </article>
+                            
+                            <!-- Other Articles Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {% else %}
+                            <article class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                                {% if article.featured_image %}
+                                    <img src="{{ article.featured_image.url }}" 
+                                         alt="{{ article.title }}" 
+                                         class="w-full h-48 object-cover">
+                                {% else %}
+                                    <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                                        <i class="fas fa-newspaper text-gray-400 text-3xl"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="p-6">
+                                    <div class="flex items-center space-x-3 text-sm text-gray-500 mb-3">
+                                        <span><i class="fas fa-calendar mr-1"></i>{{ article.publish_date|date:"M d" }}</span>
+                                        <span><i class="fas fa-eye mr-1"></i>{{ article.view_count }}</span>
+                                    </div>
+                                    
+                                    <h2 class="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
+                                        {{ article.title }}
+                                    </h2>
+                                    
+                                    <p class="text-gray-600 mb-4 line-clamp-3">
+                                        {{ article.excerpt|default:article.content|truncatewords:15 }}
+                                    </p>
+                                    
+                                    <a href="{% url 'core:news_detail' article.slug %}" 
+                                       class="text-primary-600 hover:text-primary-700 font-medium">
+                                        Read More <i class="fas fa-arrow-right ml-1"></i>
+                                    </a>
+                                </div>
+                            </article>
+                        {% endif %}
+                        
+                        {% if forloop.last and not forloop.first %}
+                            </div> <!-- Close grid for other articles -->
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <div class="mt-12 flex justify-center">
+                        <nav class="flex items-center space-x-2">
+                            {% if page_obj.has_previous %}
+                                <a href="?page={{ page_obj.previous_page_number }}" 
+                                   class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                                    <i class="fas fa-chevron-left mr-1"></i>Previous
+                                </a>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <span class="px-4 py-2 bg-primary-600 text-white rounded-lg">{{ num }}</span>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <a href="?page={{ num }}" 
+                                       class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                                        {{ num }}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}" 
+                                   class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                                    Next<i class="fas fa-chevron-right ml-1"></i>
+                                </a>
+                            {% endif %}
+                        </nav>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Sidebar -->
+                <div class="lg:col-span-1">
+                    <div class="sticky top-24 space-y-8">
+                        <!-- Newsletter Signup -->
+                        <div class="bg-gradient-primary text-white p-6 rounded-lg">
+                            <h3 class="text-xl font-bold mb-3">Stay Updated</h3>
+                            <p class="text-sm opacity-90 mb-4">Get the latest news and trading insights delivered to your inbox.</p>
+                            <form class="space-y-3" onsubmit="subscribeNewsletter(event)">
+                                <input type="email" 
+                                       id="newsletter-email"
+                                       placeholder="Your email address" 
+                                       class="w-full px-4 py-2 rounded-lg text-gray-900 focus:ring-2 focus:ring-white focus:ring-opacity-50">
+                                <button type="submit" 
+                                        class="w-full bg-white text-primary-600 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200">
+                                    Subscribe
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Popular Articles -->
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Popular Articles</h3>
+                            <div class="space-y-4">
+                                {% for article in news_list|slice:":3" %}
+                                <div class="flex space-x-3">
+                                    <div class="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                        {% if article.featured_image %}
+                                            <img src="{{ article.featured_image.url }}" 
+                                                 alt="{{ article.title }}" 
+                                                 class="w-full h-full object-cover rounded-lg">
+                                        {% else %}
+                                            <i class="fas fa-newspaper text-gray-400"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <a href="{% url 'core:news_detail' article.slug %}" 
+                                           class="text-sm font-medium text-gray-900 line-clamp-2 mb-1 hover:text-primary-600 transition-colors duration-200">
+                                            {{ article.title }}
+                                        </a>
+                                        <p class="text-xs text-gray-500">
+                                            {{ article.publish_date|date:"M d" }} • {{ article.view_count }} views
+                                        </p>
+                                    </div>
+                                </div>
+                                {% empty %}
+                                <p class="text-gray-500 text-sm">No articles available yet.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <!-- Categories -->
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-xl font-bold text-gray-900 mb-4">Categories</h3>
+                            <div class="space-y-2">
+                                <a href="?category=market" class="block text-gray-700 hover:text-primary-600 transition-colors duration-200">
+                                    <i class="fas fa-chart-line mr-2"></i>Market Analysis
+                                </a>
+                                <a href="?category=platform" class="block text-gray-700 hover:text-primary-600 transition-colors duration-200">
+                                    <i class="fas fa-cog mr-2"></i>Platform Updates
+                                </a>
+                                <a href="?category=education" class="block text-gray-700 hover:text-primary-600 transition-colors duration-200">
+                                    <i class="fas fa-graduation-cap mr-2"></i>Education
+                                </a>
+                                <a href="?category=announcements" class="block text-gray-700 hover:text-primary-600 transition-colors duration-200">
+                                    <i class="fas fa-bullhorn mr-2"></i>Announcements
+                                </a>
+                                <a href="?category=trading" class="block text-gray-700 hover:text-primary-600 transition-colors duration-200">
+                                    <i class="fas fa-coins mr-2"></i>Trading Tips
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Recent Trades Alert -->
+                        {% if user.is_authenticated %}
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+                            <div class="flex items-center mb-3">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fas fa-chart-line text-green-600"></i>
+                                </div>
+                                <h3 class="font-semibold text-gray-900">Trading Activity</h3>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-4">
+                                Stay on top of your investments with real-time updates.
+                            </p>
+                            <a href="{% url 'trading:dashboard' %}" 
+                               class="inline-flex items-center text-green-700 hover:text-green-800 font-medium text-sm">
+                                View Dashboard <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Quick Links -->
+                        <div class="bg-gray-50 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Links</h3>
+                            <div class="space-y-3">
+                                {% if user.is_authenticated %}
+                                    <a href="{% url 'trading:packages' %}" 
+                                       class="block text-primary-600 hover:text-primary-700 transition-colors duration-200">
+                                        <i class="fas fa-box mr-2"></i>Trading Packages
+                                    </a>
+                                    <a href="{% url 'payments:deposit' %}" 
+                                       class="block text-primary-600 hover:text-primary-700 transition-colors duration-200">
+                                        <i class="fas fa-plus-circle mr-2"></i>Make Deposit
+                                    </a>
+                                    <a href="{% url 'payments:withdraw' %}" 
+                                       class="block text-primary-600 hover:text-primary-700 transition-colors duration-200">
+                                        <i class="fas fa-minus-circle mr-2"></i>Withdraw Funds
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'account_signup' %}" 
+                                       class="block text-primary-600 hover:text-primary-700 transition-colors duration-200">
+                                        <i class="fas fa-user-plus mr-2"></i>Create Account
+                                    </a>
+                                    <a href="{% url 'core:about' %}" 
+                                       class="block text-primary-600 hover:text-primary-700 transition-colors duration-200">
+                                        <i class="fas fa-info-circle mr-2"></i>About TradeVision
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'core:faq' %}" 
+                                   class="block text-primary-600 hover:text-primary-700 transition-colors duration-200">
+                                    <i class="fas fa-question-circle mr-2"></i>FAQ
+                                </a>
+                                <a href="{% url 'core:contact' %}" 
+                                   class="block text-primary-600 hover:text-primary-700 transition-colors duration-200">
+                                    <i class="fas fa-envelope mr-2"></i>Contact Support
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Social Media -->
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Follow Us</h3>
+                            <div class="flex space-x-4">
+                                <a href="#" class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center hover:bg-blue-200 transition-colors duration-200">
+                                    <i class="fab fa-facebook text-blue-600"></i>
+                                </a>
+                                <a href="#" class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center hover:bg-blue-200 transition-colors duration-200">
+                                    <i class="fab fa-twitter text-blue-600"></i>
+                                </a>
+                                <a href="#" class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center hover:bg-purple-200 transition-colors duration-200">
+                                    <i class="fab fa-telegram text-purple-600"></i>
+                                </a>
+                                <a href="#" class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center hover:bg-green-200 transition-colors duration-200">
+                                    <i class="fab fa-whatsapp text-green-600"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <!-- No Articles State -->
+            <div class="text-center py-16">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-newspaper text-gray-400 text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">No News Articles Yet</h2>
+                <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                    We're working on bringing you the latest updates and insights. Check back soon for fresh content!
+                </p>
+                
+                <!-- Alternative Actions -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="{% url 'core:home' %}" 
+                       class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                        <i class="fas fa-home mr-2"></i>Back to Home
+                    </a>
+                    <a href="{% url 'core:faq' %}" 
+                       class="border border-primary-600 text-primary-600 px-6 py-3 rounded-lg hover:bg-primary-50 transition-colors duration-200">
+                        <i class="fas fa-question-circle mr-2"></i>View FAQ
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Newsletter Success Modal -->
+<div id="newsletter-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg p-8 max-w-md mx-4">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Successfully Subscribed!</h3>
+            <p class="text-gray-600 mb-6">
+                Thank you for subscribing to our newsletter. You'll receive the latest updates and trading insights in your inbox.
+            </p>
+            <button onclick="closeNewsletterModal()" 
+                    class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Newsletter subscription
+function subscribeNewsletter(event) {
+    event.preventDefault();
+    const email = document.getElementById('newsletter-email').value;
+    
+    if (!email) {
+        alert('Please enter your email address');
+        return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('Please enter a valid email address');
+        return;
+    }
+    
+    // Simulate subscription (replace with actual API call)
+    setTimeout(() => {
+        document.getElementById('newsletter-modal').classList.remove('hidden');
+        document.getElementById('newsletter-email').value = '';
+    }, 500);
+}
+
+function closeNewsletterModal() {
+    document.getElementById('newsletter-modal').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.getElementById('newsletter-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeNewsletterModal();
+    }
+});
+
+// Category filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryLinks = document.querySelectorAll('a[href*="category="]');
+    const currentUrl = new URL(window.location);
+    const currentCategory = currentUrl.searchParams.get('category');
+    
+    categoryLinks.forEach(link => {
+        const linkUrl = new URL(link.href);
+        const linkCategory = linkUrl.searchParams.get('category');
+        
+        if (linkCategory === currentCategory) {
+            link.classList.add('text-primary-600', 'font-semibold');
+            link.classList.remove('text-gray-700');
+        }
+    });
+});
+
+// Intersection Observer for animations
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('animate-fade-in');
+        }
+    });
+}, observerOptions);
+
+// Observe article cards
+document.querySelectorAll('article').forEach(article => {
+    observer.observe(article);
+});
+
+// Auto-hide pagination on mobile for better UX
+function handlePaginationDisplay() {
+    const pagination = document.querySelector('nav');
+    if (pagination && window.innerWidth < 640) {
+        const pageNumbers = pagination.querySelectorAll('a[href*="page="], span');
+        pageNumbers.forEach((el, index) => {
+            if (index > 2 && index < pageNumbers.length - 1) {
+                el.style.display = 'none';
+            }
+        });
+    }
+}
+
+window.addEventListener('resize', handlePaginationDisplay);
+document.addEventListener('DOMContentLoaded', handlePaginationDisplay);
+</script>
+{% endblock %}
