@@ -1,0 +1,649 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - TradeVision{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'accounts:profile' %}" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </a>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 font-heading">Edit Profile</h1>
+                    <p class="mt-2 text-gray-600">Update your personal information and preferences</p>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-8">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Left Column - Avatar -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Profile Picture</h3>
+                        
+                        <div class="text-center">
+                            <div class="relative inline-block">
+                                {% if user.profile.avatar %}
+                                    <img id="avatar-preview" src="{{ user.profile.avatar.url }}" alt="Profile" class="w-32 h-32 rounded-full object-cover border-4 border-gray-200">
+                                {% else %}
+                                    <div id="avatar-preview" class="w-32 h-32 bg-gray-200 rounded-full flex items-center justify-center border-4 border-gray-200">
+                                        <i class="fas fa-user text-gray-400 text-4xl"></i>
+                                    </div>
+                                {% endif %}
+                                
+                                <label for="id_avatar" class="absolute bottom-0 right-0 bg-primary-600 text-white p-2 rounded-full cursor-pointer hover:bg-primary-700 transition-colors duration-200">
+                                    <i class="fas fa-camera text-sm"></i>
+                                </label>
+                            </div>
+                            
+                            <div class="mt-4">
+                                {{ profile_form.avatar }}
+                                {% if profile_form.avatar.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ profile_form.avatar.errors.0 }}</p>
+                                {% endif %}
+                                
+                                <p class="mt-2 text-sm text-gray-500">
+                                    JPG, PNG or GIF. Max size 5MB.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Form Fields -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Basic Information -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Basic Information</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Full Name -->
+                            <div>
+                                <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Full Name <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.full_name }}
+                                {% if form.full_name.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.full_name.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Email (Read-only) -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Email Address
+                                </label>
+                                <input type="email" value="{{ user.email }}" readonly 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed">
+                                <p class="mt-1 text-xs text-gray-500">Email cannot be changed</p>
+                            </div>
+
+                            <!-- Phone Number -->
+                            <div>
+                                <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Phone Number <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.phone_number }}
+                                {% if form.phone_number.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.phone_number.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Country -->
+                            <div>
+                                <label for="{{ form.country.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Country <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.country }}
+                                {% if form.country.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.country.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Additional Information</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Date of Birth -->
+                            <div>
+                                <label for="{{ profile_form.date_of_birth.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Date of Birth
+                                </label>
+                                {{ profile_form.date_of_birth }}
+                                {% if profile_form.date_of_birth.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ profile_form.date_of_birth.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- City -->
+                            <div>
+                                <label for="{{ profile_form.city.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    City
+                                </label>
+                                {{ profile_form.city }}
+                                {% if profile_form.city.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ profile_form.city.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Postal Code -->
+                            <div>
+                                <label for="{{ profile_form.postal_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Postal Code
+                                </label>
+                                {{ profile_form.postal_code }}
+                                {% if profile_form.postal_code.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ profile_form.postal_code.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="mt-6">
+                            <label for="{{ profile_form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                Address
+                            </label>
+                            {{ profile_form.address }}
+                            {% if profile_form.address.errors %}
+                                <p class="mt-1 text-sm text-red-600">{{ profile_form.address.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Account Status -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-6">Account Status</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Verification Status -->
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">Email Verification</p>
+                                    <p class="text-sm text-gray-500">Your email verification status</p>
+                                </div>
+                                {% if user.is_verified %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-success-100 text-success-800">
+                                        <i class="fas fa-check-circle mr-1"></i>
+                                        Verified
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-warning-100 text-warning-800">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                                        Unverified
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- KYC Status -->
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">KYC Verification</p>
+                                    <p class="text-sm text-gray-500">Identity verification status</p>
+                                </div>
+                                {% if user.profile.kyc_status == 'approved' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-success-100 text-success-800">
+                                        <i class="fas fa-check-circle mr-1"></i>
+                                        Approved
+                                    </span>
+                                {% elif user.profile.kyc_status == 'pending' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-warning-100 text-warning-800">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        Pending
+                                    </span>
+                                {% else %}
+                                    <a href="{% url 'accounts:kyc_verification' %}" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800 hover:bg-primary-200 transition-colors duration-200">
+                                        <i class="fas fa-plus mr-1"></i>
+                                        Start KYC
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between">
+                            <div class="flex space-x-4">
+                                <button type="submit" class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 transition-all duration-200 font-medium">
+                                    <i class="fas fa-save mr-2"></i>
+                                    Save Changes
+                                </button>
+                                
+                                <a href="{% url 'accounts:profile' %}" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 focus:ring-4 focus:ring-gray-200 transition-all duration-200 font-medium">
+                                    <i class="fas fa-times mr-2"></i>
+                                    Cancel
+                                </a>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500">
+                                <span class="text-red-500">*</span> Required fields
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    // Avatar preview functionality
+    document.getElementById('id_avatar').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('avatar-preview');
+                if (preview.tagName === 'IMG') {
+                    preview.src = e.target.result;
+                } else {
+                    // Replace div with img
+                    const img = document.createElement('img');
+                    img.id = 'avatar-preview';
+                    img.src = e.target.result;
+                    img.alt = 'Profile';
+                    img.className = 'w-32 h-32 rounded-full object-cover border-4 border-gray-200';
+                    preview.parentNode.replaceChild(img, preview);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const requiredFields = ['full_name', 'phone_number', 'country'];
+        let hasErrors = false;
+
+        requiredFields.forEach(function(fieldName) {
+            const field = document.querySelector(`[name="${fieldName}"]`);
+            if (field && !field.value.trim()) {
+                field.classList.add('border-red-500');
+                hasErrors = true;
+            } else if (field) {
+                field.classList.remove('border-red-500');
+            }
+        });
+
+        if (hasErrors) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+
+    // Phone number formatting
+    const phoneInput = document.querySelector('[name="phone_number"]');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            // Remove any existing error styling when user starts typing
+            e.target.classList.remove('border-red-500');
+        });
+    }
+
+    // Real-time validation for full name
+    const nameInput = document.querySelector('[name="full_name"]');
+    if (nameInput) {
+        nameInput.addEventListener('input', function(e) {
+            const value = e.target.value.trim();
+            if (value.length < 2) {
+                e.target.classList.add('border-red-500');
+            } else {
+                e.target.classList.remove('border-red-500');
+            }
+        });
+    }
+
+    // Auto-save draft functionality (optional enhancement)
+    let autoSaveTimer;
+    const formInputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="date"], textarea, select');
+    
+    formInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(function() {
+                // Auto-save draft to localStorage
+                const formData = new FormData(document.querySelector('form'));
+                const draftData = {};
+                for (let [key, value] of formData.entries()) {
+                    if (key !== 'csrfmiddlewaretoken' && key !== 'avatar') {
+                        draftData[key] = value;
+                    }
+                }
+                localStorage.setItem('profile_draft', JSON.stringify(draftData));
+                
+                // Show auto-save indicator
+                showAutoSaveStatus();
+            }, 2000);
+        });
+    });
+
+    // Load draft on page load
+    window.addEventListener('load', function() {
+        const draft = localStorage.getItem('profile_draft');
+        if (draft) {
+            try {
+                const draftData = JSON.parse(draft);
+                Object.keys(draftData).forEach(key => {
+                    const input = document.querySelector(`[name="${key}"]`);
+                    if (input && input.value === '') {
+                        input.value = draftData[key];
+                    }
+                });
+            } catch (e) {
+                // Ignore parsing errors
+            }
+        }
+    });
+
+    // Clear draft on successful submit
+    document.querySelector('form').addEventListener('submit', function() {
+        localStorage.removeItem('profile_draft');
+    });
+
+    function showAutoSaveStatus() {
+        // Create or update auto-save indicator
+        let indicator = document.getElementById('autosave-indicator');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'autosave-indicator';
+            indicator.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-3 py-2 rounded-lg text-sm opacity-0 transition-opacity duration-300';
+            indicator.innerHTML = '<i class="fas fa-check mr-1"></i>Draft saved';
+            document.body.appendChild(indicator);
+        }
+        
+        indicator.style.opacity = '1';
+        setTimeout(() => {
+            indicator.style.opacity = '0';
+        }, 2000);
+    }
+
+    // File upload drag and drop functionality
+    function setupDragAndDrop() {
+        const avatarContainer = document.querySelector('.relative.inline-block');
+        const fileInput = document.getElementById('id_avatar');
+        
+        if (avatarContainer && fileInput) {
+            avatarContainer.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                avatarContainer.classList.add('ring-4', 'ring-primary-300');
+            });
+
+            avatarContainer.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                avatarContainer.classList.remove('ring-4', 'ring-primary-300');
+            });
+
+            avatarContainer.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                avatarContainer.classList.remove('ring-4', 'ring-primary-300');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/')) {
+                        fileInput.files = files;
+                        
+                        // Trigger change event to update preview
+                        const event = new Event('change');
+                        fileInput.dispatchEvent(event);
+                    } else {
+                        alert('Please select an image file (JPG, PNG, or GIF).');
+                    }
+                }
+            });
+        }
+    }
+
+    // Image file validation
+    function validateImageFile(file) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+
+        if (!allowedTypes.includes(file.type)) {
+            alert('Please select a valid image file (JPG, PNG, or GIF).');
+            return false;
+        }
+
+        if (file.size > maxSize) {
+            alert('Image file size must be less than 5MB.');
+            return false;
+        }
+
+        return true;
+    }
+
+    // Enhanced avatar preview with validation
+    document.getElementById('id_avatar').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (!validateImageFile(file)) {
+                e.target.value = ''; // Clear the input
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('avatar-preview');
+                if (preview.tagName === 'IMG') {
+                    preview.src = e.target.result;
+                } else {
+                    // Replace div with img
+                    const img = document.createElement('img');
+                    img.id = 'avatar-preview';
+                    img.src = e.target.result;
+                    img.alt = 'Profile';
+                    img.className = 'w-32 h-32 rounded-full object-cover border-4 border-gray-200';
+                    preview.parentNode.replaceChild(img, preview);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Country-specific phone number formatting
+    const countrySelect = document.querySelector('[name="country"]');
+    const phoneInput = document.querySelector('[name="phone_number"]');
+
+    if (countrySelect && phoneInput) {
+        countrySelect.addEventListener('change', function() {
+            const country = this.value;
+            
+            // Set placeholder based on country
+            const placeholders = {
+                'KE': '+254700000000',
+                'UG': '+256700000000',
+                'TZ': '+255700000000',
+                'CD': '+243800000000',
+                'ZM': '+260950000000'
+            };
+            
+            phoneInput.placeholder = placeholders[country] || 'Enter phone number';
+        });
+    }
+
+    // Advanced form validation with custom messages
+    function validateForm() {
+        const errors = [];
+        
+        // Full name validation
+        const fullName = document.querySelector('[name="full_name"]').value.trim();
+        if (fullName.length < 2) {
+            errors.push('Full name must be at least 2 characters long.');
+        }
+        if (!/^[a-zA-Z\s\-']+$/.test(fullName)) {
+            errors.push('Full name can only contain letters, spaces, hyphens, and apostrophes.');
+        }
+
+        // Phone number validation
+        const phoneNumber = document.querySelector('[name="phone_number"]').value.trim();
+        if (phoneNumber && !/^\+[\d\s\-\(\)]+$/.test(phoneNumber)) {
+            errors.push('Please enter a valid phone number with country code.');
+        }
+
+        // Date of birth validation (if provided)
+        const dobInput = document.querySelector('[name="date_of_birth"]');
+        if (dobInput && dobInput.value) {
+            const dob = new Date(dobInput.value);
+            const today = new Date();
+            const age = today.getFullYear() - dob.getFullYear();
+            
+            if (age < 18) {
+                errors.push('You must be at least 18 years old to use this platform.');
+            }
+            if (age > 120) {
+                errors.push('Please enter a valid date of birth.');
+            }
+        }
+
+        return errors;
+    }
+
+    // Enhanced form submission with validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const errors = validateForm();
+        
+        if (errors.length > 0) {
+            e.preventDefault();
+            alert('Please correct the following errors:\n\n' + errors.join('\n'));
+            return;
+        }
+
+        // Show loading state
+        const submitButton = this.querySelector('button[type="submit"]');
+        const originalText = submitButton.innerHTML;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+        submitButton.disabled = true;
+
+        // Clear draft on successful submit
+        localStorage.removeItem('profile_draft');
+
+        // Re-enable button if form submission fails (fallback)
+        setTimeout(() => {
+            if (submitButton.disabled) {
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+            }
+        }, 10000);
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + S to save
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            document.querySelector('form').dispatchEvent(new Event('submit'));
+        }
+        
+        // Escape to cancel (go back to profile)
+        if (e.key === 'Escape') {
+            if (confirm('Are you sure you want to leave? Any unsaved changes will be lost.')) {
+                window.location.href = "{% url 'accounts:profile' %}";
+            }
+        }
+    });
+
+    // Warn user about unsaved changes
+    let formChanged = false;
+    
+    formInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            formChanged = true;
+        });
+    });
+
+    window.addEventListener('beforeunload', function(e) {
+        if (formChanged) {
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+        }
+    });
+
+    // Reset form changed flag on successful submit
+    document.querySelector('form').addEventListener('submit', function() {
+        formChanged = false;
+    });
+
+    // Initialize drag and drop functionality
+    setupDragAndDrop();
+
+    // Focus first input on page load
+    window.addEventListener('load', function() {
+        const firstInput = document.querySelector('[name="full_name"]');
+        if (firstInput) {
+            firstInput.focus();
+        }
+    });
+
+    // Add visual feedback for required fields
+    const requiredFields = document.querySelectorAll('input[required], select[required]');
+    requiredFields.forEach(field => {
+        const label = document.querySelector(`label[for="${field.id}"]`);
+        if (label && !label.querySelector('.text-red-500')) {
+            label.innerHTML += ' <span class="text-red-500">*</span>';
+        }
+    });
+
+    // Smooth scroll to first error field
+    function scrollToFirstError() {
+        const errorField = document.querySelector('.border-red-500');
+        if (errorField) {
+            errorField.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+            errorField.focus();
+        }
+    }
+
+    // Character counter for textarea fields
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        const maxLength = textarea.getAttribute('maxlength');
+        if (maxLength) {
+            const counter = document.createElement('div');
+            counter.className = 'text-sm text-gray-500 mt-1 text-right';
+            counter.textContent = `0 / ${maxLength}`;
+            textarea.parentNode.appendChild(counter);
+            
+            textarea.addEventListener('input', function() {
+                const current = this.value.length;
+                counter.textContent = `${current} / ${maxLength}`;
+                
+                if (current > maxLength * 0.9) {
+                    counter.classList.add('text-warning-600');
+                } else {
+                    counter.classList.remove('text-warning-600');
+                }
+            });
+        }
+    });
+
+    // Success message display function
+    function showSuccessMessage(message) {
+        const successDiv = document.createElement('div');
+        successDiv.className = 'fixed top-4 right-4 bg-success-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300';
+        successDiv.innerHTML = `<i class="fas fa-check mr-2"></i>${message}`;
+        document.body.appendChild(successDiv);
+        
+        setTimeout(() => {
+            successDiv.style.opacity = '0';
+            setTimeout(() => {
+                document.body.removeChild(successDiv);
+            }, 300);
+        }, 3000);
+    }
+    </script>
+    {% endblock %}

@@ -1,10 +1,434 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Home - TradeVision{% endblock %}
+{% block title %}TradeVision - Smart Trading Platform{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <h1 class="text-3xl font-bold">Welcome to TradeVision</h1>
-    <p class="mt-2">Your one-stop solution for all trading needs.</p>
-</div>
+<!-- Hero Section -->
+<section class="relative bg-gradient-bg min-h-screen flex items-center overflow-hidden">
+    <!-- Background Animation -->
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-purple-900/20"></div>
+    <div class="absolute inset-0">
+        <div class="absolute top-1/4 left-1/4 w-32 h-32 bg-blue-500/10 rounded-full animate-pulse-slow"></div>
+        <div class="absolute top-3/4 right-1/4 w-24 h-24 bg-purple-500/10 rounded-full animate-pulse-slow" style="animation-delay: 1s;"></div>
+        <div class="absolute bottom-1/4 left-1/3 w-16 h-16 bg-green-500/10 rounded-full animate-pulse-slow" style="animation-delay: 2s;"></div>
+    </div>
+    
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <!-- Hero Content -->
+            <div class="text-white space-y-8 animate-fade-in">
+                <h1 class="text-5xl md:text-6xl font-bold font-heading leading-tight">
+                    Smart Trading
+                    <span class="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
+                        Made Simple
+                    </span>
+                </h1>
+                
+                <p class="text-xl text-gray-200 leading-relaxed max-w-xl">
+                    Generate consistent daily profits through our automated trading packages. 
+                    Join thousands of successful traders building wealth with TradeVision.
+                </p>
+                
+                <!-- Stats Bar -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 py-6">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-yellow-400">{{ stats.total_users|floatformat:0 }}+</div>
+                        <div class="text-sm text-gray-300">Active Users</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-green-400">${{ stats.total_invested|floatformat:0 }}M</div>
+                        <div class="text-sm text-gray-300">Total Invested</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-400">${{ stats.total_profits_paid|floatformat:0 }}K</div>
+                        <div class="text-sm text-gray-300">Profits Paid</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-purple-400">{{ stats.platform_uptime }}%</div>
+                        <div class="text-sm text-gray-300">Uptime</div>
+                    </div>
+                </div>
+                
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4">
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'account_signup' %}{% if referral_code %}?ref={{ referral_code }}{% endif %}" 
+                           class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 text-center">
+                            <i class="fas fa-rocket mr-2"></i>Start Trading Now
+                        </a>
+                        <a href="{% url 'core:about' %}" 
+                           class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-gray-900 transition-all duration-300 text-center">
+                            Learn More
+                        </a>
+                    {% else %}
+                        <a href="{% url 'trading:dashboard' %}" 
+                           class="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 text-center">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Go to Dashboard
+                        </a>
+                        <a href="{% url 'trading:packages' %}" 
+                           class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-gray-900 transition-all duration-300 text-center">
+                            <i class="fas fa-box mr-2"></i>View Packages
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Hero Image/Animation -->
+            <div class="relative animate-slide-up">
+                <div class="relative bg-white/10 backdrop-blur-lg rounded-3xl p-8 border border-white/20">
+                    <!-- Trading Chart Mockup -->
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center text-white">
+                            <h3 class="font-semibold">Live Trading Performance</h3>
+                            <span class="text-green-400 text-sm">+15.7% Today</span>
+                        </div>
+                        
+                        <!-- Chart Area -->
+                        <div class="h-48 bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-lg relative overflow-hidden">
+                            <!-- Animated Chart Lines -->
+                            <svg class="w-full h-full" viewBox="0 0 300 150">
+                                <path d="M0,100 Q75,60 150,80 T300,40" stroke="#22c55e" stroke-width="3" fill="none" opacity="0.8">
+                                    <animate attributeName="stroke-dasharray" values="0,1000;1000,0" dur="3s" repeatCount="indefinite"/>
+                                </path>
+                            </svg>
+                            
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="bg-green-500/90 text-white px-4 py-2 rounded-lg backdrop-blur-sm">
+                                    <div class="text-sm">Current Profit</div>
+                                    <div class="text-lg font-bold">+$1,247.89</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Stats Row -->
+                        <div class="grid grid-cols-3 gap-4 text-center text-white">
+                            <div>
+                                <div class="text-lg font-bold text-green-400">94.2%</div>
+                                <div class="text-xs text-gray-300">Success Rate</div>
+                            </div>
+                            <div>
+                                <div class="text-lg font-bold text-blue-400">$2.5M</div>
+                                <div class="text-xs text-gray-300">Daily Volume</div>
+                            </div>
+                            <div>
+                                <div class="text-lg font-bold text-yellow-400">847</div>
+                                <div class="text-xs text-gray-300">Active Trades</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Announcements -->
+{% if announcements %}
+<section class="bg-blue-50 py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center space-x-4">
+            <div class="flex-shrink-0">
+                <i class="fas fa-bullhorn text-blue-600"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="text-sm text-blue-800 font-medium">
+                    Latest Updates:
+                    {% for announcement in announcements %}
+                        <span class="mx-2">{{ announcement.title }}</span>
+                        {% if not forloop.last %}•{% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Trading Packages Section -->
+<section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold font-heading text-gray-900 mb-4">
+                Choose Your Trading Package
+            </h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Select from our carefully crafted trading packages designed to match your investment goals and risk tolerance.
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% for package in packages %}
+            <div class="trading-card bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-300">
+                <!-- Package Header -->
+                <div class="bg-gradient-primary p-6 text-white text-center">
+                    <h3 class="text-2xl font-bold mb-2">{{ package.name }}</h3>
+                    <div class="text-3xl font-bold">${{ package.min_amount|floatformat:0 }}</div>
+                    <div class="text-sm opacity-90">Minimum Investment</div>
+                </div>
+                
+                <!-- Package Body -->
+                <div class="p-6 space-y-4">
+                    <!-- Profit Rate -->
+                    <div class="text-center py-4 bg-green-50 rounded-lg">
+                        <div class="text-3xl font-bold text-green-600">{{ package.daily_profit_rate }}%</div>
+                        <div class="text-sm text-gray-600">Daily Profit</div>
+                    </div>
+                    
+                    <!-- Features -->
+                    <ul class="space-y-3">
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                            Duration: {{ package.duration_days }} days
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                            Max: ${{ package.max_amount|floatformat:0 }}
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                            24/7 Trading
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                            Instant Withdrawals
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                            Professional Support
+                        </li>
+                    </ul>
+                    
+                    <!-- CTA Button -->
+                    <div class="pt-4">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'trading:packages' %}" 
+                               class="w-full bg-gradient-primary text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200 block text-center">
+                                Start Trading
+                            </a>
+                        {% else %}
+                            <a href="{% url 'account_signup' %}" 
+                               class="w-full bg-gradient-primary text-white py-3 px-6 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200 block text-center">
+                                Get Started
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold font-heading text-gray-900 mb-4">
+                Why Choose TradeVision?
+            </h2>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                Our platform combines cutting-edge technology with proven trading strategies to deliver consistent results.
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Feature 1 -->
+            <div class="text-center group">
+                <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-shield-alt text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">Secure Trading</h3>
+                <p class="text-gray-600">Advanced security protocols and encrypted transactions protect your investments.</p>
+            </div>
+            
+            <!-- Feature 2 -->
+            <div class="text-center group">
+                <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-robot text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">AI-Powered</h3>
+                <p class="text-gray-600">Intelligent algorithms analyze markets 24/7 to maximize your profit potential.</p>
+            </div>
+            
+            <!-- Feature 3 -->
+            <div class="text-center group">
+                <div class="w-20 h-20 bg-gradient-to-r from-yellow-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-clock text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">Instant Withdrawals</h3>
+                <p class="text-gray-600">Access your profits immediately with our fast and reliable withdrawal system.</p>
+            </div>
+            
+            <!-- Feature 4 -->
+            <div class="text-center group">
+                <div class="w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-headset text-white text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">24/7 Support</h3>
+                <p class="text-gray-600">Our expert team is always available to help you succeed in your trading journey.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+{% if featured_faqs %}
+<section class="py-20 bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold font-heading text-gray-900 mb-4">
+                Frequently Asked Questions
+            </h2>
+            <p class="text-xl text-gray-600">
+                Get answers to the most common questions about our platform.
+            </p>
+        </div>
+        
+        <div class="space-y-6" x-data="{ openFaq: null }">
+            {% for faq in featured_faqs %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <button @click="openFaq = openFaq === {{ forloop.counter }} ? null : {{ forloop.counter }}" 
+                        class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors duration-200">
+                    <span class="font-medium text-gray-900">{{ faq.question }}</span>
+                    <i class="fas fa-chevron-down transition-transform duration-200" 
+                       :class="{ 'rotate-180': openFaq === {{ forloop.counter }} }"></i>
+                </button>
+                <div x-show="openFaq === {{ forloop.counter }}" 
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="px-6 pb-4">
+                    <p class="text-gray-600">{{ faq.answer }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-8">
+            <a href="{% url 'core:faq' %}" 
+               class="text-primary-600 hover:text-primary-700 font-medium">
+                View All FAQs <i class="fas fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- News Section -->
+{% if recent_news %}
+<section class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold font-heading text-gray-900 mb-4">
+                Latest News & Updates
+            </h2>
+            <p class="text-xl text-gray-600">
+                Stay informed with the latest developments in trading and our platform.
+            </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {% for news in recent_news %}
+            <article class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                {% if news.featured_image %}
+                <img src="{{ news.featured_image.url }}" alt="{{ news.title }}" class="w-full h-48 object-cover">
+                {% else %}
+                <div class="w-full h-48 bg-gradient-primary flex items-center justify-center">
+                    <i class="fas fa-newspaper text-white text-4xl"></i>
+                </div>
+                {% endif %}
+                
+                <div class="p-6">
+                    <div class="text-sm text-gray-500 mb-2">
+                        <i class="fas fa-calendar mr-1"></i>
+                        {{ news.publish_date|date:"M d, Y" }}
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-3 line-clamp-2">
+                        {{ news.title }}
+                    </h3>
+                    <p class="text-gray-600 mb-4 line-clamp-3">
+                        {{ news.excerpt|default:news.content|truncatewords:20 }}
+                    </p>
+                    <a href="{% url 'core:news_detail' news.slug %}" 
+                       class="text-primary-600 hover:text-primary-700 font-medium">
+                        Read More <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-8">
+            <a href="{% url 'core:news_list' %}" 
+               class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                View All News
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- CTA Section -->
+<section class="py-20 bg-gradient-bg text-white">
+    <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+        <h2 class="text-4xl font-bold font-heading mb-6">
+            Ready to Start Your Trading Journey?
+        </h2>
+        <p class="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
+            Join thousands of successful traders who trust TradeVision for their financial growth. 
+            Start with as little as $100 and watch your wealth grow daily.
+        </p>
+        
+        {% if not user.is_authenticated %}
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'account_signup' %}{% if referral_code %}?ref={{ referral_code }}{% endif %}" 
+               class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+                <i class="fas fa-user-plus mr-2"></i>Create Account
+            </a>
+            <a href="{% url 'core:contact' %}" 
+               class="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-gray-900 transition-all duration-300">
+                <i class="fas fa-comments mr-2"></i>Contact Us
+            </a>
+        </div>
+        {% else %}
+        <a href="{% url 'trading:packages' %}" 
+           class="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300 inline-block">
+            <i class="fas fa-chart-line mr-2"></i>Start Trading Now
+        </a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add smooth scrolling for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+        });
+    });
+});
+
+// Animate stats when they come into view
+const observerOptions = {
+    threshold: 0.5,
+    rootMargin: '0px 0px -100px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('animate-bounce-in');
+        }
+    });
+}, observerOptions);
+
+document.querySelectorAll('.trading-card').forEach(card => {
+    observer.observe(card);
+});
+</script>
 {% endblock %}
