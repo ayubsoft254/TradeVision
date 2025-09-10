@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}P2P Merchants{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <h1 class="text-2xl font-heading mb-6">P2P Merchants</h1>
+    <!-- Merchant statistics -->
+    <div class="mb-6">
+        <p><strong>Total Merchants:</strong> {{ stats.total_merchants }}</p>
+        <p><strong>Verified Merchants:</strong> {{ stats.verified_merchants }}</p>
+        <p><strong>Average Rating:</strong> {{ stats.avg_rating }}</p>
+    </div>
+    <!-- Merchants table/list -->
+    {% if merchants %}
+        <table class="w-full table-auto bg-white shadow card-shadow rounded-lg">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Rating</th>
+                    <th>Verified</th>
+                    <th>Total Orders</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for merchant in merchants %}
+                <tr>
+                    <td>{{ merchant.name }}</td>
+                    <td>{{ merchant.rating }}</td>
+                    <td>{% if merchant.is_verified %}Yes{% else %}No{% endif %}</td>
+                    <td>{{ merchant.total_orders }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No merchants found.</p>
+    {% endif %}
+</div>
+{% endblock %}

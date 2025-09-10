@@ -1,3 +1,43 @@
 {% extends 'base.html' %}
-
-{% block title %}My Trades - TradeVision{% endblock %}
+{% block title %}My Trades{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto py-8">
+    <h1 class="text-2xl font-heading mb-6">My Trades</h1>
+    <!-- Trade statistics -->
+    <div class="mb-6">
+        <p><strong>Total Trades:</strong> {{ stats.total_trades }}</p>
+        <p><strong>Completed Trades:</strong> {{ stats.completed_trades }}</p>
+        <p><strong>Running Trades:</strong> {{ stats.running_trades }}</p>
+        <p><strong>Total Profit:</strong> {{ stats.total_profit }}</p>
+    </div>
+    <!-- Trades table/list -->
+    {% if trades %}
+        <table class="w-full table-auto bg-white shadow card-shadow rounded-lg">
+            <thead>
+                <tr>
+                    <th>Package</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                    <th>Profit</th>
+                    <th>Started</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trade in trades %}
+                <tr>
+                    <td>{{ trade.investment.package.display_name }}</td>
+                    <td>{{ trade.get_status_display }}</td>
+                    <td>{{ trade.trade_amount }}</td>
+                    <td>{{ trade.profit_amount }}</td>
+                    <td>{{ trade.start_time|date:'M d, Y H:i' }}</td>
+                    <td><a href="{% url 'trading:trade_detail' trade.id %}" class="text-primary-600 hover:underline">Details</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No trades found.</p>
+    {% endif %}
+</div>
+{% endblock %}

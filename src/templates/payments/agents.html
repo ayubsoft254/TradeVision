@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Payment Agents{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto py-8">
+    <h1 class="text-2xl font-heading mb-6">Payment Agents</h1>
+    <!-- Agent statistics -->
+    <div class="mb-6">
+        <p><strong>Total Agents:</strong> {{ stats.total_agents }}</p>
+        <p><strong>Verified Agents:</strong> {{ stats.verified_agents }}</p>
+        <p><strong>Average Rating:</strong> {{ stats.avg_rating }}</p>
+    </div>
+    <!-- Agents table/list -->
+    {% if agents %}
+        <table class="w-full table-auto bg-white shadow card-shadow rounded-lg">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Rating</th>
+                    <th>Verified</th>
+                    <th>Total Transactions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for agent in agents %}
+                <tr>
+                    <td>{{ agent.name }}</td>
+                    <td>{{ agent.rating }}</td>
+                    <td>{% if agent.is_verified %}Yes{% else %}No{% endif %}</td>
+                    <td>{{ agent.total_transactions }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No agents found.</p>
+    {% endif %}
+</div>
+{% endblock %}

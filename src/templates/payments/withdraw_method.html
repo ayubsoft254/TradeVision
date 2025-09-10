@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Withdraw via {{ payment_method.display_name }}{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto py-8">
+    <h1 class="text-2xl font-heading mb-6">Withdraw via {{ payment_method.display_name }}</h1>
+    {% if form %}
+        <form method="post" class="bg-white p-6 rounded-lg shadow card-shadow">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="bg-primary-600 text-white px-4 py-2 rounded-lg mt-4">Submit Withdrawal</button>
+        </form>
+    {% else %}
+        <p>No withdrawal form available for this method.</p>
+    {% endif %}
+</div>
+{% endblock %}
