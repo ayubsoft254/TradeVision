@@ -9,7 +9,7 @@ from .models import User, UserProfile, Referral
 class UserAdmin(BaseUserAdmin):
     """Custom User Admin"""
     list_display = (
-        'email', 'full_name', 'country', 'phone_number', 
+        'username', 'email', 'full_name', 'country', 'phone_number', 
         'is_verified', 'is_active', 'date_joined'
     )
     list_filter = (

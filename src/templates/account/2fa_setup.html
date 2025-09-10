@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Two-Factor Authentication - TradeVision{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'accounts:security' %}" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </a>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 font-heading">Two-Factor Authentication</h1>
+                    <p class="mt-2 text-gray-600">Add an extra layer of security to your account</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Status -->
+        <div class="mb-8">
+            {% if two_factor_enabled %}
+                <div class="bg-success-50 border border-success-200 rounded-lg p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-shield-alt text-success-500 text-3xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-success-900">2FA is Enabled</h3>
+                            <p class="text-success-700">Your account is protected with two-factor authentication.</p>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="bg-warning-50 border border-warning-200 rounded-lg p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle text-warning-500 text-3xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-warning-900">2FA is Disabled</h3>
+                            <p class="text-warning-700">Your account could benefit from additional security protection.</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- What is 2FA -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">What is Two-Factor Authentication?</h3>
+            
+            <div class="space-y-4">
+                <p class="text-gray-600">
+                    Two-factor authentication (2FA) adds an extra layer of security to your account by requiring two different ways to prove your identity when logging in.
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-3">
+                        <h4 class="font-medium text-gray-900">Benefits:</h4>
+                        <ul class="space-y-2">
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check text-success-500 mr-2"></i>
+                                Protects against password theft
+                            </li>
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check text-success-500 mr-2"></i>
+                                Reduces account takeover risk
+                            </li>
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check text-success-500 mr-2"></i>
+                                Enhances trading security
+                            </li>
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check text-success-500 mr-2"></i>
+                                Complies with security standards
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <h4 class="font-medium text-gray-900">How it works:</h4>
+                        <div class="space-y-2">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center mr-3 mt-1">
+                                    <span class="text-primary-600 font-bold text-xs">1</span>
+                                </div>
+                                <p class="text-sm text-gray-600">Enter your password as usual</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center mr-3 mt-1">
+                                    <span class="text-primary-600 font-bold text-xs">2</span>
+                                </div>
+                                <p class="text-sm text-gray-600">Enter the 6-digit code from your phone</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center mr-3 mt-1">
+                                    <span class="text-primary-600 font-bold text-xs">3</span>
+                                </div>
+                                <p class="text-sm text-gray-600">Access your secure account</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Setup Form -->
+        {% if not two_factor_enabled %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 bg-primary-600 text-white">
+                <h3 class="text-lg font-semibold">Enable Two-Factor Authentication</h3>
+            </div>
+            
+            <div class="p-6">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="enable">
+                    
+                    <!-- Step 1: Download App -->
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-medium text-gray-900">Step 1: Download an Authenticator App</h4>
+                        <p class="text-gray-600">Choose one of these recommended authenticator apps:</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="border border-gray-200 rounded-lg p-4 text-center">
+                                <div class="w-12 h-12 mx-auto mb-3 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fab fa-google text-blue-600 text-xl"></i>
+                                </div>
+                                <h5 class="font-medium text-gray-900">Google Authenticator</h5>
+                                <p class="text-sm text-gray-500 mt-1">Free • iOS & Android</p>
+                            </div>
+                            
+                            <div class="border border-gray-200 rounded-lg p-4 text-center">
+                                <div class="w-12 h-12 mx-auto mb-3 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-mobile-alt text-purple-600 text-xl"></i>
+                                </div>
+                                <h5 class="font-medium text-gray-900">Authy</h5>
+                                <p class="text-sm text-gray-500 mt-1">Free • iOS & Android</p>
+                            </div>
+                            
+                            <div class="border border-gray-200 rounded-lg p-4 text-center">
+                                <div class="w-12 h-12 mx-auto mb-3 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-shield-alt text-green-600 text-xl"></i>
+                                </div>
+                                <h5 class="font-medium text-gray-900">Microsoft Authenticator</h5>
+                                <p class="text-sm text-gray-500 mt-1">Free • iOS & Android</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Scan QR Code -->
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-medium text-gray-900">Step 2: Scan the QR Code</h4>
+                        <p class="text-gray-600">Open your authenticator app and scan this QR code:</p>
+                        
+                        <div class="flex justify-center">
+                            <div class="bg-white p-6 rounded-lg border-2 border-dashed border-gray-300">
+                                <!-- QR Code placeholder - in real implementation, generate actual QR code -->
+                                <div class="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center">
+                                    <div class="text-center">
+                                        <i class="fas fa-qrcode text-gray-400 text-6xl mb-2"></i>
+                                        <p class="text-sm text-gray-500">QR Code</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500 mb-2">Can't scan? Enter this code manually:</p>
+                            <p class="font-mono text-sm bg-gray-100 p-2 rounded border inline-block">XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Enter Code -->
+                    <div class="space-y-4">
+                        <h4 class="text-lg font-medium text-gray-900">Step 3: Enter Verification Code</h4>
+                        <p class="text-gray-600">Enter the 6-digit code from your authenticator app:</p>
+                        
+                        <div class="max-w-xs">
+                            <input type="text" 
+                                   name="verification_code"
+                                   placeholder="000000"
+                                   maxlength="6"
+                                   pattern="[0-9]{6}"
+                                   required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-center text-2xl font-mono tracking-wider">
+                        </div>
+                    </div>
+
+                    <!-- Backup Codes Warning -->
+                    <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <div class="flex items-start">
+                            <i class="fas fa-exclamation-triangle text-yellow-600 mr-3 mt-1"></i>
+                            <div>
+                                <h5 class="text-sm font-medium text-yellow-900">Important: Save Your Backup Codes</h5>
+                                <p class="text-sm text-yellow-800 mt-1">
+                                    After enabling 2FA, you'll receive backup codes. Store them safely - they're your only way to access your account if you lose your phone.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end space-x-4">
+                        <a href="{% url 'accounts:security' %}" 
+                           class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium">
+                            Cancel
+                        </a>
+                        <button type="submit" 
+                                class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 transition-all duration-200 font-medium">
+                            <i class="fas fa-shield-alt mr-2"></i>
+                            Enable 2FA
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <!-- 2FA Management -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 bg-success-600 text-white">
+                <h3 class="text-lg font-semibold">Manage Two-Factor Authentication</h3>
+            </div>
+            
+            <div class="p-6 space-y-6">
+                <!-- Status -->
+                <div class="flex items-center justify-between p-4 bg-success-50 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-success-500 text-2xl mr-4"></i>
+                        <div>
+                            <h4 class="font-medium text-success-900">2FA Active</h4>
+                            <p class="text-sm text-success-700">Your account is protected with two-factor authentication</p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-success-100 text-success-800">
+                        <i class="fas fa-shield-alt mr-1"></i>
+                        Protected
+                    </span>
+                </div>
+
+                <!-- Backup Codes -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-medium text-gray-900">Backup Codes</h4>
+                        <button class="text-primary-600 hover:text-primary-800 text-sm font-medium">
+                            <i class="fas fa-redo mr-1"></i>
+                            Generate New Codes
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">
+                        Use these codes if you can't access your authenticator app. Each code can only be used once.
+                    </p>
+                    <button class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm font-medium">
+                        <i class="fas fa-eye mr-2"></i>
+                        View Backup Codes
+                    </button>
+                </div>
+
+                <!-- Test 2FA -->
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-3">Test Your Setup</h4>
+                    <p class="text-sm text-gray-600 mb-3">
+                        Make sure your authenticator app is working correctly by entering a current code:
+                    </p>
+                    <div class="flex space-x-3">
+                        <input type="text" 
+                               placeholder="000000"
+                               maxlength="6"
+                               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-center font-mono">
+                        <button class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium">
+                            Test Code
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Disable 2FA -->
+                <div class="border border-red-200 rounded-lg p-4 bg-red-50">
+                    <h4 class="font-medium text-red-900 mb-3">Disable Two-Factor Authentication</h4>
+                    <p class="text-sm text-red-700 mb-4">
+                        Warning: Disabling 2FA will make your account less secure. Only proceed if you understand the risks.
+                    </p>
+                    
+                    <form method="post" onsubmit="return confirm('Are you sure you want to disable 2FA? This will make your account less secure.')">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="disable">
+                        <button type="submit" 
+                                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 font-medium">
+                            <i class="fas fa-times mr-2"></i>
+                            Disable 2FA
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Security Tips -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Security Tips</h3>
+            
+            <div class="space-y-3">
+                <div class="flex items-start">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-3 mt-1"></i>
+                    <p class="text-sm text-gray-600">Keep your backup codes in a secure location, separate from your phone</p>
+                </div>
+                <div class="flex items-start">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-3 mt-1"></i>
+                    <p class="text-sm text-gray-600">Don't share screenshots of QR codes or backup codes with anyone</p>
+                </div>
+                <div class="flex items-start">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-3 mt-1"></i>
+                    <p class="text-sm text-gray-600">If you change phones, remember to transfer your 2FA setup</p>
+                </div>
+                <div class="flex items-start">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-3 mt-1"></i>
+                    <p class="text-sm text-gray-600">Test your 2FA periodically to ensure it's working correctly</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

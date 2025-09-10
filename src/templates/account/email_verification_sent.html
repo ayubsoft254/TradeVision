@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Email Verification Sent - TradeVision{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+            <a href="{% url 'core:home' %}" class="inline-flex items-center space-x-2 mb-6">
+                <div class="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chart-line text-white text-xl"></i>
+                </div>
+                <span class="text-2xl font-bold font-heading text-gray-900">TradeVision</span>
+            </a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-lg shadow-md p-8 text-center">
+            <!-- Success Icon -->
+            <div class="w-20 h-20 mx-auto mb-6 bg-success-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-envelope-open-text text-success-600 text-3xl"></i>
+            </div>
+            
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Check your email</h2>
+            
+            <p class="text-gray-600 mb-6">
+                We've sent a verification link to your email address. Please click the link in the email to verify your account and complete your registration.
+            </p>
+
+            <!-- Email Address Display -->
+            {% if user.email %}
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <div class="flex items-center justify-center">
+                    <i class="fas fa-envelope text-gray-400 mr-2"></i>
+                    <span class="text-sm font-medium text-gray-900">{{ user.email }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="space-y-4">
+                <button onclick="resendVerification()" 
+                        class="w-full bg-primary-600 text-white py-3 px-4 rounded-lg hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 transition-all duration-200 font-medium">
+                    <i class="fas fa-redo mr-2"></i>
+                    Resend Verification Email
+                </button>
+                
+                <a href="{% url 'account_login' %}" 
+                   class="block w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors duration-200 font-medium">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    Back to Login
+                </a>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-blue-50 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-900 mb-2">What to do next:</h3>
+                    <ol class="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+                        <li>Check your inbox for an email from TradeVision</li>
+                        <li>Click the verification link in the email</li>
+                        <li>You'll be redirected back to complete your setup</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="bg-yellow-50 rounded-lg p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-question-circle text-yellow-600 text-xl"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-900 mb-2">Didn't receive the email?</h3>
+                    <div class="text-sm text-yellow-800 space-y-2">
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Check your spam or junk mail folder</li>
+                            <li>Make sure you entered the correct email address</li>
+                            <li>Wait a few minutes - emails can sometimes be delayed</li>
+                            <li>Add support@tradevision.com to your contacts</li>
+                        </ul>
+                        <p class="mt-3">
+                            Still having issues? 
+                            <a href="{% url 'core:contact' %}" class="font-medium text-yellow-700 hover:text-yellow-800 underline">
+                                Contact our support team
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="bg-green-50 rounded-lg p-4">
+            <div class="flex items-center">
+                <i class="fas fa-shield-alt text-green-600 mr-3"></i>
+                <div class="text-sm text-green-800">
+                    <strong>Security Notice:</strong> Verification links expire after 24 hours. 
+                    If the link expires, you can request a new one using the button above.
+                </div>
+            </div>
+        </div>
+
+        <!-- Benefits Reminder -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 text-center">Why verify your email?</h3>
+            
+            <div class="space-y-3">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-check text-primary-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">Account Security</h4>
+                        <p class="text-sm text-gray-600">Protect your account from unauthorized access</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-check text-primary-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">Important Notifications</h4>
+                        <p class="text-sm text-gray-600">Receive updates about your investments and profits</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-check text-primary-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">Password Recovery</h4>
+                        <p class="text-sm text-gray-600">Easily reset your password if you forget it</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-check text-primary-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">Full Platform Access</h4>
+                        <p class="text-sm text-gray-600">Unlock all trading features and higher limits</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alternative Actions -->
+        <div class="text-center space-y-4">
+            <div class="relative">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-gray-50 text-gray-500">Need help?</span>
+                </div>
+            </div>
+            
+            <div class="flex justify-center space-x-6 text-sm">
+                <a href="{% url 'core:faq' %}" class="text-gray-500 hover:text-gray-700 transition-colors duration-200">
+                    <i class="fas fa-question-circle mr-1"></i>
+                    FAQ
+                </a>
+                <a href="{% url 'core:contact' %}" class="text-gray-500 hover:text-gray-700 transition-colors duration-200">
+                    <i class="fas fa-envelope mr-1"></i>
+                    Support
+                </a>
+                <a href="{% url 'core:about' %}" class="text-gray-500 hover:text-gray-700 transition-colors duration-200">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    About
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="resend-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg max-w-sm mx-4 p-6">
+        <div class="text-center">
+            <div class="w-16 h-16 mx-auto mb-4 bg-success-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-check text-success-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Email Sent!</h3>
+            <p class="text-gray-600 mb-4">We've sent another verification email to your inbox.</p>
+            <button onclick="closeModal()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                Got it
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function resendVerification() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    // Show loading state
+    button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
+    button.disabled = true;
+    
+    // Simulate API call (replace with actual endpoint)
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+        
+        // Show success modal
+        document.getElementById('resend-modal').classList.remove('hidden');
+        document.getElementById('resend-modal').classList.add('flex');
+    }, 2000);
+}
+
+function closeModal() {
+    document.getElementById('resend-modal').classList.add('hidden');
+    document.getElementById('resend-modal').classList.remove('flex');
+}
+
+// Auto-check for email verification every 10 seconds
+let checkInterval = setInterval(function() {
+    // In a real implementation, you would check if the user has verified their email
+    // fetch('/api/check-verification-status/').then(response => {
+    //     if (response.data.verified) {
+    //         clearInterval(checkInterval);
+    //         window.location.href = '/dashboard/';
+    //     }
+    // });
+}, 10000);
+
+// Clean up interval when page is unloaded
+window.addEventListener('beforeunload', function() {
+    clearInterval(checkInterval);
+});
+</script>
+{% endblock %}

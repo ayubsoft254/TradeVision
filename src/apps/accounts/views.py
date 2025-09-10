@@ -21,7 +21,7 @@ from apps.payments.models import Transaction, Wallet
 
 class ProfileView(LoginRequiredMixin, TemplateView):
     """User profile dashboard"""
-    template_name = 'accounts/profile.html'
+    template_name = 'account/profile.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -87,7 +87,7 @@ class EditProfileView(LoginRequiredMixin, UpdateView):
     """Edit user profile information"""
     model = User
     form_class = UserProfileForm
-    template_name = 'accounts/edit_profile.html'
+    template_name = 'account/edit_profile.html'
     success_url = reverse_lazy('accounts:profile')
     
     def get_object(self):
@@ -127,7 +127,7 @@ class EditProfileView(LoginRequiredMixin, UpdateView):
 
 class SecurityView(LoginRequiredMixin, TemplateView):
     """Security settings and password change"""
-    template_name = 'accounts/security.html'
+    template_name = 'account/security.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -172,7 +172,7 @@ class SecurityView(LoginRequiredMixin, TemplateView):
 
 class ReferralView(LoginRequiredMixin, TemplateView):
     """Referral system dashboard"""
-    template_name = 'accounts/referrals.html'
+    template_name = 'account/referrals.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -225,7 +225,7 @@ class ReferralView(LoginRequiredMixin, TemplateView):
 
 class KYCVerificationView(LoginRequiredMixin, TemplateView):
     """KYC verification process"""
-    template_name = 'accounts/kyc_verification.html'
+    template_name = 'account/kyc_verification.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -255,7 +255,7 @@ class KYCVerificationView(LoginRequiredMixin, TemplateView):
 
 class AccountActivityView(LoginRequiredMixin, TemplateView):
     """User account activity log"""
-    template_name = 'accounts/activity.html'
+    template_name = 'account/activity.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -289,7 +289,7 @@ class AccountActivityView(LoginRequiredMixin, TemplateView):
 
 class NotificationsView(LoginRequiredMixin, TemplateView):
     """User notifications center"""
-    template_name = 'accounts/notifications.html'
+    template_name = 'account/notifications.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -408,7 +408,7 @@ def delete_account(request):
 
 class TwoFactorSetupView(LoginRequiredMixin, TemplateView):
     """Two-factor authentication setup"""
-    template_name = 'accounts/2fa_setup.html'
+    template_name = 'account/2fa_setup.html'
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

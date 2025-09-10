@@ -1,0 +1,367 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notifications - TradeVision{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'accounts:profile' %}" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 font-heading">Notifications</h1>
+                        <p class="mt-2 text-gray-600">Stay updated with your account activities and important updates</p>
+                    </div>
+                </div>
+                
+                <!-- Mark All Read Button -->
+                <button onclick="markAllRead()" class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium">
+                    <i class="fas fa-check-double mr-2"></i>
+                    Mark All Read
+                </button>
+            </div>
+        </div>
+
+        <!-- Notification Filter Tabs -->
+        <div class="bg-white rounded-lg shadow-md mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                    <button onclick="filterNotifications('all')" 
+                            class="notification-tab border-b-2 border-primary-500 text-primary-600 py-4 px-1 text-sm font-medium active">
+                        All Notifications
+                    </button>
+                    <button onclick="filterNotifications('profit')" 
+                            class="notification-tab border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+                        Profits
+                    </button>
+                    <button onclick="filterNotifications('investment')" 
+                            class="notification-tab border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+                        Investments
+                    </button>
+                    <button onclick="filterNotifications('security')" 
+                            class="notification-tab border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+                        Security
+                    </button>
+                    <button onclick="filterNotifications('system')" 
+                            class="notification-tab border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+                        System
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Notifications List -->
+        <div class="space-y-4">
+            {% if notifications %}
+                {% for notification in notifications %}
+                    <div class="notification-item bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200 border-l-4 border-{{ notification.color }}-500"
+                         data-type="{{ notification.type }}">
+                        <div class="flex items-start space-x-4">
+                            <!-- Icon -->
+                            <div class="flex-shrink-0">
+                                <div class="w-12 h-12 bg-{{ notification.color }}-100 rounded-full flex items-center justify-center">
+                                    <i class="{{ notification.icon }} text-{{ notification.color }}-600 text-lg"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Content -->
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <h3 class="text-sm font-medium text-gray-900">{{ notification.title }}</h3>
+                                        <p class="mt-1 text-sm text-gray-600">{{ notification.message }}</p>
+                                        <p class="mt-2 text-xs text-gray-400">
+                                            <i class="fas fa-clock mr-1"></i>
+                                            {{ notification.timestamp|timesince }} ago
+                                        </p>
+                                    </div>
+                                    
+                                    <!-- Actions -->
+                                    <div class="flex items-center space-x-2 ml-4">
+                                        <button onclick="markAsRead(this)" 
+                                                class="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                                                title="Mark as read">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button onclick="deleteNotification(this)" 
+                                                class="text-gray-400 hover:text-red-600 transition-colors duration-200"
+                                                title="Delete">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <!-- Empty State -->
+                <div class="bg-white rounded-lg shadow-md p-12 text-center">
+                    <div class="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-bell-slash text-gray-400 text-3xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No notifications yet</h3>
+                    <p class="text-gray-500 mb-6">You'll receive notifications about your account activities and important updates here.</p>
+                    <a href="{% url 'trading:packages' %}" 
+                       class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        Start Trading
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sample Notifications (if no real notifications exist) -->
+        {% if not notifications %}
+        <div class="space-y-4 mt-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Sample Notifications</h3>
+            
+            <!-- Profit Notification -->
+            <div class="notification-item bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500" data-type="profit">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-money-bill-wave text-green-600 text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="text-sm font-medium text-gray-900">Profit Earned</h3>
+                                <p class="mt-1 text-sm text-gray-600">You earned $50.00 from your Premium Package investment</p>
+                                <p class="mt-2 text-xs text-gray-400">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    2 hours ago
+                                </p>
+                            </div>
+                            <div class="flex items-center space-x-2 ml-4">
+                                <button class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="text-gray-400 hover:text-red-600 transition-colors duration-200">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Notification -->
+            <div class="notification-item bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500" data-type="security">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-shield-alt text-yellow-600 text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="text-sm font-medium text-gray-900">Security Alert</h3>
+                                <p class="mt-1 text-sm text-gray-600">New login detected from Chrome on Windows. If this wasn't you, please secure your account.</p>
+                                <p class="mt-2 text-xs text-gray-400">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    3 days ago
+                                </p>
+                            </div>
+                            <div class="flex items-center space-x-2 ml-4">
+                                <button class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="text-gray-400 hover:text-red-600 transition-colors duration-200">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Notification -->
+            <div class="notification-item bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500" data-type="system">
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                            <i class="fas fa-bullhorn text-purple-600 text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="text-sm font-medium text-gray-900">Platform Update</h3>
+                                <p class="mt-1 text-sm text-gray-600">New trading packages are now available! Check out our enhanced Premium Pro package with higher returns.</p>
+                                <p class="mt-2 text-xs text-gray-400">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    1 week ago
+                                </p>
+                            </div>
+                            <div class="flex items-center space-x-2 ml-4">
+                                <button class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button class="text-gray-400 hover:text-red-600 transition-colors duration-200">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Notification Preferences -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-6">Notification Preferences</h3>
+            
+            <div class="space-y-6">
+                <!-- Email Notifications -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-900 mb-4">Email Notifications</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">Profit Updates</p>
+                                <p class="text-sm text-gray-500">Get notified when you earn profits</p>
+                            </div>
+                            <input type="checkbox" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">Investment Updates</p>
+                                <p class="text-sm text-gray-500">Investment status changes and maturity alerts</p>
+                            </div>
+                            <input type="checkbox" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">Security Alerts</p>
+                                <p class="text-sm text-gray-500">Login attempts and security-related notifications</p>
+                            </div>
+                            <input type="checkbox" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">Platform Updates</p>
+                                <p class="text-sm text-gray-500">New features and platform announcements</p>
+                            </div>
+                            <input type="checkbox" class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Push Notifications -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h4 class="text-sm font-medium text-gray-900 mb-4">Push Notifications</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">Real-time Profits</p>
+                                <p class="text-sm text-gray-500">Instant notifications when profits are credited</p>
+                            </div>
+                            <input type="checkbox" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">Important Security Events</p>
+                                <p class="text-sm text-gray-500">Critical security alerts requiring immediate attention</p>
+                            </div>
+                            <input type="checkbox" checked class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="border-t border-gray-200 pt-6">
+                    <button class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium">
+                        <i class="fas fa-save mr-2"></i>
+                        Save Preferences
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Filter notifications by type
+function filterNotifications(type) {
+    const notifications = document.querySelectorAll('.notification-item');
+    const tabs = document.querySelectorAll('.notification-tab');
+    
+    // Update tab states
+    tabs.forEach(tab => {
+        tab.classList.remove('border-primary-500', 'text-primary-600', 'active');
+        tab.classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    event.target.classList.remove('border-transparent', 'text-gray-500');
+    event.target.classList.add('border-primary-500', 'text-primary-600', 'active');
+    
+    // Show/hide notifications
+    notifications.forEach(notification => {
+        if (type === 'all' || notification.dataset.type === type) {
+            notification.style.display = 'block';
+        } else {
+            notification.style.display = 'none';
+        }
+    });
+}
+
+// Mark single notification as read
+function markAsRead(button) {
+    const notification = button.closest('.notification-item');
+    notification.style.opacity = '0.6';
+    button.innerHTML = '<i class="fas fa-check-circle text-green-500"></i>';
+    button.disabled = true;
+}
+
+// Mark all notifications as read
+function markAllRead() {
+    const notifications = document.querySelectorAll('.notification-item');
+    const buttons = document.querySelectorAll('.notification-item button:first-of-type');
+    
+    notifications.forEach(notification => {
+        notification.style.opacity = '0.6';
+    });
+    
+    buttons.forEach(button => {
+        button.innerHTML = '<i class="fas fa-check-circle text-green-500"></i>';
+        button.disabled = true;
+    });
+    
+    // Show success message
+    alert('All notifications marked as read!');
+}
+
+// Delete notification
+function deleteNotification(button) {
+    if (confirm('Are you sure you want to delete this notification?')) {
+        const notification = button.closest('.notification-item');
+        notification.style.transition = 'all 0.3s ease-out';
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }
+}
+
+// Auto-refresh notifications every 30 seconds
+setInterval(() => {
+    // In a real implementation, you would fetch new notifications via AJAX
+    console.log('Checking for new notifications...');
+}, 30000);
+</script>
+{% endblock %}

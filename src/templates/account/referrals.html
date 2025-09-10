@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Referral Program - TradeVision{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'accounts:profile' %}" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </a>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 font-heading">Referral Program</h1>
+                    <p class="mt-2 text-gray-600">Earn rewards by inviting friends to join TradeVision</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Referral Stats -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Referral Code Card -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="bg-gradient-primary p-6 text-white">
+                        <h3 class="text-lg font-semibold mb-4">Your Referral Code</h3>
+                        
+                        <div class="bg-white bg-opacity-20 p-4 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono text-2xl font-bold">{{ referral_code }}</span>
+                                <button onclick="copyToClipboard('{{ referral_code }}', 'Referral code copied!')" 
+                                        class="bg-white bg-opacity-20 hover:bg-opacity-30 p-2 rounded-lg transition-all duration-200">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button onclick="generateNewCode()" 
+                                    class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg transition-all duration-200 text-sm font-medium">
+                                <i class="fas fa-refresh mr-2"></i>
+                                Generate New Code
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referral Link Card -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Share Your Link</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Referral Link</label>
+                            <div class="flex">
+                                <input type="text" 
+                                       id="referral-link" 
+                                       value="{{ referral_link }}" 
+                                       readonly
+                                       class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg bg-gray-50 text-sm">
+                                <button onclick="copyToClipboard(document.getElementById('referral-link').value, 'Referral link copied!')" 
+                                        class="bg-primary-600 text-white px-4 py-2 rounded-r-lg hover:bg-primary-700 transition-colors duration-200">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Social Share Buttons -->
+                        <div class="flex space-x-2">
+                            <button onclick="shareWhatsApp()" class="flex-1 bg-green-500 text-white px-3 py-2 rounded-lg hover:bg-green-600 transition-colors duration-200 text-sm">
+                                <i class="fab fa-whatsapp mr-1"></i>
+                                WhatsApp
+                            </button>
+                            <button onclick="shareTelegram()" class="flex-1 bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200 text-sm">
+                                <i class="fab fa-telegram mr-1"></i>
+                                Telegram
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referral Statistics -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Your Statistics</h3>
+                    
+                    <div class="space-y-6">
+                        <!-- Total Referrals -->
+                        <div class="text-center p-4 bg-primary-50 rounded-lg">
+                            <div class="text-3xl font-bold text-primary-600">{{ total_referrals }}</div>
+                            <div class="text-sm text-gray-600">Total Referrals</div>
+                        </div>
+
+                        <!-- Total Earnings -->
+                        <div class="text-center p-4 bg-success-50 rounded-lg">
+                            <div class="text-3xl font-bold text-success-600">${{ total_earnings|floatformat:2 }}</div>
+                            <div class="text-sm text-gray-600">Total Earnings</div>
+                        </div>
+
+                        <!-- Commission Rate -->
+                        <div class="text-center p-4 bg-warning-50 rounded-lg">
+                            <div class="text-3xl font-bold text-warning-600">10%</div>
+                            <div class="text-sm text-gray-600">Commission Rate</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How It Works -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">How It Works</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-primary-600 font-bold text-sm">1</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Share Your Link</p>
+                                <p class="text-xs text-gray-500">Send your referral link to friends and family</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-primary-600 font-bold text-sm">2</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">They Sign Up</p>
+                                <p class="text-xs text-gray-500">Your friends register using your referral link</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-primary-600 font-bold text-sm">3</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Earn Commission</p>
+                                <p class="text-xs text-gray-500">Get 10% of their first investment as commission</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Referral History -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Recent Referrals -->
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Recent Referrals</h3>
+                    </div>
+                    
+                    {% if recent_referrals %}
+                        <div class="divide-y divide-gray-200">
+                            {% for referral in recent_referrals %}
+                                <div class="px-6 py-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mr-4">
+                                                <i class="fas fa-user text-primary-600"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">{{ referral.referred.full_name|default:"New User" }}</p>
+                                                <p class="text-sm text-gray-500">{{ referral.referred.email }}</p>
+                                                <p class="text-xs text-gray-400">Joined {{ referral.created_at|date:"M d, Y" }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-semibold text-success-600">${{ referral.commission_earned|floatformat:2 }}</div>
+                                            <div class="text-xs {% if referral.is_active %}text-success-500{% else %}text-gray-500{% endif %}">
+                                                {% if referral.is_active %}Active{% else %}Inactive{% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="px-6 py-12 text-center">
+                            <i class="fas fa-users text-gray-400 text-4xl mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No referrals yet</h3>
+                            <p class="text-gray-500 mb-6">Start sharing your referral link to earn commissions</p>
+                            <button onclick="copyToClipboard('{{ referral_link }}', 'Referral link copied!')" 
+                                    class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium">
+                                <i class="fas fa-share mr-2"></i>
+                                Share Your Link
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- All Referrals Table -->
+                {% if referrals_page.object_list %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">All Referrals</h3>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Commission</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for referral in referrals_page %}
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center mr-3">
+                                                    <i class="fas fa-user text-primary-600 text-xs"></i>
+                                                </div>
+                                                <div class="text-sm font-medium text-gray-900">{{ referral.referred.full_name|default:"New User" }}</div>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ referral.referred.email }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ referral.created_at|date:"M d, Y" }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-success-600">
+                                            ${{ referral.commission_earned|floatformat:2 }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {% if referral.is_active %}bg-success-100 text-success-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                {% if referral.is_active %}Active{% else %}Inactive{% endif %}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if referrals_page.has_other_pages %}
+                        <div class="px-6 py-3 bg-gray-50 border-t border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <p class="text-sm text-gray-700">
+                                        Showing {{ referrals_page.start_index }} to {{ referrals_page.end_index }} of {{ referrals_page.paginator.count }} results
+                                    </p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    {% if referrals_page.has_previous %}
+                                        <a href="?page={{ referrals_page.previous_page_number }}" 
+                                           class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                                            Previous
+                                        </a>
+                                    {% endif %}
+                                    
+                                    <span class="px-3 py-2 text-sm bg-primary-600 text-white rounded-lg">
+                                        Page {{ referrals_page.number }}
+                                    </span>
+                                    
+                                    {% if referrals_page.has_next %}
+                                        <a href="?page={{ referrals_page.next_page_number }}" 
+                                           class="px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                                            Next
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Referral Program Terms -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Program Terms & Conditions</h3>
+                    
+                    <div class="space-y-4 text-sm text-gray-600">
+                        <div class="flex items-start">
+                            <i class="fas fa-check text-success-500 mr-3 mt-1"></i>
+                            <p>Earn 10% commission on your referral's first investment</p>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check text-success-500 mr-3 mt-1"></i>
+                            <p>Commissions are paid instantly to your wallet</p>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check text-success-500 mr-3 mt-1"></i>
+                            <p>Referred users must complete KYC verification</p>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-check text-success-500 mr-3 mt-1"></i>
+                            <p>Minimum investment of $100 required for commission</p>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-times text-red-500 mr-3 mt-1"></i>
+                            <p>Self-referrals and fake accounts are prohibited</p>
+                        </div>
+                        <div class="flex items-start">
+                            <i class="fas fa-times text-red-500 mr-3 mt-1"></i>
+                            <p>Spam or unsolicited marketing is not allowed</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                        <div class="flex items-start">
+                            <i class="fas fa-info-circle text-blue-600 mr-3 mt-1"></i>
+                            <div>
+                                <p class="text-sm font-medium text-blue-900">Fair Use Policy</p>
+                                <p class="text-sm text-blue-700 mt-1">
+                                    We monitor all referral activities to ensure compliance with our terms. 
+                                    Suspicious activity may result in commission forfeiture and account suspension.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Generate new referral code
+function generateNewCode() {
+    if (confirm('Are you sure you want to generate a new referral code? Your current code will no longer work.')) {
+        showLoading();
+        
+        fetch('{% url "accounts:generate_referral_code" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                location.reload(); // Refresh to show new code
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            alert('Error generating new code. Please try again.');
+        });
+    }
+}
+
+// Share via WhatsApp
+function shareWhatsApp() {
+    const text = `Join me on TradeVision and start earning daily profits from smart trading! Use my referral code: {{ referral_code }} or click: {{ referral_link }}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+}
+
+// Share via Telegram
+function shareTelegram() {
+    const text = `Join me on TradeVision and start earning daily profits from smart trading! Use my referral code: {{ referral_code }} or click: {{ referral_link }}`;
+    const url = `https://t.me/share/url?url=${encodeURIComponent('{{ referral_link }}')}&text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+}
+</script>
+{% endblock %}
