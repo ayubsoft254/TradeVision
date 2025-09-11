@@ -1,38 +1,562 @@
 {% extends 'base.html' %}
-{% block title %}P2P Merchants{% endblock %}
+{% load static %}
+
+{% block title %}P2P Merchants - TradeVision{% endblock %}
+
 {% block content %}
-<div class="max-w-4xl mx-auto py-8">
-    <h1 class="text-2xl font-heading mb-6">P2P Merchants</h1>
-    <!-- Merchant statistics -->
-    <div class="mb-6">
-        <p><strong>Total Merchants:</strong> {{ stats.total_merchants }}</p>
-        <p><strong>Verified Merchants:</strong> {{ stats.verified_merchants }}</p>
-        <p><strong>Average Rating:</strong> {{ stats.avg_rating }}</p>
-    </div>
-    <!-- Merchants table/list -->
-    {% if merchants %}
-        <table class="w-full table-auto bg-white shadow card-shadow rounded-lg">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Rating</th>
-                    <th>Verified</th>
-                    <th>Total Orders</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for merchant in merchants %}
-                <tr>
-                    <td>{{ merchant.name }}</td>
-                    <td>{{ merchant.rating }}</td>
-                    <td>{% if merchant.is_verified %}Yes{% else %}No{% endif %}</td>
-                    <td>{{ merchant.total_orders }}</td>
-                </tr>
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold font-heading text-gray-900">P2P Merchants</h1>
+                    <p class="mt-2 text-gray-600">Trusted peer-to-peer trading partners in your region</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500">Your Location</div>
+                        <div class="text-lg font-semibold text-gray-900">
+                            <i class="fas fa-map-marker-alt text-primary-500 mr-1"></i>
+                            {{ user.country.name }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-users text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900">{{ stats.total_merchants }}</div>
+                        <div class="text-sm text-gray-500">Total Merchants</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-success rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-check text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900">{{ stats.verified_merchants }}</div>
+                        <div class="text-sm text-gray-500">Verified Merchants</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-warning rounded-lg flex items-center justify-center">
+                        <i class="fas fa-star text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900">{{ stats.avg_rating|floatformat:1 }}</div>
+                        <div class="text-sm text-gray-500">Average Rating</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                <div class="flex-1 max-w-md">
+                    <div class="relative">
+                        <input type="text" 
+                               id="search-merchants" 
+                               placeholder="Search merchants by name or username..."
+                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                    <select id="payment-method-filter" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="">All Payment Methods</option>
+                        <option value="mobile_money">Mobile Money</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                        <option value="cash">Cash</option>
+                    </select>
+                    
+                    <select id="sort-merchants" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="rating">Sort by Rating</option>
+                        <option value="orders">Sort by Orders</option>
+                        <option value="completion">Sort by Completion Rate</option>
+                        <option value="commission">Sort by Commission</option>
+                    </select>
+                    
+                    <button onclick="showOnlyVerified()" 
+                            id="verified-filter"
+                            class="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 whitespace-nowrap">
+                        <i class="fas fa-shield-check mr-2"></i>
+                        Verified Only
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Merchants Grid -->
+        {% if merchants %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="merchants-grid">
+            {% for merchant in merchants %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-shadow duration-200 merchant-card" 
+                 data-name="{{ merchant.name|lower }}" 
+                 data-username="{{ merchant.username|lower }}" 
+                 data-rating="{{ merchant.rating }}"
+                 data-orders="{{ merchant.total_orders }}"
+                 data-completion="{{ merchant.completion_rate }}"
+                 data-commission="{{ merchant.commission_rate }}"
+                 data-verified="{{ merchant.is_verified|yesno:'true,false' }}"
+                 data-methods="{{ merchant.supported_methods|join:',' }}">
+                
+                <!-- Merchant Header -->
+                <div class="relative p-6 pb-4">
+                    <div class="flex items-center justify-between mb-4">
+                        {% if merchant.is_verified %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-success-100 text-success-800">
+                            <i class="fas fa-shield-check mr-1"></i>
+                            Verified
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                            <i class="fas fa-clock mr-1"></i>
+                            Pending
+                        </span>
+                        {% endif %}
+                        
+                        <div class="flex items-center text-sm">
+                            <div class="w-2 h-2 bg-success-500 rounded-full mr-2 animate-pulse"></div>
+                            <span class="text-success-600 font-medium">Online</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center">
+                            <span class="text-white text-xl font-bold">
+                                {{ merchant.name|first|upper }}
+                            </span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ merchant.name }}</h3>
+                            <div class="text-sm text-gray-500">@{{ merchant.username }}</div>
+                            <div class="flex items-center text-sm text-gray-500 mt-1">
+                                <i class="fas fa-map-marker-alt mr-1"></i>
+                                {{ merchant.country }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Stats -->
+                <div class="px-6 pb-4">
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="text-center p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-center mb-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= merchant.rating %}
+                                        <i class="fas fa-star text-warning-500 text-xs"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-gray-300 text-xs"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="text-sm font-semibold text-gray-900">{{ merchant.rating|floatformat:1 }}</div>
+                            <div class="text-xs text-gray-500">Rating</div>
+                        </div>
+                        
+                        <div class="text-center p-3 bg-gray-50 rounded-lg">
+                            <div class="text-sm font-semibold text-gray-900">{{ merchant.total_orders }}</div>
+                            <div class="text-xs text-gray-500">Orders</div>
+                        </div>
+                        
+                        <div class="text-center p-3 bg-gray-50 rounded-lg">
+                            <div class="text-sm font-semibold text-gray-900">{{ merchant.completion_rate|floatformat:0 }}%</div>
+                            <div class="text-xs text-gray-500">Complete</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trading Details -->
+                <div class="px-6 pb-4">
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Commission Rate:</span>
+                            <span class="font-medium text-gray-900">{{ merchant.commission_rate }}%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Min Order:</span>
+                            <span class="font-medium text-gray-900">{{ merchant.min_order_amount|floatformat:0 }} {{ user.wallet.currency }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Max Order:</span>
+                            <span class="font-medium text-gray-900">{{ merchant.max_order_amount|floatformat:0 }} {{ user.wallet.currency }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Contact:</span>
+                            <span class="font-medium text-gray-900">{{ merchant.phone_number }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Methods -->
+                <div class="px-6 pb-4">
+                    <div class="mb-2">
+                        <span class="text-sm font-medium text-gray-700">Supported Methods:</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        {% for method in merchant.supported_methods %}
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                            {% if method == 'mobile_money' %}bg-blue-100 text-blue-800
+                            {% elif method == 'bank_transfer' %}bg-green-100 text-green-800
+                            {% elif method == 'cash' %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {% if method == 'mobile_money' %}
+                                <i class="fas fa-mobile-alt mr-1"></i>Mobile Money
+                            {% elif method == 'bank_transfer' %}
+                                <i class="fas fa-university mr-1"></i>Bank Transfer
+                            {% elif method == 'cash' %}
+                                <i class="fas fa-money-bill mr-1"></i>Cash
+                            {% else %}
+                                {{ method|title }}
+                            {% endif %}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="px-6 pb-6">
+                    <div class="flex space-x-2">
+                        <a href="{% url 'payments:deposit_method' 'p2p' %}?merchant={{ merchant.id }}" 
+                           class="flex-1 bg-success-600 text-white text-center py-2 rounded-lg text-sm font-medium hover:bg-success-700 transition-colors duration-200">
+                            <i class="fas fa-plus-circle mr-1"></i>
+                            Buy
+                        </a>
+                        <a href="{% url 'payments:withdraw_method' 'p2p' %}?merchant={{ merchant.id }}" 
+                           class="flex-1 bg-warning-600 text-white text-center py-2 rounded-lg text-sm font-medium hover:bg-warning-700 transition-colors duration-200">
+                            <i class="fas fa-minus-circle mr-1"></i>
+                            Sell
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Contact Options -->
+                <div class="border-t border-gray-100 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Quick Contact:</span>
+                        <div class="flex space-x-2">
+                            <a href="mailto:{{ merchant.email }}" 
+                               class="w-8 h-8 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center hover:bg-primary-200 transition-colors duration-200">
+                                <i class="fas fa-envelope text-xs"></i>
+                            </a>
+                            <a href="tel:{{ merchant.phone_number }}" 
+                               class="w-8 h-8 bg-success-100 text-success-600 rounded-full flex items-center justify-center hover:bg-success-200 transition-colors duration-200">
+                                <i class="fas fa-phone text-xs"></i>
+                            </a>
+                            <a href="https://wa.me/{{ merchant.phone_number|slice:'1:' }}" 
+                               target="_blank"
+                               class="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-200 transition-colors duration-200">
+                                <i class="fab fa-whatsapp text-xs"></i>
+                            </a>
+                            <button onclick="openChatModal('{{ merchant.username }}')"
+                                    class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center hover:bg-blue-200 transition-colors duration-200">
+                                <i class="fas fa-comments text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="mt-8 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} merchants
+            </div>
+            
+            <nav class="flex items-center space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-chevron-left mr-1"></i>Previous
+                    </a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="px-3 py-2 text-sm bg-primary-600 text-white rounded-lg">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}" 
+                           class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">{{ num }}</a>
+                    {% endif %}
                 {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No merchants found.</p>
-    {% endif %}
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Next<i class="fas fa-chevron-right ml-1"></i>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- No Merchants Found -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-users text-gray-400 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No P2P Merchants Available</h3>
+            <p class="text-gray-500 mb-6">There are currently no verified merchants in your region.</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <a href="{% url 'payments:deposit' %}" 
+                   class="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Try Other Methods
+                </a>
+                <a href="{% url 'core:support_tickets' %}" 
+                   class="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                    <i class="fas fa-headset mr-2"></i>
+                    Contact Support
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Information Section -->
+        <div class="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- How P2P Trading Works -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-info-circle text-primary-500 mr-2"></i>
+                    How P2P Trading Works
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold">1</div>
+                        <div>
+                            <div class="font-medium text-gray-900">Choose a Merchant</div>
+                            <div class="text-sm text-gray-600">Select a verified merchant with good ratings and competitive rates</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold">2</div>
+                        <div>
+                            <div class="font-medium text-gray-900">Initiate Trade</div>
+                            <div class="text-sm text-gray-600">Click Buy or Sell and enter your transaction details</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold">3</div>
+                        <div>
+                            <div class="font-medium text-gray-900">Follow Instructions</div>
+                            <div class="text-sm text-gray-600">Follow the merchant's payment instructions carefully</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold">4</div>
+                        <div>
+                            <div class="font-medium text-gray-900">Complete Trade</div>
+                            <div class="text-sm text-gray-600">Confirm payment and receive your funds</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trading Safety Tips -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-shield-alt text-success-500 mr-2"></i>
+                    P2P Trading Safety
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex items-start space-x-2">
+                        <i class="fas fa-check text-success-500 mt-1"></i>
+                        <span class="text-sm text-gray-600">Only trade with verified merchants (green badge)</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <i class="fas fa-check text-success-500 mt-1"></i>
+                        <span class="text-sm text-gray-600">Check merchant ratings and completion rates</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <i class="fas fa-check text-success-500 mt-1"></i>
+                        <span class="text-sm text-gray-600">Read all terms and conditions before trading</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <i class="fas fa-check text-success-500 mt-1"></i>
+                        <span class="text-sm text-gray-600">Keep screenshots of all communications</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <i class="fas fa-check text-success-500 mt-1"></i>
+                        <span class="text-sm text-gray-600">Use platform's escrow service when available</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <i class="fas fa-check text-success-500 mt-1"></i>
+                        <span class="text-sm text-gray-600">Report suspicious behavior immediately</span>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3 bg-warning-50 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle text-warning-600 mr-2"></i>
+                        <span class="text-sm font-medium text-warning-800">
+                            Never trade outside the platform or share sensitive information
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Chat Modal (placeholder) -->
+<div id="chat-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Contact Merchant</h3>
+            <button onclick="closeChatModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <p class="text-gray-600 mb-4">Chat functionality will be available soon. For now, please use other contact methods.</p>
+        <button onclick="closeChatModal()" 
+                class="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200">
+            Close
+        </button>
+    </div>
+</div>
+
+<script>
+// Search functionality
+document.getElementById('search-merchants').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const merchants = document.querySelectorAll('.merchant-card');
+    
+    merchants.forEach(merchant => {
+        const name = merchant.dataset.name;
+        const username = merchant.dataset.username;
+        
+        if (name.includes(searchTerm) || username.includes(searchTerm)) {
+            merchant.style.display = 'block';
+        } else {
+            merchant.style.display = 'none';
+        }
+    });
+});
+
+// Payment method filter
+document.getElementById('payment-method-filter').addEventListener('change', function() {
+    const selectedMethod = this.value;
+    const merchants = document.querySelectorAll('.merchant-card');
+    
+    merchants.forEach(merchant => {
+        const methods = merchant.dataset.methods;
+        
+        if (!selectedMethod || methods.includes(selectedMethod)) {
+            merchant.style.display = 'block';
+        } else {
+            merchant.style.display = 'none';
+        }
+    });
+});
+
+// Sort functionality
+document.getElementById('sort-merchants').addEventListener('change', function() {
+    const sortBy = this.value;
+    const container = document.getElementById('merchants-grid');
+    const merchants = Array.from(container.children);
+    
+    merchants.sort((a, b) => {
+        let aValue, bValue;
+        
+        switch(sortBy) {
+            case 'rating':
+                aValue = parseFloat(a.dataset.rating);
+                bValue = parseFloat(b.dataset.rating);
+                return bValue - aValue; // Descending
+            case 'orders':
+                aValue = parseInt(a.dataset.orders);
+                bValue = parseInt(b.dataset.orders);
+                return bValue - aValue; // Descending
+            case 'completion':
+                aValue = parseFloat(a.dataset.completion);
+                bValue = parseFloat(b.dataset.completion);
+                return bValue - aValue; // Descending
+            case 'commission':
+                aValue = parseFloat(a.dataset.commission);
+                bValue = parseFloat(b.dataset.commission);
+                return aValue - bValue; // Ascending (lower commission first)
+            default:
+                return 0;
+        }
+    });
+    
+    merchants.forEach(merchant => container.appendChild(merchant));
+});
+
+// Verified filter
+let showingVerifiedOnly = false;
+
+function showOnlyVerified() {
+    const button = document.getElementById('verified-filter');
+    const merchants = document.querySelectorAll('.merchant-card');
+    
+    showingVerifiedOnly = !showingVerifiedOnly;
+    
+    if (showingVerifiedOnly) {
+        button.classList.remove('bg-gray-100', 'text-gray-700');
+        button.classList.add('bg-success-100', 'text-success-700');
+        button.innerHTML = '<i class="fas fa-shield-check mr-2"></i>Showing Verified';
+        
+        merchants.forEach(merchant => {
+            if (merchant.dataset.verified === 'false') {
+                merchant.style.display = 'none';
+            }
+        });
+    } else {
+        button.classList.remove('bg-success-100', 'text-success-700');
+        button.classList.add('bg-gray-100', 'text-gray-700');
+        button.innerHTML = '<i class="fas fa-shield-check mr-2"></i>Verified Only';
+        
+        merchants.forEach(merchant => {
+            merchant.style.display = 'block';
+        });
+    }
+}
+
+// Chat modal functions
+function openChatModal(username) {
+    document.getElementById('chat-modal').classList.remove('hidden');
+    document.getElementById('chat-modal').classList.add('flex');
+}
+
+function closeChatModal() {
+    document.getElementById('chat-modal').classList.add('hidden');
+    document.getElementById('chat-modal').classList.remove('flex');
+}
+
+// WhatsApp link formatting
+document.addEventListener('DOMContentLoaded', function() {
+    const whatsappLinks = document.querySelectorAll('a[href*="wa.me"]');
+    whatsappLinks.forEach(link => {
+        const phone = link.href.split('/').pop();
+        const cleanPhone = phone.replace(/[\s\-\+]/g, '');
+        if (!cleanPhone.startsWith('254') && cleanPhone.startsWith('0')) {
+            link.href = `https://wa.me/254${cleanPhone.substring(1)}`;
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -1,50 +1,537 @@
 {% extends 'base.html' %}
-{% block title %}Transaction History{% endblock %}
+{% load static %}
+
+{% block title %}Transaction History - TradeVision{% endblock %}
+
 {% block content %}
-<div class="max-w-5xl mx-auto py-8">
-    <h1 class="text-2xl font-heading mb-6">Transaction History</h1>
-    <!-- Filter form -->
-    {% if filter_form %}
-        <form method="get" class="mb-6">
-            {{ filter_form.as_p }}
-            <button type="submit" class="bg-primary-600 text-white px-4 py-2 rounded-lg">Filter</button>
-        </form>
-    {% endif %}
-    <!-- Transaction statistics -->
-    <div class="mb-6">
-        <p><strong>Total Transactions:</strong> {{ stats.total_transactions }}</p>
-        <p><strong>Total Deposits:</strong> {{ stats.total_deposits }}</p>
-        <p><strong>Total Withdrawals:</strong> {{ stats.total_withdrawals }}</p>
-        <p><strong>Pending Transactions:</strong> {{ stats.pending_transactions }}</p>
-    </div>
-    <!-- Transactions table/list -->
-    {% if transactions %}
-        <table class="w-full table-auto bg-white shadow card-shadow rounded-lg">
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Amount</th>
-                    <th>Method</th>
-                    <th>Date</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for transaction in transactions %}
-                <tr>
-                    <td>{{ transaction.get_transaction_type_display }}</td>
-                    <td>{{ transaction.get_status_display }}</td>
-                    <td>{{ transaction.amount }}</td>
-                    <td>{{ transaction.payment_method.display_name }}</td>
-                    <td>{{ transaction.created_at|date:'M d, Y H:i' }}</td>
-                    <td><a href="{% url 'payments:transaction_detail' transaction.id %}" class="text-primary-600 hover:underline">Details</a></td>
-                </tr>
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold font-heading text-gray-900">Transaction History</h1>
+                    <p class="mt-2 text-gray-600">View and manage all your financial transactions</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'payments:deposit' %}" 
+                       class="inline-flex items-center px-4 py-2 bg-success-600 text-white rounded-lg hover:bg-success-700 transition-colors duration-200">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        New Deposit
+                    </a>
+                    <a href="{% url 'payments:withdraw' %}" 
+                       class="inline-flex items-center px-4 py-2 bg-warning-600 text-white rounded-lg hover:bg-warning-700 transition-colors duration-200">
+                        <i class="fas fa-minus-circle mr-2"></i>
+                        Withdraw
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-list text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900">{{ stats.total_transactions }}</div>
+                        <div class="text-sm text-gray-500">Total Transactions</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-success rounded-lg flex items-center justify-center">
+                        <i class="fas fa-arrow-down text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900">{{ stats.total_deposits|floatformat:0 }}</div>
+                        <div class="text-sm text-gray-500">Total Deposits</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-warning rounded-lg flex items-center justify-center">
+                        <i class="fas fa-arrow-up text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900">{{ stats.total_withdrawals|floatformat:0 }}</div>
+                        <div class="text-sm text-gray-500">Total Withdrawals</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900">{{ stats.pending_transactions }}</div>
+                        <div class="text-sm text-gray-500">Pending</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <form method="GET" id="filter-form" class="space-y-4 lg:space-y-0">
+                <div class="grid grid-cols-1 lg:grid-cols-6 gap-4">
+                    <!-- Transaction Type Filter -->
+                    <div>
+                        <label for="{{ filter_form.transaction_type.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Type
+                        </label>
+                        {{ filter_form.transaction_type }}
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div>
+                        <label for="{{ filter_form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Status
+                        </label>
+                        {{ filter_form.status }}
+                    </div>
+
+                    <!-- Start Date -->
+                    <div>
+                        <label for="{{ filter_form.start_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            From Date
+                        </label>
+                        {{ filter_form.start_date }}
+                    </div>
+
+                    <!-- End Date -->
+                    <div>
+                        <label for="{{ filter_form.end_date.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            To Date
+                        </label>
+                        {{ filter_form.end_date }}
+                    </div>
+
+                    <!-- Min Amount -->
+                    <div>
+                        <label for="{{ filter_form.min_amount.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Min Amount
+                        </label>
+                        {{ filter_form.min_amount }}
+                    </div>
+
+                    <!-- Max Amount -->
+                    <div>
+                        <label for="{{ filter_form.max_amount.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            Max Amount
+                        </label>
+                        {{ filter_form.max_amount }}
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 pt-4 border-t border-gray-200">
+                    <button type="submit" 
+                            class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                        <i class="fas fa-filter mr-2"></i>
+                        Apply Filters
+                    </button>
+                    <a href="{% url 'payments:transactions' %}" 
+                       class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200">
+                        <i class="fas fa-times mr-2"></i>
+                        Clear Filters
+                    </a>
+                    <button type="button" onclick="exportTransactions()" 
+                            class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200">
+                        <i class="fas fa-download mr-2"></i>
+                        Export CSV
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Transactions Table -->
+        {% if transactions %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <!-- Desktop Table -->
+            <div class="hidden md:block overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Transaction
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Type
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Amount
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Payment Method
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date
+                            </th>
+                            <th scope="col" class="relative px-6 py-3">
+                                <span class="sr-only">Actions</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for transaction in transactions %}
+                        <tr class="hover:bg-gray-50 transition-colors duration-200">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 rounded-lg flex items-center justify-center
+                                        {% if transaction.transaction_type == 'deposit' %}bg-success-100 text-success-600
+                                        {% elif transaction.transaction_type == 'withdrawal' %}bg-warning-100 text-warning-600
+                                        {% elif transaction.transaction_type == 'investment' %}bg-primary-100 text-primary-600
+                                        {% elif transaction.transaction_type == 'profit' %}bg-success-100 text-success-600
+                                        {% elif transaction.transaction_type == 'bonus' %}bg-purple-100 text-purple-600
+                                        {% elif transaction.transaction_type == 'referral' %}bg-blue-100 text-blue-600
+                                        {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                        {% if transaction.transaction_type == 'deposit' %}
+                                            <i class="fas fa-plus-circle"></i>
+                                        {% elif transaction.transaction_type == 'withdrawal' %}
+                                            <i class="fas fa-minus-circle"></i>
+                                        {% elif transaction.transaction_type == 'investment' %}
+                                            <i class="fas fa-chart-line"></i>
+                                        {% elif transaction.transaction_type == 'profit' %}
+                                            <i class="fas fa-arrow-up"></i>
+                                        {% elif transaction.transaction_type == 'bonus' %}
+                                            <i class="fas fa-gift"></i>
+                                        {% elif transaction.transaction_type == 'referral' %}
+                                            <i class="fas fa-users"></i>
+                                        {% else %}
+                                            <i class="fas fa-exchange-alt"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            {{ transaction.id|truncatechars:13 }}
+                                        </div>
+                                        {% if transaction.description %}
+                                        <div class="text-sm text-gray-500">
+                                            {{ transaction.description|truncatechars:30 }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                    {% if transaction.transaction_type == 'deposit' %}bg-success-100 text-success-800
+                                    {% elif transaction.transaction_type == 'withdrawal' %}bg-warning-100 text-warning-800
+                                    {% elif transaction.transaction_type == 'investment' %}bg-primary-100 text-primary-800
+                                    {% elif transaction.transaction_type == 'profit' %}bg-success-100 text-success-800
+                                    {% elif transaction.transaction_type == 'bonus' %}bg-purple-100 text-purple-800
+                                    {% elif transaction.transaction_type == 'referral' %}bg-blue-100 text-blue-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ transaction.transaction_type|title }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium
+                                    {% if transaction.transaction_type == 'deposit' or transaction.transaction_type == 'profit' or transaction.transaction_type == 'bonus' or transaction.transaction_type == 'referral' %}text-success-600
+                                    {% elif transaction.transaction_type == 'withdrawal' or transaction.transaction_type == 'fee' %}text-warning-600
+                                    {% else %}text-gray-900{% endif %}">
+                                    {% if transaction.transaction_type == 'withdrawal' or transaction.transaction_type == 'fee' %}-{% else %}+{% endif %}{{ transaction.amount|floatformat:2 }} {{ transaction.currency }}
+                                </div>
+                                {% if transaction.processing_fee > 0 %}
+                                <div class="text-xs text-gray-500">
+                                    Fee: {{ transaction.processing_fee|floatformat:2 }} {{ transaction.currency }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                    {% if transaction.status == 'completed' %}bg-success-100 text-success-800
+                                    {% elif transaction.status == 'pending' %}bg-warning-100 text-warning-800
+                                    {% elif transaction.status == 'processing' %}bg-primary-100 text-primary-800
+                                    {% elif transaction.status == 'failed' %}bg-danger-100 text-danger-800
+                                    {% elif transaction.status == 'cancelled' %}bg-gray-100 text-gray-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {% if transaction.status == 'completed' %}
+                                        <i class="fas fa-check mr-1"></i>
+                                    {% elif transaction.status == 'pending' %}
+                                        <i class="fas fa-clock mr-1"></i>
+                                    {% elif transaction.status == 'processing' %}
+                                        <i class="fas fa-spinner mr-1"></i>
+                                    {% elif transaction.status == 'failed' %}
+                                        <i class="fas fa-times mr-1"></i>
+                                    {% elif transaction.status == 'cancelled' %}
+                                        <i class="fas fa-ban mr-1"></i>
+                                    {% endif %}
+                                    {{ transaction.status|title }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {% if transaction.payment_method %}
+                                    {{ transaction.payment_method.display_name }}
+                                {% else %}
+                                    <span class="text-gray-400">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <div>{{ transaction.created_at|date:"M d, Y" }}</div>
+                                <div>{{ transaction.created_at|time:"H:i" }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="{% url 'payments:transaction_detail' transaction.id %}" 
+                                   class="text-primary-600 hover:text-primary-900 transition-colors duration-200">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Cards -->
+            <div class="block md:hidden">
+                <div class="p-4 space-y-4">
+                    {% for transaction in transactions %}
+                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-lg flex items-center justify-center
+                                    {% if transaction.transaction_type == 'deposit' %}bg-success-100 text-success-600
+                                    {% elif transaction.transaction_type == 'withdrawal' %}bg-warning-100 text-warning-600
+                                    {% elif transaction.transaction_type == 'investment' %}bg-primary-100 text-primary-600
+                                    {% elif transaction.transaction_type == 'profit' %}bg-success-100 text-success-600
+                                    {% elif transaction.transaction_type == 'bonus' %}bg-purple-100 text-purple-600
+                                    {% elif transaction.transaction_type == 'referral' %}bg-blue-100 text-blue-600
+                                    {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                    {% if transaction.transaction_type == 'deposit' %}
+                                        <i class="fas fa-plus-circle"></i>
+                                    {% elif transaction.transaction_type == 'withdrawal' %}
+                                        <i class="fas fa-minus-circle"></i>
+                                    {% elif transaction.transaction_type == 'investment' %}
+                                        <i class="fas fa-chart-line"></i>
+                                    {% elif transaction.transaction_type == 'profit' %}
+                                        <i class="fas fa-arrow-up"></i>
+                                    {% elif transaction.transaction_type == 'bonus' %}
+                                        <i class="fas fa-gift"></i>
+                                    {% elif transaction.transaction_type == 'referral' %}
+                                        <i class="fas fa-users"></i>
+                                    {% else %}
+                                        <i class="fas fa-exchange-alt"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ transaction.transaction_type|title }}</div>
+                                    <div class="text-xs text-gray-500">{{ transaction.created_at|date:"M d, Y H:i" }}</div>
+                                </div>
+                            </div>
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                {% if transaction.status == 'completed' %}bg-success-100 text-success-800
+                                {% elif transaction.status == 'pending' %}bg-warning-100 text-warning-800
+                                {% elif transaction.status == 'processing' %}bg-primary-100 text-primary-800
+                                {% elif transaction.status == 'failed' %}bg-danger-100 text-danger-800
+                                {% elif transaction.status == 'cancelled' %}bg-gray-100 text-gray-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ transaction.status|title }}
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-3">
+                            <div>
+                                <div class="text-xs text-gray-500">Amount</div>
+                                <div class="text-sm font-medium
+                                    {% if transaction.transaction_type == 'deposit' or transaction.transaction_type == 'profit' or transaction.transaction_type == 'bonus' or transaction.transaction_type == 'referral' %}text-success-600
+                                    {% elif transaction.transaction_type == 'withdrawal' or transaction.transaction_type == 'fee' %}text-warning-600
+                                    {% else %}text-gray-900{% endif %}">
+                                    {% if transaction.transaction_type == 'withdrawal' or transaction.transaction_type == 'fee' %}-{% else %}+{% endif %}{{ transaction.amount|floatformat:2 }} {{ transaction.currency }}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-gray-500">Payment Method</div>
+                                <div class="text-sm text-gray-900">
+                                    {% if transaction.payment_method %}
+                                        {{ transaction.payment_method.display_name }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div class="text-xs text-gray-500 font-mono">
+                                {{ transaction.id|truncatechars:20 }}
+                            </div>
+                            <a href="{% url 'payments:transaction_detail' transaction.id %}" 
+                               class="text-primary-600 hover:text-primary-900 text-sm font-medium">
+                                View Details <i class="fas fa-chevron-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="mt-8 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} transactions
+            </div>
+            
+            <nav class="flex items-center space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-chevron-left mr-1"></i>Previous
+                    </a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="px-3 py-2 text-sm bg-primary-600 text-white rounded-lg">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" 
+                           class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">{{ num }}</a>
+                    {% endif %}
                 {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No transactions found.</p>
-    {% endif %}
+                
+                {% if page_obj.has_next %}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Next<i class="fas fa-chevron-right ml-1"></i>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- No Transactions -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-receipt text-gray-400 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No Transactions Found</h3>
+            <p class="text-gray-500 mb-6">
+                {% if request.GET %}
+                    No transactions match your current filters. Try adjusting your search criteria.
+                {% else %}
+                    You haven't made any transactions yet. Start by making your first deposit.
+                {% endif %}
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                {% if request.GET %}
+                <a href="{% url 'payments:transactions' %}" 
+                   class="inline-flex items-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200">
+                    <i class="fas fa-times mr-2"></i>
+                    Clear Filters
+                </a>
+                {% endif %}
+                <a href="{% url 'payments:deposit' %}" 
+                   class="inline-flex items-center px-6 py-3 bg-success-600 text-white rounded-lg hover:bg-success-700 transition-colors duration-200">
+                    <i class="fas fa-plus-circle mr-2"></i>
+                    Make First Deposit
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </div>
+
+<script>
+// Export transactions function
+function exportTransactions() {
+    const form = document.getElementById('filter-form');
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+    
+    // Add all form data to params
+    for (let [key, value] of formData.entries()) {
+        if (value) {
+            params.append(key, value);
+        }
+    }
+    
+    // Add export parameter
+    params.append('export', 'csv');
+    
+    // Create download link
+    const downloadUrl = `{% url 'payments:transactions' %}?${params.toString()}`;
+    
+    // Create temporary link and click it
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = 'transactions.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Auto-submit form on filter change (optional)
+document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.getElementById('filter-form');
+    const formElements = filterForm.querySelectorAll('select, input[type="date"]');
+    
+    formElements.forEach(element => {
+        element.addEventListener('change', function() {
+            // Optional: Auto-submit on change
+            // filterForm.submit();
+        });
+    });
+});
+
+// Quick date filters
+function setQuickDateFilter(days) {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - days);
+    
+    const startDateInput = document.querySelector('input[name="start_date"]');
+    const endDateInput = document.querySelector('input[name="end_date"]');
+    
+    startDateInput.value = startDate.toISOString().split('T')[0];
+    endDateInput.value = endDate.toISOString().split('T')[0];
+    
+    document.getElementById('filter-form').submit();
+}
+
+// Add quick filter buttons (you can add these to the template if needed)
+function addQuickFilters() {
+    const filterContainer = document.querySelector('.grid.grid-cols-1.lg\\:grid-cols-6');
+    
+    const quickFiltersHTML = `
+        <div class="lg:col-span-6 pt-4 border-t border-gray-200">
+            <div class="text-sm font-medium text-gray-700 mb-2">Quick Filters:</div>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" onclick="setQuickDateFilter(7)" 
+                        class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                    Last 7 days
+                </button>
+                <button type="button" onclick="setQuickDateFilter(30)" 
+                        class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                    Last 30 days
+                </button>
+                <button type="button" onclick="setQuickDateFilter(90)" 
+                        class="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                    Last 3 months
+                </button>
+            </div>
+        </div>
+    `;
+    
+    if (filterContainer) {
+        filterContainer.insertAdjacentHTML('beforeend', quickFiltersHTML);
+    }
+}
+
+// Initialize quick filters
+document.addEventListener('DOMContentLoaded', addQuickFilters);
+</script>
 {% endblock %}

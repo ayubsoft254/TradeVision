@@ -1,38 +1,460 @@
 {% extends 'base.html' %}
-{% block title %}Payment Agents{% endblock %}
+{% load static %}
+
+{% block title %}Local Agents - TradeVision{% endblock %}
+
 {% block content %}
-<div class="max-w-4xl mx-auto py-8">
-    <h1 class="text-2xl font-heading mb-6">Payment Agents</h1>
-    <!-- Agent statistics -->
-    <div class="mb-6">
-        <p><strong>Total Agents:</strong> {{ stats.total_agents }}</p>
-        <p><strong>Verified Agents:</strong> {{ stats.verified_agents }}</p>
-        <p><strong>Average Rating:</strong> {{ stats.avg_rating }}</p>
-    </div>
-    <!-- Agents table/list -->
-    {% if agents %}
-        <table class="w-full table-auto bg-white shadow card-shadow rounded-lg">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Rating</th>
-                    <th>Verified</th>
-                    <th>Total Transactions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for agent in agents %}
-                <tr>
-                    <td>{{ agent.name }}</td>
-                    <td>{{ agent.rating }}</td>
-                    <td>{% if agent.is_verified %}Yes{% else %}No{% endif %}</td>
-                    <td>{{ agent.total_transactions }}</td>
-                </tr>
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold font-heading text-gray-900">Local Agents</h1>
+                    <p class="mt-2 text-gray-600">Verified agents in your area for cash transactions</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <div class="text-sm text-gray-500">Your Location</div>
+                        <div class="text-lg font-semibold text-gray-900">
+                            <i class="fas fa-map-marker-alt text-primary-500 mr-1"></i>
+                            {{ user.country.name }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-user-tie text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900">{{ stats.total_agents }}</div>
+                        <div class="text-sm text-gray-500">Total Agents</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-success rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-check text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900">{{ stats.verified_agents }}</div>
+                        <div class="text-sm text-gray-500">Verified Agents</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-warning rounded-lg flex items-center justify-center">
+                        <i class="fas fa-star text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <div class="text-2xl font-bold text-gray-900">{{ stats.avg_rating|floatformat:1 }}</div>
+                        <div class="text-sm text-gray-500">Average Rating</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters and Search -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                <div class="flex-1 max-w-md">
+                    <div class="relative">
+                        <input type="text" 
+                               id="search-agents" 
+                               placeholder="Search agents by name or city..."
+                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <select id="sort-agents" class="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="rating">Sort by Rating</option>
+                        <option value="transactions">Sort by Transactions</option>
+                        <option value="city">Sort by City</option>
+                        <option value="commission">Sort by Commission</option>
+                    </select>
+                    
+                    <button onclick="showOnlyVerified()" 
+                            id="verified-filter"
+                            class="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200">
+                        <i class="fas fa-shield-check mr-2"></i>
+                        Verified Only
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agents Grid -->
+        {% if agents %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="agents-grid">
+            {% for agent in agents %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-lg transition-shadow duration-200 agent-card" 
+                 data-name="{{ agent.name|lower }}" 
+                 data-city="{{ agent.city|lower }}" 
+                 data-rating="{{ agent.rating }}"
+                 data-transactions="{{ agent.total_transactions }}"
+                 data-commission="{{ agent.commission_rate }}"
+                 data-verified="{{ agent.is_verified|yesno:'true,false' }}">
+                
+                <!-- Agent Header -->
+                <div class="relative p-6 pb-4">
+                    {% if agent.is_verified %}
+                    <div class="absolute top-4 right-4">
+                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-success-100 text-success-800">
+                            <i class="fas fa-shield-check mr-1"></i>
+                            Verified
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center">
+                            <span class="text-white text-xl font-bold">
+                                {{ agent.name|first|upper }}
+                            </span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ agent.name }}</h3>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-map-marker-alt mr-1"></i>
+                                {{ agent.city }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Stats -->
+                <div class="px-6 pb-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-center mb-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= agent.rating %}
+                                        <i class="fas fa-star text-warning-500 text-sm"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-gray-300 text-sm"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <div class="text-lg font-semibold text-gray-900">{{ agent.rating|floatformat:1 }}</div>
+                            <div class="text-xs text-gray-500">Rating</div>
+                        </div>
+                        
+                        <div class="text-center p-3 bg-gray-50 rounded-lg">
+                            <div class="text-lg font-semibold text-gray-900">{{ agent.total_transactions }}</div>
+                            <div class="text-xs text-gray-500">Transactions</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Details -->
+                <div class="px-6 pb-4">
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Commission Rate:</span>
+                            <span class="font-medium text-gray-900">{{ agent.commission_rate }}%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Max Transaction:</span>
+                            <span class="font-medium text-gray-900">{{ agent.max_transaction_amount|floatformat:0 }} {{ user.wallet.currency }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Contact:</span>
+                            <span class="font-medium text-gray-900">{{ agent.phone_number }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="px-6 pb-6">
+                    <div class="flex space-x-2">
+                        <a href="{% url 'payments:deposit_method' 'agent' %}?agent={{ agent.id }}" 
+                           class="flex-1 bg-success-600 text-white text-center py-2 rounded-lg text-sm font-medium hover:bg-success-700 transition-colors duration-200">
+                            <i class="fas fa-plus-circle mr-1"></i>
+                            Deposit
+                        </a>
+                        <a href="{% url 'payments:withdraw_method' 'agent' %}?agent={{ agent.id }}" 
+                           class="flex-1 bg-warning-600 text-white text-center py-2 rounded-lg text-sm font-medium hover:bg-warning-700 transition-colors duration-200">
+                            <i class="fas fa-minus-circle mr-1"></i>
+                            Withdraw
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Contact Options -->
+                <div class="border-t border-gray-100 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-gray-600">Quick Contact:</span>
+                        <div class="flex space-x-2">
+                            <a href="tel:{{ agent.phone_number }}" 
+                               class="w-8 h-8 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center hover:bg-primary-200 transition-colors duration-200">
+                                <i class="fas fa-phone text-xs"></i>
+                            </a>
+                            <a href="sms:{{ agent.phone_number }}" 
+                               class="w-8 h-8 bg-success-100 text-success-600 rounded-full flex items-center justify-center hover:bg-success-200 transition-colors duration-200">
+                                <i class="fas fa-sms text-xs"></i>
+                            </a>
+                            <a href="https://wa.me/{{ agent.phone_number|slice:'1:' }}" 
+                               target="_blank"
+                               class="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-200 transition-colors duration-200">
+                                <i class="fab fa-whatsapp text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="mt-8 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} agents
+            </div>
+            
+            <nav class="flex items-center space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        <i class="fas fa-chevron-left mr-1"></i>Previous
+                    </a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="px-3 py-2 text-sm bg-primary-600 text-white rounded-lg">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}" 
+                           class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">{{ num }}</a>
+                    {% endif %}
                 {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No agents found.</p>
-    {% endif %}
+                
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
+                        Next<i class="fas fa-chevron-right ml-1"></i>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- No Agents Found -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-user-tie text-gray-400 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No Agents Available</h3>
+            <p class="text-gray-500 mb-6">There are currently no verified agents in your area.</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <a href="{% url 'payments:deposit' %}" 
+                   class="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Try Other Methods
+                </a>
+                <a href="{% url 'core:support_tickets' %}" 
+                   class="inline-flex items-center px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                    <i class="fas fa-headset mr-2"></i>
+                    Contact Support
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Information Section -->
+        <div class="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- How It Works -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-info-circle text-primary-500 mr-2"></i>
+                    How Agent Transactions Work
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold">1</div>
+                        <div>
+                            <div class="font-medium text-gray-900">Select an Agent</div>
+                            <div class="text-sm text-gray-600">Choose a verified agent near your location</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold">2</div>
+                        <div>
+                            <div class="font-medium text-gray-900">Contact & Arrange</div>
+                            <div class="text-sm text-gray-600">Contact the agent to arrange meeting time and location</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold">3</div>
+                        <div>
+                            <div class="font-medium text-gray-900">Complete Transaction</div>
+                            <div class="text-sm text-gray-600">Meet safely and complete your cash transaction</div>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-sm font-semibold">4</div>
+                        <div>
+                            <div class="font-medium text-gray-900">Account Update</div>
+                            <div class="text-sm text-gray-600">Your account balance is updated instantly</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Tips -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-shield-alt text-success-500 mr-2"></i>
+                    Safety Tips
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex items-start space-x-2">
+                        <i class="fas fa-check text-success-500 mt-1"></i>
+                        <span class="text-sm text-gray-600">Only deal with verified agents (green shield badge)</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <i class="fas fa-check text-success-500 mt-1"></i>
+                        <span class="text-sm text-gray-600">Meet in public, safe locations during daylight</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <i class="fas fa-check text-success-500 mt-1"></i>
+                        <span class="text-sm text-gray-600">Verify agent identity before completing transaction</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <i class="fas fa-check text-success-500 mt-1"></i>
+                        <span class="text-sm text-gray-600">Count cash carefully and check for authenticity</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <i class="fas fa-check text-success-500 mt-1"></i>
+                        <span class="text-sm text-gray-600">Report any suspicious activity immediately</span>
+                    </div>
+                    <div class="flex items-start space-x-2">
+                        <i class="fas fa-check text-success-500 mt-1"></i>
+                        <span class="text-sm text-gray-600">Keep transaction receipts for your records</span>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-3 bg-warning-50 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle text-warning-600 mr-2"></i>
+                        <span class="text-sm font-medium text-warning-800">
+                            Never share your account login details with agents
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+// Search functionality
+document.getElementById('search-agents').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const agents = document.querySelectorAll('.agent-card');
+    
+    agents.forEach(agent => {
+        const name = agent.dataset.name;
+        const city = agent.dataset.city;
+        
+        if (name.includes(searchTerm) || city.includes(searchTerm)) {
+            agent.style.display = 'block';
+        } else {
+            agent.style.display = 'none';
+        }
+    });
+});
+
+// Sort functionality
+document.getElementById('sort-agents').addEventListener('change', function() {
+    const sortBy = this.value;
+    const container = document.getElementById('agents-grid');
+    const agents = Array.from(container.children);
+    
+    agents.sort((a, b) => {
+        let aValue, bValue;
+        
+        switch(sortBy) {
+            case 'rating':
+                aValue = parseFloat(a.dataset.rating);
+                bValue = parseFloat(b.dataset.rating);
+                return bValue - aValue; // Descending
+            case 'transactions':
+                aValue = parseInt(a.dataset.transactions);
+                bValue = parseInt(b.dataset.transactions);
+                return bValue - aValue; // Descending
+            case 'commission':
+                aValue = parseFloat(a.dataset.commission);
+                bValue = parseFloat(b.dataset.commission);
+                return aValue - bValue; // Ascending (lower commission first)
+            case 'city':
+                aValue = a.dataset.city;
+                bValue = b.dataset.city;
+                return aValue.localeCompare(bValue);
+            default:
+                return 0;
+        }
+    });
+    
+    agents.forEach(agent => container.appendChild(agent));
+});
+
+// Verified filter
+let showingVerifiedOnly = false;
+
+function showOnlyVerified() {
+    const button = document.getElementById('verified-filter');
+    const agents = document.querySelectorAll('.agent-card');
+    
+    showingVerifiedOnly = !showingVerifiedOnly;
+    
+    if (showingVerifiedOnly) {
+        button.classList.remove('bg-gray-100', 'text-gray-700');
+        button.classList.add('bg-success-100', 'text-success-700');
+        button.innerHTML = '<i class="fas fa-shield-check mr-2"></i>Showing Verified';
+        
+        agents.forEach(agent => {
+            if (agent.dataset.verified === 'false') {
+                agent.style.display = 'none';
+            }
+        });
+    } else {
+        button.classList.remove('bg-success-100', 'text-success-700');
+        button.classList.add('bg-gray-100', 'text-gray-700');
+        button.innerHTML = '<i class="fas fa-shield-check mr-2"></i>Verified Only';
+        
+        agents.forEach(agent => {
+            agent.style.display = 'block';
+        });
+    }
+}
+
+// WhatsApp link formatting
+document.addEventListener('DOMContentLoaded', function() {
+    // Format phone numbers for WhatsApp (remove + and spaces)
+    const whatsappLinks = document.querySelectorAll('a[href*="wa.me"]');
+    whatsappLinks.forEach(link => {
+        const phone = link.href.split('/').pop();
+        const cleanPhone = phone.replace(/[\s\-\+]/g, '');
+        if (!cleanPhone.startsWith('254') && cleanPhone.startsWith('0')) {
+            link.href = `https://wa.me/254${cleanPhone.substring(1)}`;
+        }
+    });
+});
+</script>
 {% endblock %}

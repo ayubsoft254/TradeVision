@@ -1,29 +1,529 @@
 {% extends 'base.html' %}
-{% block title %}Transaction Details{% endblock %}
+{% load static %}
+
+{% block title %}Transaction Details - TradeVision{% endblock %}
+
 {% block content %}
-<div class="max-w-3xl mx-auto py-8">
-    <h1 class="text-2xl font-heading mb-6">Transaction Details</h1>
-    {% if transaction %}
-        <div class="bg-white p-6 rounded-lg shadow card-shadow mb-6">
-            <p><strong>Type:</strong> {{ transaction.get_transaction_type_display }}</p>
-            <p><strong>Status:</strong> {{ transaction.get_status_display }}</p>
-            <p><strong>Amount:</strong> {{ transaction.amount }}</p>
-            <p><strong>Method:</strong> {{ transaction.payment_method.display_name }}</p>
-            <p><strong>Date:</strong> {{ transaction.created_at|date:'M d, Y H:i' }}</p>
-            <p><strong>Processing Fee:</strong> {{ transaction.processing_fee }}</p>
-            <p><strong>Net Amount:</strong> {{ transaction.net_amount }}</p>
-            <p><strong>Description:</strong> {{ transaction.description }}</p>
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-8" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{% url 'trading:dashboard' %}" class="text-gray-700 hover:text-primary-600 inline-flex items-center">
+                        <i class="fas fa-home mr-2"></i>Dashboard
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <a href="{% url 'payments:transactions' %}" class="text-gray-700 hover:text-primary-600">Transactions</a>
+                    </div>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <span class="text-gray-500">{{ transaction.transaction_type|title }} Details</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Transaction Header -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 rounded-lg flex items-center justify-center
+                        {% if transaction.transaction_type == 'deposit' %}bg-gradient-success
+                        {% elif transaction.transaction_type == 'withdrawal' %}bg-gradient-warning
+                        {% elif transaction.transaction_type == 'investment' %}bg-gradient-primary
+                        {% elif transaction.transaction_type == 'profit' %}bg-gradient-success
+                        {% else %}bg-gradient-primary{% endif %}">
+                        {% if transaction.transaction_type == 'deposit' %}
+                            <i class="fas fa-plus-circle text-white text-2xl"></i>
+                        {% elif transaction.transaction_type == 'withdrawal' %}
+                            <i class="fas fa-minus-circle text-white text-2xl"></i>
+                        {% elif transaction.transaction_type == 'investment' %}
+                            <i class="fas fa-chart-line text-white text-2xl"></i>
+                        {% elif transaction.transaction_type == 'profit' %}
+                            <i class="fas fa-arrow-up text-white text-2xl"></i>
+                        {% elif transaction.transaction_type == 'bonus' %}
+                            <i class="fas fa-gift text-white text-2xl"></i>
+                        {% elif transaction.transaction_type == 'referral' %}
+                            <i class="fas fa-users text-white text-2xl"></i>
+                        {% else %}
+                            <i class="fas fa-exchange-alt text-white text-2xl"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold font-heading text-gray-900">
+                            {{ transaction.transaction_type|title }} Transaction
+                        </h1>
+                        <p class="text-gray-600 mt-1">Transaction ID: {{ transaction.id }}</p>
+                    </div>
+                </div>
+                
+                <!-- Status Badge -->
+                <div class="text-right">
+                    <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium
+                        {% if transaction.status == 'completed' %}bg-success-100 text-success-800
+                        {% elif transaction.status == 'pending' %}bg-warning-100 text-warning-800
+                        {% elif transaction.status == 'processing' %}bg-primary-100 text-primary-800
+                        {% elif transaction.status == 'failed' %}bg-danger-100 text-danger-800
+                        {% elif transaction.status == 'cancelled' %}bg-gray-100 text-gray-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {% if transaction.status == 'completed' %}
+                            <i class="fas fa-check-circle mr-2"></i>
+                        {% elif transaction.status == 'pending' %}
+                            <i class="fas fa-clock mr-2"></i>
+                        {% elif transaction.status == 'processing' %}
+                            <i class="fas fa-spinner mr-2"></i>
+                        {% elif transaction.status == 'failed' %}
+                            <i class="fas fa-times-circle mr-2"></i>
+                        {% elif transaction.status == 'cancelled' %}
+                            <i class="fas fa-ban mr-2"></i>
+                        {% endif %}
+                        {{ transaction.status|title }}
+                    </span>
+                </div>
+            </div>
         </div>
-        {% if deposit_request %}
-            <h2 class="text-xl font-semibold mb-4">Deposit Request Details</h2>
-            <!-- Show deposit_request details -->
-        {% endif %}
-        {% if withdrawal_request %}
-            <h2 class="text-xl font-semibold mb-4">Withdrawal Request Details</h2>
-            <!-- Show withdrawal_request details -->
-        {% endif %}
-    {% else %}
-        <p>Transaction not found.</p>
-    {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Transaction Details -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-6">Transaction Information</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Amount</label>
+                                <div class="text-2xl font-bold text-gray-900">
+                                    {{ transaction.amount|floatformat:2 }} {{ transaction.currency }}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Processing Fee</label>
+                                <div class="text-lg text-gray-900">
+                                    {{ transaction.processing_fee|floatformat:2 }} {{ transaction.currency }}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Net Amount</label>
+                                <div class="text-lg font-semibold
+                                    {% if transaction.transaction_type == 'deposit' or transaction.transaction_type == 'profit' or transaction.transaction_type == 'bonus' %}text-success-600
+                                    {% elif transaction.transaction_type == 'withdrawal' or transaction.transaction_type == 'fee' %}text-warning-600
+                                    {% else %}text-gray-900{% endif %}">
+                                    {{ transaction.net_amount|floatformat:2 }} {{ transaction.currency }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Transaction Type</label>
+                                <div class="text-lg text-gray-900">{{ transaction.transaction_type|title }}</div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Payment Method</label>
+                                <div class="text-lg text-gray-900">
+                                    {% if transaction.payment_method %}
+                                        {{ transaction.payment_method.display_name }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if transaction.external_reference %}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">External Reference</label>
+                                <div class="text-lg text-gray-900 font-mono">{{ transaction.external_reference }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if transaction.description %}
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <label class="block text-sm font-medium text-gray-500 mb-2">Description</label>
+                        <div class="text-gray-900">{{ transaction.description }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Deposit Request Details -->
+                {% if deposit_request %}
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-6">Deposit Request Details</h2>
+                    
+                    <!-- Payment Details -->
+                    {% if deposit_request.payment_details %}
+                    <div class="mb-6">
+                        <h3 class="text-md font-medium text-gray-900 mb-3">Payment Information</h3>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            {% for key, value in deposit_request.payment_details.items %}
+                            <div class="flex justify-between py-2 border-b border-gray-200 last:border-b-0">
+                                <span class="text-sm font-medium text-gray-600">{{ key|title }}:</span>
+                                <span class="text-sm text-gray-900">{{ value }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Payment Proof -->
+                    {% if deposit_request.payment_proof %}
+                    <div class="mb-6">
+                        <h3 class="text-md font-medium text-gray-900 mb-3">Payment Proof</h3>
+                        <div class="border border-gray-200 rounded-lg p-4">
+                            <img src="{{ deposit_request.payment_proof.url }}" 
+                                 alt="Payment Proof" 
+                                 class="max-w-full h-auto rounded-lg cursor-pointer"
+                                 onclick="openImageModal('{{ deposit_request.payment_proof.url }}')">
+                            <div class="mt-2 text-sm text-gray-500">
+                                Click to view full size
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Admin Notes -->
+                    {% if deposit_request.admin_notes %}
+                    <div class="mb-6">
+                        <h3 class="text-md font-medium text-gray-900 mb-3">Admin Notes</h3>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="text-blue-900">{{ deposit_request.admin_notes }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Processing Info -->
+                    {% if deposit_request.processed_by or deposit_request.processed_at %}
+                    <div class="border-t border-gray-200 pt-4">
+                        <h3 class="text-md font-medium text-gray-900 mb-3">Processing Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% if deposit_request.processed_by %}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Processed By</label>
+                                <div class="text-sm text-gray-900">{{ deposit_request.processed_by.get_full_name|default:deposit_request.processed_by.email }}</div>
+                            </div>
+                            {% endif %}
+                            {% if deposit_request.processed_at %}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Processed At</label>
+                                <div class="text-sm text-gray-900">{{ deposit_request.processed_at|date:"M d, Y H:i" }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Withdrawal Request Details -->
+                {% if withdrawal_request %}
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-6">Withdrawal Request Details</h2>
+                    
+                    <!-- Withdrawal Address -->
+                    {% if withdrawal_request.withdrawal_address %}
+                    <div class="mb-6">
+                        <h3 class="text-md font-medium text-gray-900 mb-3">Withdrawal Details</h3>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            {% for key, value in withdrawal_request.withdrawal_address.items %}
+                            <div class="flex justify-between py-2 border-b border-gray-200 last:border-b-0">
+                                <span class="text-sm font-medium text-gray-600">{{ key|title }}:</span>
+                                <span class="text-sm text-gray-900">{{ value }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- OTP Verification Status -->
+                    <div class="mb-6">
+                        <h3 class="text-md font-medium text-gray-900 mb-3">Security Verification</h3>
+                        <div class="flex items-center space-x-3">
+                            {% if withdrawal_request.otp_verified %}
+                                <div class="flex items-center text-success-600">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    <span class="text-sm font-medium">OTP Verified</span>
+                                </div>
+                            {% else %}
+                                <div class="flex items-center text-warning-600">
+                                    <i class="fas fa-clock mr-2"></i>
+                                    <span class="text-sm font-medium">OTP Verification Pending</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Admin Notes -->
+                    {% if withdrawal_request.admin_notes %}
+                    <div class="mb-6">
+                        <h3 class="text-md font-medium text-gray-900 mb-3">Admin Notes</h3>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div class="text-blue-900">{{ withdrawal_request.admin_notes }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Processing Info -->
+                    {% if withdrawal_request.processed_by or withdrawal_request.processed_at %}
+                    <div class="border-t border-gray-200 pt-4">
+                        <h3 class="text-md font-medium text-gray-900 mb-3">Processing Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% if withdrawal_request.processed_by %}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Processed By</label>
+                                <div class="text-sm text-gray-900">{{ withdrawal_request.processed_by.get_full_name|default:withdrawal_request.processed_by.email }}</div>
+                            </div>
+                            {% endif %}
+                            {% if withdrawal_request.processed_at %}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Processed At</label>
+                                <div class="text-sm text-gray-900">{{ withdrawal_request.processed_at|date:"M d, Y H:i" }}</div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Metadata -->
+                {% if transaction.metadata %}
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-6">Additional Information</h2>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        {% for key, value in transaction.metadata.items %}
+                        <div class="flex justify-between py-2 border-b border-gray-200 last:border-b-0">
+                            <span class="text-sm font-medium text-gray-600">{{ key|title }}:</span>
+                            <span class="text-sm text-gray-900">{{ value }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Timeline -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-clock text-primary-500 mr-2"></i>
+                        Timeline
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-primary-500 rounded-full mt-2"></div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">Transaction Created</div>
+                                <div class="text-xs text-gray-500">{{ transaction.created_at|date:"M d, Y H:i" }}</div>
+                            </div>
+                        </div>
+                        
+                        {% if transaction.updated_at != transaction.created_at %}
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-warning-500 rounded-full mt-2"></div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">Last Updated</div>
+                                <div class="text-xs text-gray-500">{{ transaction.updated_at|date:"M d, Y H:i" }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if transaction.completed_at %}
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-success-500 rounded-full mt-2"></div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">Completed</div>
+                                <div class="text-xs text-gray-500">{{ transaction.completed_at|date:"M d, Y H:i" }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-bolt text-primary-500 mr-2"></i>
+                        Quick Actions
+                    </h3>
+                    <div class="space-y-3">
+                        {% if transaction.status == 'pending' and transaction.transaction_type == 'deposit' %}
+                        <button onclick="copyTransactionId()" 
+                                class="w-full bg-primary-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors duration-200">
+                            <i class="fas fa-copy mr-2"></i>
+                            Copy Transaction ID
+                        </button>
+                        {% endif %}
+                        
+                        <a href="{% url 'payments:transactions' %}" 
+                           class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors duration-200 text-center block">
+                            <i class="fas fa-list mr-2"></i>
+                            View All Transactions
+                        </a>
+                        
+                        {% if transaction.transaction_type == 'deposit' %}
+                        <a href="{% url 'payments:deposit' %}" 
+                           class="w-full bg-success-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-success-700 transition-colors duration-200 text-center block">
+                            <i class="fas fa-plus-circle mr-2"></i>
+                            Make Another Deposit
+                        </a>
+                        {% elif transaction.transaction_type == 'withdrawal' %}
+                        <a href="{% url 'payments:withdraw' %}" 
+                           class="w-full bg-warning-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-warning-700 transition-colors duration-200 text-center block">
+                            <i class="fas fa-minus-circle mr-2"></i>
+                            Make Another Withdrawal
+                        </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'core:support_tickets' %}" 
+                           class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors duration-200 text-center block">
+                            <i class="fas fa-headset mr-2"></i>
+                            Contact Support
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Transaction Summary -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                        <i class="fas fa-info-circle text-primary-500 mr-2"></i>
+                        Summary
+                    </h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Transaction ID:</span>
+                            <span class="font-mono text-gray-900 text-xs">{{ transaction.id|truncatechars:15 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Type:</span>
+                            <span class="font-medium text-gray-900">{{ transaction.transaction_type|title }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Status:</span>
+                            <span class="font-medium
+                                {% if transaction.status == 'completed' %}text-success-600
+                                {% elif transaction.status == 'pending' %}text-warning-600
+                                {% elif transaction.status == 'failed' %}text-danger-600
+                                {% else %}text-gray-600{% endif %}">
+                                {{ transaction.status|title }}
+                            </span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Amount:</span>
+                            <span class="font-medium text-gray-900">{{ transaction.amount|floatformat:2 }} {{ transaction.currency }}</span>
+                        </div>
+                        {% if transaction.processing_fee > 0 %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Fee:</span>
+                            <span class="font-medium text-gray-900">{{ transaction.processing_fee|floatformat:2 }} {{ transaction.currency }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="flex justify-between border-t pt-2">
+                            <span class="text-gray-600 font-medium">Net Amount:</span>
+                            <span class="font-bold text-gray-900">{{ transaction.net_amount|floatformat:2 }} {{ transaction.currency }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Help -->
+                <div class="bg-gradient-primary rounded-lg p-6 text-white">
+                    <h3 class="font-semibold mb-2">
+                        <i class="fas fa-question-circle mr-2"></i>
+                        Need Help?
+                    </h3>
+                    {% if transaction.status == 'pending' %}
+                    <p class="text-sm opacity-90 mb-4">
+                        Your transaction is being processed. This usually takes a few minutes to a few hours depending on the payment method.
+                    </p>
+                    {% elif transaction.status == 'processing' %}
+                    <p class="text-sm opacity-90 mb-4">
+                        Your transaction is currently being verified by our team. You'll receive an update soon.
+                    </p>
+                    {% elif transaction.status == 'failed' %}
+                    <p class="text-sm opacity-90 mb-4">
+                        This transaction has failed. Please contact support for assistance or try again.
+                    </p>
+                    {% elif transaction.status == 'completed' %}
+                    <p class="text-sm opacity-90 mb-4">
+                        Your transaction has been completed successfully. Your account balance has been updated.
+                    </p>
+                    {% endif %}
+                    <div class="flex items-center text-sm">
+                        <i class="fas fa-headset mr-2"></i>
+                        <span>24/7 Support Available</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Image Modal -->
+<div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50" onclick="closeImageModal()">
+    <div class="max-w-4xl max-h-full p-4">
+        <img id="modal-image" src="" alt="Payment Proof" class="max-w-full max-h-full object-contain rounded-lg">
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+
+<script>
+// Copy transaction ID to clipboard
+function copyTransactionId() {
+    const transactionId = '{{ transaction.id }}';
+    navigator.clipboard.writeText(transactionId).then(function() {
+        alert('Transaction ID copied to clipboard!');
+    }).catch(function() {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = transactionId;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert('Transaction ID copied to clipboard!');
+    });
+}
+
+// Image modal functions
+function openImageModal(imageSrc) {
+    document.getElementById('modal-image').src = imageSrc;
+    document.getElementById('image-modal').classList.remove('hidden');
+    document.getElementById('image-modal').classList.add('flex');
+}
+
+function closeImageModal() {
+    document.getElementById('image-modal').classList.add('hidden');
+    document.getElementById('image-modal').classList.remove('flex');
+}
+
+// Auto-refresh status for pending transactions
+{% if transaction.status == 'pending' or transaction.status == 'processing' %}
+setInterval(function() {
+    // Check transaction status via AJAX
+    fetch('{% url "payments:transaction_status" transaction.id %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data.status !== '{{ transaction.status }}') {
+                // Status changed, reload page
+                window.location.reload();
+            }
+        })
+        .catch(error => console.log('Status check failed:', error));
+}, 30000); // Check every 30 seconds
+{% endif %}
+</script>
 {% endblock %}
