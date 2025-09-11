@@ -546,7 +546,7 @@
     function withdrawProfit(profitId) {
         if (confirm('Are you sure you want to withdraw this profit? This will transfer the amount to your available balance.')) {
                 // AJAX request to withdraw profit
-                fetch(`{% url 'trading:withdraw_profit' %}`, {
+                fetch(`{% url 'payments:withdraw_profit' %}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
