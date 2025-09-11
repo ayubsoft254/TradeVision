@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load humanize %}
 
 {% block title %}Profit History - TradeVision{% endblock %}
 
@@ -388,7 +387,7 @@
                                     </div>
                                     <div class="flex justify-between">
                                         <span>Per Hour:</span>
-                                        <span class="font-medium">{{ profit.amount|div:profit.trade.investment.package.duration_hours|floatformat:2 }}</span>
+                                        <span class="font-medium">{{ profit.amount }}</span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span>Status:</span>
@@ -546,8 +545,46 @@
     // Withdraw Profit Function
     function withdrawProfit(profitId) {
         if (confirm('Are you sure you want to withdraw this profit? This will transfer the amount to your available balance.')) {
-            // Implement withdrawal logic
-            alert('Withdrawal functionality coming soon!');
+                // AJAX request to withdraw profit
+                fetch(`{% url 'trading:withdraw_profit' %}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ profit_id: profitId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Optionally update UI, e.g., reload page or mark as withdrawn
+                        alert('Profit withdrawn successfully!');
+                        window.location.reload();
+                    } else {
+                        alert(data.error || 'Withdrawal failed.');
+                    }
+                })
+                .catch(() => {
+                    alert('An error occurred. Please try again.');
+                });
+            }
+        }
+
+        // Helper to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
         }
     }
 

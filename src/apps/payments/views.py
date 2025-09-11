@@ -1,5 +1,5 @@
 # apps/payments/views.py
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -10,6 +10,8 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from decimal import Decimal
+import json
+from django.views.decorators.http import require_POST
 
 user = get_user_model()
 
@@ -700,3 +702,37 @@ def transaction_status(request, transaction_id):
             'success': False,
             'error': 'Transaction not found'
         })
+
+@require_POST
+@login_required
+def withdraw_profit(request):
+    try:
+        data = json.loads(request.body)
+        profit_id = data.get('profit_id')
+        profit = get_object_or_404(ProfitHistory, id=profit_id, user=request.user, is_withdrawn=False)
+
+        wallet = request.user.wallet
+
+        # Transfer profit to wallet
+        wallet.profit_balance -= Decimal(profit.amount)
+        wallet.balance += Decimal(profit.amount)
+        wallet.save()
+
+        # Mark profit as withdrawn
+        profit.is_withdrawn = True
+        profit.save()
+
+        # Log transaction
+        Transaction.objects.create(
+            user=request.user,
+            transaction_type='profit_withdrawal',
+            amount=profit.amount,
+            currency=wallet.currency,
+            status='completed',
+            net_amount=profit.amount,
+            description=f'Profit withdrawal (ID: {profit.id})'
+        )
+
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

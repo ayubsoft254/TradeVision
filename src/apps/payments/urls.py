@@ -12,6 +12,7 @@ urlpatterns = [
     # Withdrawal System
     path('withdraw/', views.WithdrawView.as_view(), name='withdraw'),
     path('withdraw/<str:method>/', views.WithdrawMethodView.as_view(), name='withdraw_method'),
+    path('withdraw-profit/', views.withdraw_profit, name='withdraw_profit'),
     
     # Transaction Management
     path('transactions/', views.TransactionHistoryView.as_view(), name='transactions'),
