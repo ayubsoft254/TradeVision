@@ -1,39 +1,531 @@
 {% extends 'base.html' %}
-{% block title %}My Investments{% endblock %}
+
+{% block title %}My Investments - TradeVision{% endblock %}
+
+{% block extra_css %}
+<style>
+    .investment-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    
+    .investment-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+    
+    .investment-active {
+        border-left-color: #10b981;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    }
+    
+    .investment-completed {
+        border-left-color: #6b7280;
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    }
+    
+    .investment-cancelled {
+        border-left-color: #ef4444;
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    }
+    
+    .stats-grid {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .package-badge {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    }
+    
+    .performance-indicator {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .performance-indicator::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+    
+    .filter-dropdown {
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.95);
+    }
+    
+    .roi-positive {
+        color: #10b981;
+    }
+    
+    .roi-negative {
+        color: #ef4444;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-5xl mx-auto py-8">
-    <h1 class="text-2xl font-heading mb-6">My Investments</h1>
-    <!-- Investment statistics -->
-    <div class="mb-6">
-        <p><strong>Total Investments:</strong> {{ stats.total_investments }}</p>
-        <p><strong>Active Investments:</strong> {{ stats.active_investments }}</p>
-        <p><strong>Total Invested:</strong> {{ stats.total_invested }}</p>
-        <p><strong>Total Profits:</strong> {{ stats.total_profits }}</p>
-    </div>
-    <!-- Investments table/list -->
-    {% if investments %}
-        <table class="w-full table-auto bg-white shadow card-shadow rounded-lg">
-            <thead>
-                <tr>
-                    <th>Package</th>
-                    <th>Status</th>
-                    <th>Principal</th>
-                    <th>Created</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for investment in investments %}
-                <tr>
-                    <td>{{ investment.package.display_name }}</td>
-                    <td>{{ investment.get_status_display }}</td>
-                    <td>{{ investment.principal_amount }}</td>
-                    <td>{{ investment.created_at|date:'M d, Y' }}</td>
-                </tr>
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-3xl font-bold font-heading text-gray-900">
+                        My Investments
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Manage and track all your investment portfolios
+                    </p>
+                </div>
+                <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+                    <a href="{% url 'trading:packages' %}" class="btn-primary">
+                        <i class="fas fa-plus mr-2"></i>New Investment
+                    </a>
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="btn-secondary">
+                            <i class="fas fa-filter mr-2"></i>Filter
+                            <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                        </button>
+                        <div x-show="open" 
+                             @click.away="open = false"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="filter-dropdown absolute right-0 mt-2 w-56 rounded-lg shadow-lg py-2 z-50 border border-gray-200">
+                            <a href="{% url 'trading:investments' %}" 
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">All Investments</a>
+                            <a href="?status=active" 
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Active Only</a>
+                            <a href="?status=completed" 
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Completed</a>
+                            <a href="?status=cancelled" 
+                               class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Cancelled</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="stats-grid rounded-2xl p-8 text-white mb-8 card-shadow">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="text-3xl font-bold mb-2">{{ stats.total_investments }}</div>
+                    <div class="text-sm opacity-90">Total Investments</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold mb-2">{{ stats.active_investments }}</div>
+                    <div class="text-sm opacity-90">Active Investments</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold mb-2">
+                        {{ stats.total_invested|floatformat:0 }}
+                    </div>
+                    <div class="text-sm opacity-90">Total Invested ({{ user.wallet.currency }})</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold mb-2">
+                        +{{ stats.total_profits|floatformat:0 }}
+                    </div>
+                    <div class="text-sm opacity-90">Total Profits ({{ user.wallet.currency }})</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investments List -->
+        <div class="space-y-6">
+            {% for investment in investments %}
+            <div class="investment-card investment-{{ investment.status }} bg-white rounded-2xl p-6 card-shadow">
+                <div class="md:flex md:items-center md:justify-between">
+                    <!-- Investment Info -->
+                    <div class="flex-1">
+                        <div class="md:flex md:items-center md:space-x-6">
+                            <!-- Package Info -->
+                            <div class="mb-4 md:mb-0">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <span class="package-badge text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                        {{ investment.package.display_name }}
+                                    </span>
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full
+                                        {% if investment.status == 'active' %}bg-success-100 text-success-800
+                                        {% elif investment.status == 'completed' %}bg-gray-100 text-gray-800
+                                        {% elif investment.status == 'cancelled' %}bg-danger-100 text-danger-800
+                                        {% endif %}">
+                                        {% if investment.status == 'active' %}
+                                            <i class="fas fa-play mr-1"></i>Active
+                                        {% elif investment.status == 'completed' %}
+                                            <i class="fas fa-check mr-1"></i>Completed
+                                        {% elif investment.status == 'cancelled' %}
+                                            <i class="fas fa-times mr-1"></i>Cancelled
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    Created {{ investment.created_at|date:"M d, Y" }} • 
+                                    ID: {{ investment.id|slice:":8" }}...
+                                </div>
+                            </div>
+
+                            <!-- Investment Details Grid -->
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <div class="text-gray-500 text-xs uppercase tracking-wide">Principal</div>
+                                    <div class="font-semibold text-gray-900">
+                                        {{ investment.principal_amount|floatformat:2 }}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="text-gray-500 text-xs uppercase tracking-wide">Bonus</div>
+                                    <div class="font-semibold text-success-600">
+                                        +{{ investment.welcome_bonus_amount|floatformat:2 }}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="text-gray-500 text-xs uppercase tracking-wide">Total Trading</div>
+                                    <div class="font-semibold text-primary-600">
+                                        {{ investment.total_investment|floatformat:2 }}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="text-gray-500 text-xs uppercase tracking-wide">Profit Range</div>
+                                    <div class="font-semibold text-gray-900">
+                                        {{ investment.package.profit_min }}-{{ investment.package.profit_max }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-4 md:mt-0 md:ml-6">
+                        <div class="flex items-center space-x-3">
+                            {% if investment.status == 'active' %}
+                                <!-- Check if has active trade -->
+                                {% with investment.trades.all|first as active_trade %}
+                                    {% if active_trade and active_trade.status == 'running' %}
+                                        <a href="{% url 'trading:trade_detail' active_trade.id %}" 
+                                           class="text-sm bg-success-100 text-success-800 px-3 py-2 rounded-lg font-medium hover:bg-success-200 transition-colors duration-200">
+                                            <i class="fas fa-eye mr-1"></i>View Trade
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'trading:initiate_trade' %}" 
+                                           class="text-sm bg-primary-100 text-primary-800 px-3 py-2 rounded-lg font-medium hover:bg-primary-200 transition-colors duration-200">
+                                            <i class="fas fa-play mr-1"></i>Start Trade
+                                        </a>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                            
+                            <div class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" 
+                                        class="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div x-show="open" 
+                                     @click.away="open = false"
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-150"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 border border-gray-200">
+                                    <a href="#" onclick="viewInvestmentDetails('{{ investment.id }}')" 
+                                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-info-circle mr-2"></i>View Details
+                                    </a>
+                                    <a href="{% url 'trading:trades' %}?investment={{ investment.id }}" 
+                                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-history mr-2"></i>Trade History
+                                    </a>
+                                    <a href="{% url 'trading:profits' %}?investment={{ investment.id }}" 
+                                       class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-coins mr-2"></i>Profit History
+                                    </a>
+                                    {% if investment.status == 'active' %}
+                                    <div class="border-t border-gray-100 mt-2 pt-2">
+                                        <button onclick="cancelInvestment('{{ investment.id }}')" 
+                                                class="block w-full text-left px-4 py-2 text-sm text-danger-600 hover:bg-danger-50">
+                                            <i class="fas fa-ban mr-2"></i>Cancel Investment
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics (Expanded View) -->
+                <div class="mt-6 pt-6 border-t border-gray-200" x-data="{ expanded: false }">
+                    <button @click="expanded = !expanded" 
+                            class="flex items-center justify-between w-full text-left">
+                        <span class="text-sm font-medium text-gray-700">Performance Metrics</span>
+                        <i class="fas fa-chevron-down text-xs text-gray-400 transition-transform duration-200" 
+                           :class="{ 'rotate-180': expanded }"></i>
+                    </button>
+                    
+                    <div x-show="expanded" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 max-h-0"
+                         x-transition:enter-end="opacity-100 max-h-96"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 max-h-96"
+                         x-transition:leave-end="opacity-0 max-h-0"
+                         class="mt-4 overflow-hidden">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Total Trades -->
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-gray-600">Total Trades</span>
+                                    <i class="fas fa-chart-bar text-gray-400"></i>
+                                </div>
+                                <div class="text-lg font-semibold text-gray-900">
+                                    {{ investment.trades.count }}
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    Completed: {{ investment.trades.filter.status.completed.count }}
+                                </div>
+                            </div>
+
+                            <!-- Total Profits -->
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-gray-600">Total Profits</span>
+                                    <i class="fas fa-coins text-gray-400"></i>
+                                </div>
+                                <div class="text-lg font-semibold text-success-600">
+                                    +{{ investment.total_profits|default:"0"|floatformat:2 }}
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    {{ user.wallet.currency }}
+                                </div>
+                            </div>
+
+                            <!-- ROI -->
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-gray-600">ROI</span>
+                                    <i class="fas fa-percentage text-gray-400"></i>
+                                </div>
+                                {% with roi=investment.calculate_roi %}
+                                <div class="text-lg font-semibold {% if roi > 0 %}roi-positive{% elif roi < 0 %}roi-negative{% else %}text-gray-600{% endif %}">
+                                    {% if roi > 0 %}+{% endif %}{{ roi|floatformat:1 }}%
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    Return on Investment
+                                </div>
+                                {% endwith %}
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        {% with recent_trades=investment.trades.all|slice:":3" %}
+                        {% if recent_trades %}
+                        <div class="mt-4">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Recent Trades</h4>
+                            <div class="space-y-2">
+                                {% for trade in recent_trades %}
+                                <div class="flex items-center justify-between py-2 px-3 bg-white rounded border">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="w-2 h-2 rounded-full 
+                                            {% if trade.status == 'completed' %}bg-success-500
+                                            {% elif trade.status == 'running' %}bg-primary-500
+                                            {% else %}bg-gray-400{% endif %}"></span>
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">
+                                                Trade #{{ trade.id|slice:":8" }}
+                                            </div>
+                                            <div class="text-xs text-gray-500">
+                                                {{ trade.created_at|date:"M d, H:i" }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        {% if trade.status == 'completed' %}
+                                            <div class="text-sm font-semibold text-success-600">
+                                                +{{ trade.profit_amount|floatformat:2 }}
+                                            </div>
+                                        {% else %}
+                                            <div class="text-sm text-gray-600">
+                                                {{ trade.get_status_display }}
+                                            </div>
+                                        {% endif %}
+                                        <a href="{% url 'trading:trade_detail' trade.id %}" 
+                                           class="text-xs text-primary-600 hover:text-primary-700">View</a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <!-- No Investments -->
+            <div class="text-center py-16 bg-white rounded-2xl card-shadow">
+                <i class="fas fa-chart-pie text-gray-300 text-6xl mb-6"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">No Investments Yet</h3>
+                <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                    Start your investment journey today! Choose from our range of trading packages 
+                    designed to help you grow your wealth with daily profit opportunities.
+                </p>
+                <div class="space-x-4">
+                    <a href="{% url 'trading:packages' %}" class="btn-primary">
+                        <i class="fas fa-rocket mr-2"></i>Start Investing
+                    </a>
+                    <a href="{% url 'trading:dashboard' %}" class="btn-secondary">
+                        <i class="fas fa-chart-line mr-2"></i>View Dashboard
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="mt-8 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} 
+                of {{ page_obj.paginator.count }} investments
+            </div>
+            
+            <nav class="flex items-center space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="px-3 py-2 text-sm bg-primary-600 text-white rounded-lg">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">{{ num }}</a>
+                    {% endif %}
                 {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No investments found.</p>
-    {% endif %}
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+    </div>
 </div>
+
+<!-- Investment Details Modal -->
+<div id="investment-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-semibold text-gray-900">Investment Details</h3>
+            <button onclick="closeInvestmentModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div id="modal-content">
+            <!-- Content will be loaded dynamically -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function viewInvestmentDetails(investmentId) {
+        // Close any open dropdowns
+        document.querySelectorAll('[x-data]').forEach(el => {
+            if (el.__x && el.__x.$data.open) {
+                el.__x.$data.open = false;
+            }
+        });
+        
+        // Show modal
+        document.getElementById('investment-modal').classList.remove('hidden');
+        
+        // Load investment details (you can make an AJAX call here)
+        document.getElementById('modal-content').innerHTML = `
+            <div class="text-center py-8">
+                <i class="fas fa-spinner fa-spin text-primary-600 text-2xl mb-4"></i>
+                <p class="text-gray-600">Loading investment details...</p>
+            </div>
+        `;
+        
+        // Simulate loading (replace with actual AJAX call)
+        setTimeout(() => {
+            document.getElementById('modal-content').innerHTML = `
+                <div class="space-y-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-sm text-gray-500 uppercase tracking-wide">Investment ID</label>
+                            <div class="font-semibold text-gray-900">${investmentId.slice(0, 8)}...</div>
+                        </div>
+                        <div>
+                            <label class="text-sm text-gray-500 uppercase tracking-wide">Status</label>
+                            <div class="font-semibold text-gray-900">Active</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <p class="text-gray-600 mb-4">This feature is coming soon!</p>
+                        <button onclick="closeInvestmentModal()" class="btn-primary">Close</button>
+                    </div>
+                </div>
+            `;
+        }, 1000);
+    }
+    
+    function closeInvestmentModal() {
+        document.getElementById('investment-modal').classList.add('hidden');
+    }
+    
+    function cancelInvestment(investmentId) {
+        if (confirm('Are you sure you want to cancel this investment? This action cannot be undone.')) {
+            // Implement cancellation logic
+            alert('Investment cancellation feature coming soon!');
+        }
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('investment-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeInvestmentModal();
+        }
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeInvestmentModal();
+        }
+    });
+</script>
 {% endblock %}

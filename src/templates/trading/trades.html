@@ -1,43 +1,447 @@
 {% extends 'base.html' %}
-{% block title %}My Trades{% endblock %}
+
+{% block title %}My Trades - TradeVision{% endblock %}
+
+{% block extra_css %}
+<style>
+    .trade-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+    }
+    
+    .trade-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    .trade-running {
+        border-left-color: #10b981;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    }
+    
+    .trade-completed {
+        border-left-color: #6b7280;
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    }
+    
+    .trade-pending {
+        border-left-color: #f59e0b;
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    }
+    
+    .trade-failed {
+        border-left-color: #ef4444;
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    }
+    
+    .filter-tab {
+        transition: all 0.2s ease;
+    }
+    
+    .filter-tab.active {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+        transform: translateY(-1px);
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%);
+        backdrop-filter: blur(10px);
+    }
+    
+    .countdown-display {
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+    }
+    
+    .profit-highlight {
+        animation: profit-glow 2s infinite;
+    }
+    
+    @keyframes profit-glow {
+        0%, 100% { box-shadow: 0 0 5px rgba(16, 185, 129, 0.3); }
+        50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-5xl mx-auto py-8">
-    <h1 class="text-2xl font-heading mb-6">My Trades</h1>
-    <!-- Trade statistics -->
-    <div class="mb-6">
-        <p><strong>Total Trades:</strong> {{ stats.total_trades }}</p>
-        <p><strong>Completed Trades:</strong> {{ stats.completed_trades }}</p>
-        <p><strong>Running Trades:</strong> {{ stats.running_trades }}</p>
-        <p><strong>Total Profit:</strong> {{ stats.total_profit }}</p>
-    </div>
-    <!-- Trades table/list -->
-    {% if trades %}
-        <table class="w-full table-auto bg-white shadow card-shadow rounded-lg">
-            <thead>
-                <tr>
-                    <th>Package</th>
-                    <th>Status</th>
-                    <th>Amount</th>
-                    <th>Profit</th>
-                    <th>Started</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for trade in trades %}
-                <tr>
-                    <td>{{ trade.investment.package.display_name }}</td>
-                    <td>{{ trade.get_status_display }}</td>
-                    <td>{{ trade.trade_amount }}</td>
-                    <td>{{ trade.profit_amount }}</td>
-                    <td>{{ trade.start_time|date:'M d, Y H:i' }}</td>
-                    <td><a href="{% url 'trading:trade_detail' trade.id %}" class="text-primary-600 hover:underline">Details</a></td>
-                </tr>
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-3xl font-bold font-heading text-gray-900">
+                        My Trades
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Track all your trading activities and performance
+                    </p>
+                </div>
+                <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+                    <a href="{% url 'trading:initiate_trade' %}" class="btn-primary">
+                        <i class="fas fa-plus mr-2"></i>New Trade
+                    </a>
+                    <a href="{% url 'trading:dashboard' %}" class="btn-secondary">
+                        <i class="fas fa-chart-line mr-2"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="stats-card rounded-2xl p-6 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Trades</p>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ stats.total_trades }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-chart-bar text-primary-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card rounded-2xl p-6 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Completed</p>
+                        <p class="text-2xl font-bold text-success-600 mt-1">{{ stats.completed_trades }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-check-circle text-success-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card rounded-2xl p-6 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Running</p>
+                        <p class="text-2xl font-bold text-warning-600 mt-1">{{ stats.running_trades }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-warning-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-play-circle text-warning-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card rounded-2xl p-6 card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Profit</p>
+                        <p class="text-2xl font-bold text-success-600 mt-1">
+                            +{{ stats.total_profit|floatformat:2 }}
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-dollar-sign text-success-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="bg-white rounded-2xl p-6 card-shadow mb-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <!-- Status Filter Tabs -->
+                <div class="flex flex-wrap gap-2 mb-4 md:mb-0">
+                    <a href="{% url 'trading:trades' %}" 
+                       class="filter-tab px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {% if not selected_status %}active{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                        All Trades
+                    </a>
+                    {% for status, display in status_choices %}
+                        <a href="?status={{ status }}{% if selected_package %}&package={{ selected_package }}{% endif %}" 
+                           class="filter-tab px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {% if selected_status == status %}active{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                            {{ display }}
+                        </a>
+                    {% endfor %}
+                </div>
+
+                <!-- Package Filter -->
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <select onchange="location = this.value" 
+                                class="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                            <option value="{% url 'trading:trades' %}{% if selected_status %}?status={{ selected_status }}{% endif %}">All Packages</option>
+                            {% for package in packages %}
+                                <option value="?package={{ package.name }}{% if selected_status %}&status={{ selected_status }}{% endif %}"
+                                        {% if selected_package == package.name %}selected{% endif %}>
+                                    {{ package.display_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    </div>
+
+                    <button onclick="window.print()" class="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                        <i class="fas fa-print"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trades List -->
+        <div class="space-y-4">
+            {% for trade in trades %}
+            <div class="trade-card trade-{{ trade.status }} rounded-2xl p-6 card-shadow">
+                <div class="md:flex md:items-center md:justify-between">
+                    <!-- Trade Info -->
+                    <div class="flex-1">
+                        <div class="md:flex md:items-center md:space-x-6">
+                            <!-- Package & Status -->
+                            <div class="mb-3 md:mb-0">
+                                <h3 class="text-lg font-semibold text-gray-900">
+                                    {{ trade.investment.package.display_name }}
+                                </h3>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <span class="px-2 py-1 text-xs font-medium rounded-full
+                                        {% if trade.status == 'running' %}bg-success-100 text-success-800
+                                        {% elif trade.status == 'completed' %}bg-gray-100 text-gray-800
+                                        {% elif trade.status == 'pending' %}bg-warning-100 text-warning-800
+                                        {% elif trade.status == 'failed' %}bg-danger-100 text-danger-800
+                                        {% endif %}">
+                                        {% if trade.status == 'running' %}
+                                            <i class="fas fa-play mr-1"></i>
+                                        {% elif trade.status == 'completed' %}
+                                            <i class="fas fa-check mr-1"></i>
+                                        {% elif trade.status == 'pending' %}
+                                            <i class="fas fa-clock mr-1"></i>
+                                        {% elif trade.status == 'failed' %}
+                                            <i class="fas fa-times mr-1"></i>
+                                        {% endif %}
+                                        {{ trade.get_status_display }}
+                                    </span>
+                                    <span class="text-xs text-gray-500">
+                                        {{ trade.created_at|date:"M d, Y H:i" }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Trade Details -->
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                    <div class="text-gray-500 text-xs uppercase tracking-wide">Amount</div>
+                                    <div class="font-semibold text-gray-900">
+                                        {{ trade.trade_amount|floatformat:2 }}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="text-gray-500 text-xs uppercase tracking-wide">Profit Rate</div>
+                                    <div class="font-semibold text-primary-600">
+                                        {{ trade.profit_rate }}%
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="text-gray-500 text-xs uppercase tracking-wide">Expected Profit</div>
+                                    <div class="font-semibold text-success-600">
+                                        +{{ trade.profit_amount|floatformat:2 }}
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    {% if trade.status == 'running' %}
+                                        <div class="text-gray-500 text-xs uppercase tracking-wide">Time Left</div>
+                                        <div class="countdown-display text-primary-600 font-bold" 
+                                             data-end-time="{{ trade.expected_completion_time|date:'c' }}">
+                                            --:--:--
+                                        </div>
+                                    {% elif trade.status == 'completed' %}
+                                        <div class="text-gray-500 text-xs uppercase tracking-wide">Completed</div>
+                                        <div class="font-semibold text-gray-900">
+                                            {{ trade.completed_at|date:"M d, H:i" }}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-gray-500 text-xs uppercase tracking-wide">Duration</div>
+                                        <div class="font-semibold text-gray-900">
+                                            {{ trade.investment.package.duration_hours }}h
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-4 md:mt-0 md:ml-6 flex items-center space-x-3">
+                        <a href="{% url 'trading:trade_detail' trade.id %}" 
+                           class="text-primary-600 hover:text-primary-700 font-medium text-sm">
+                            View Details <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                        
+                        {% if trade.status == 'completed' and trade.profit_amount > 0 %}
+                            <div class="profit-highlight px-3 py-1 bg-success-100 text-success-800 rounded-full text-xs font-medium">
+                                <i class="fas fa-coins mr-1"></i>Profit Earned
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Progress Bar for Running Trades -->
+                {% if trade.status == 'running' %}
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
+                        <span>Trading Progress</span>
+                        <span id="progress-{{ trade.id }}">Calculating...</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-primary-500 to-success-500 h-2 rounded-full transition-all duration-500" 
+                             id="progress-bar-{{ trade.id }}" style="width: 0%"></div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="text-center py-12 bg-white rounded-2xl card-shadow">
+                <i class="fas fa-chart-line text-gray-300 text-6xl mb-4"></i>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">No trades found</h3>
+                <p class="text-gray-500 mb-6">
+                    {% if selected_status or selected_package %}
+                        No trades match your current filters. Try adjusting your search criteria.
+                    {% else %}
+                        You haven't started any trades yet. Begin your trading journey today!
+                    {% endif %}
+                </p>
+                <div class="space-x-4">
+                    {% if selected_status or selected_package %}
+                        <a href="{% url 'trading:trades' %}" class="btn-secondary">
+                            Clear Filters
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'trading:initiate_trade' %}" class="btn-primary">
+                        Start Your First Trade
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="mt-8 flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} 
+                of {{ page_obj.paginator.count }} trades
+            </div>
+            
+            <nav class="flex items-center space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_package %}&package={{ selected_package }}{% endif %}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_package %}&package={{ selected_package }}{% endif %}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="px-3 py-2 text-sm bg-primary-600 text-white rounded-lg">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_package %}&package={{ selected_package }}{% endif %}" 
+                           class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">{{ num }}</a>
+                    {% endif %}
                 {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No trades found.</p>
-    {% endif %}
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_package %}&package={{ selected_package }}{% endif %}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_package %}&package={{ selected_package }}{% endif %}" 
+                       class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Update progress bars for running trades
+    function updateTradeProgress() {
+        document.querySelectorAll('.countdown-display').forEach(countdown => {
+            const endTime = new Date(countdown.dataset.endTime).getTime();
+            const now = new Date().getTime();
+            const timeLeft = endTime - now;
+            const totalDuration = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+            
+            if (timeLeft > 0) {
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                countdown.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Update progress bar if it exists
+                const tradeId = countdown.closest('.trade-card').querySelector('[id^="progress-bar-"]');
+                if (tradeId) {
+                    const progress = ((totalDuration - timeLeft) / totalDuration) * 100;
+                    tradeId.style.width = `${Math.max(0, Math.min(100, progress))}%`;
+                    
+                    const progressText = countdown.closest('.trade-card').querySelector('[id^="progress-"]');
+                    if (progressText) {
+                        progressText.textContent = `${Math.round(progress)}% Complete`;
+                    }
+                }
+            } else {
+                countdown.innerHTML = '<span class="text-success-500 font-bold">COMPLETED</span>';
+                countdown.classList.add('text-success-500');
+                
+                // Set progress bar to 100%
+                const tradeId = countdown.closest('.trade-card').querySelector('[id^="progress-bar-"]');
+                if (tradeId) {
+                    tradeId.style.width = '100%';
+                    const progressText = countdown.closest('.trade-card').querySelector('[id^="progress-"]');
+                    if (progressText) {
+                        progressText.textContent = 'Trade Completed';
+                    }
+                }
+            }
+        });
+    }
+
+    // Update every second
+    setInterval(updateTradeProgress, 1000);
+    updateTradeProgress(); // Initial call
+
+    // Auto-refresh page every 5 minutes for completed trades
+    setTimeout(() => {
+        if (document.querySelectorAll('.trade-running').length > 0) {
+            location.reload();
+        }
+    }, 300000); // 5 minutes
+
+    // Print styles
+    window.addEventListener('beforeprint', () => {
+        document.body.classList.add('print-mode');
+    });
+
+    window.addEventListener('afterprint', () => {
+        document.body.classList.remove('print-mode');
+    });
+</script>
+
+<style>
+    @media print {
+        .no-print, nav, footer, .btn-primary, .btn-secondary {
+            display: none !important;
+        }
+        
+        .trade-card {
+            break-inside: avoid;
+            margin-bottom: 20px;
+        }
+    }
+</style>
 {% endblock %}

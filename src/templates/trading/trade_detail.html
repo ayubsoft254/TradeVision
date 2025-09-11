@@ -1,39 +1,536 @@
 {% extends 'base.html' %}
-{% block title %}Trade Details{% endblock %}
+
+{% block title %}Trade #{{ trade.id|slice:":8" }} - TradeVision{% endblock %}
+
+{% block extra_css %}
+<style>
+    .trade-status-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border: 2px solid transparent;
+        background-clip: padding-box;
+    }
+    
+    .trade-running {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+    
+    .trade-completed {
+        background: linear-gradient(135deg, #6b7280, #4b5563);
+        color: white;
+    }
+    
+    .trade-pending {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+    
+    .trade-failed {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-left: 2rem;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 0.5rem;
+        top: 0.5rem;
+        width: 0.75rem;
+        height: 0.75rem;
+        border-radius: 50%;
+        background: #e5e7eb;
+    }
+    
+    .timeline-item.completed::before {
+        background: #10b981;
+    }
+    
+    .timeline-item.active::before {
+        background: #3b82f6;
+        animation: pulse 2s infinite;
+    }
+    
+    .progress-ring {
+        transform: rotate(-90deg);
+    }
+    
+    .progress-ring-circle {
+        stroke-dasharray: 251.2;
+        stroke-dashoffset: 251.2;
+        transition: stroke-dashoffset 0.5s ease;
+    }
+    
+    .profit-display {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-3xl mx-auto py-8">
-    <h1 class="text-2xl font-heading mb-6">Trade Details</h1>
-    {% if trade %}
-        <div class="bg-white p-6 rounded-lg shadow card-shadow mb-6">
-            <p><strong>Package:</strong> {{ trade.investment.package.display_name }}</p>
-            <p><strong>Status:</strong> {{ trade.get_status_display }}</p>
-            <p><strong>Amount:</strong> {{ trade.trade_amount }}</p>
-            <p><strong>Profit Rate:</strong> {{ trade.profit_rate }}%</p>
-            <p><strong>Profit Amount:</strong> {{ trade.profit_amount }}</p>
-            <p><strong>Started:</strong> {{ trade.start_time|date:'M d, Y H:i' }}</p>
-            <p><strong>Completed:</strong> {{ trade.end_time|date:'M d, Y H:i' }}</p>
-        </div>
-        <h2 class="text-xl font-semibold mb-4">Profit History</h2>
-        {% if profit_history %}
-            <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                <p><strong>Date Earned:</strong> {{ profit_history.date_earned|date:'M d, Y' }}</p>
-                <p><strong>Amount:</strong> {{ profit_history.amount }}</p>
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Navigation Breadcrumb -->
+        <nav class="mb-8" aria-label="Breadcrumb">
+            <div class="flex items-center space-x-2 text-sm text-gray-500">
+                <a href="{% url 'trading:dashboard' %}" class="hover:text-gray-700">Dashboard</a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <a href="{% url 'trading:trades' %}" class="hover:text-gray-700">Trades</a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <span class="text-gray-900 font-medium">Trade #{{ trade.id|slice:":8" }}</span>
             </div>
-        {% else %}
-            <p>No profit history for this trade.</p>
-        {% endif %}
-        <h2 class="text-xl font-semibold mb-4">Related Trades</h2>
-        {% if related_trades %}
-            <ul>
-                {% for t in related_trades %}
-                <li><a href="{% url 'trading:trade_detail' t.id %}" class="text-primary-600 hover:underline">Trade #{{ t.id }}</a></li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No related trades.</p>
-        {% endif %}
-    {% else %}
-        <p>Trade not found.</p>
-    {% endif %}
+        </nav>
+
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-3xl font-bold font-heading text-gray-900 mb-2">
+                        Trade Details
+                    </h1>
+                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>Trade ID: {{ trade.id|slice:":8" }}...</span>
+                        <span>•</span>
+                        <span>{{ trade.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                </div>
+                <div class="mt-4 md:mt-0 flex space-x-3">
+                    <a href="{% url 'trading:trades' %}" class="btn-secondary">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Trades
+                    </a>
+                    {% if trade.status == 'completed' %}
+                        <button onclick="window.print()" class="btn-secondary">
+                            <i class="fas fa-print mr-2"></i>Print Receipt
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Trade Information -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Trade Status Card -->
+                <div class="trade-status-card trade-{{ trade.status }} rounded-2xl p-8 card-shadow">
+                    <div class="text-center">
+                        <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                            {% if trade.status == 'running' %}
+                                <i class="fas fa-play text-3xl"></i>
+                            {% elif trade.status == 'completed' %}
+                                <i class="fas fa-check text-3xl"></i>
+                            {% elif trade.status == 'pending' %}
+                                <i class="fas fa-clock text-3xl"></i>
+                            {% elif trade.status == 'failed' %}
+                                <i class="fas fa-times text-3xl"></i>
+                            {% endif %}
+                        </div>
+                        
+                        <h2 class="text-2xl font-bold mb-2">
+                            {% if trade.status == 'running' %}
+                                Trade In Progress
+                            {% elif trade.status == 'completed' %}
+                                Trade Completed Successfully
+                            {% elif trade.status == 'pending' %}
+                                Trade Pending
+                            {% elif trade.status == 'failed' %}
+                                Trade Failed
+                            {% endif %}
+                        </h2>
+                        
+                        <p class="text-lg opacity-90">
+                            {{ trade.investment.package.display_name }}
+                        </p>
+
+                        {% if trade.status == 'running' %}
+                            <div class="mt-6">
+                                <div class="text-sm opacity-75 mb-2">Time Remaining</div>
+                                <div class="countdown-timer text-4xl font-bold font-mono" 
+                                     data-end-time="{{ trade.expected_completion_time|date:'c' }}">
+                                    --:--:--
+                                </div>
+                            </div>
+                        {% elif trade.status == 'completed' %}
+                            <div class="mt-6">
+                                <div class="text-sm opacity-75 mb-2">Completed At</div>
+                                <div class="text-lg font-semibold">
+                                    {{ trade.completed_at|date:"M d, Y H:i" }}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Trade Details Grid -->
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Trade Information</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm text-gray-500 uppercase tracking-wide">Trading Package</label>
+                                <div class="font-semibold text-gray-900">{{ trade.investment.package.display_name }}</div>
+                            </div>
+                            
+                            <div>
+                                <label class="text-sm text-gray-500 uppercase tracking-wide">Trade Amount</label>
+                                <div class="font-semibold text-gray-900">
+                                    {{ trade.trade_amount|floatformat:2 }} {{ user.wallet.currency }}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="text-sm text-gray-500 uppercase tracking-wide">Profit Rate</label>
+                                <div class="font-semibold text-primary-600">{{ trade.profit_rate }}%</div>
+                            </div>
+                            
+                            <div>
+                                <label class="text-sm text-gray-500 uppercase tracking-wide">Expected Profit</label>
+                                <div class="profit-display text-2xl font-bold">
+                                    +{{ trade.profit_amount|floatformat:2 }} {{ user.wallet.currency }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm text-gray-500 uppercase tracking-wide">Start Time</label>
+                                <div class="font-semibold text-gray-900">
+                                    {{ trade.start_time|date:"M d, Y H:i" }}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="text-sm text-gray-500 uppercase tracking-wide">Duration</label>
+                                <div class="font-semibold text-gray-900">
+                                    {{ trade.investment.package.duration_hours }} Hours
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="text-sm text-gray-500 uppercase tracking-wide">Status</label>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                    {% if trade.status == 'running' %}bg-success-100 text-success-800
+                                    {% elif trade.status == 'completed' %}bg-gray-100 text-gray-800
+                                    {% elif trade.status == 'pending' %}bg-warning-100 text-warning-800
+                                    {% elif trade.status == 'failed' %}bg-danger-100 text-danger-800
+                                    {% endif %}">
+                                    {{ trade.get_status_display }}
+                                </span>
+                            </div>
+                            
+                            {% if trade.completed_at %}
+                            <div>
+                                <label class="text-sm text-gray-500 uppercase tracking-wide">Completion Time</label>
+                                <div class="font-semibold text-gray-900">
+                                    {{ trade.completed_at|date:"M d, Y H:i" }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Investment Details -->
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Investment Details</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                            <span class="text-gray-600">Principal Investment</span>
+                            <span class="font-semibold">{{ trade.investment.principal_amount|floatformat:2 }} {{ user.wallet.currency }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                            <span class="text-gray-600">Welcome Bonus ({{ trade.investment.package.welcome_bonus }}%)</span>
+                            <span class="font-semibold text-success-600">+{{ trade.investment.welcome_bonus_amount|floatformat:2 }} {{ user.wallet.currency }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                            <span class="text-gray-600">Total Trading Amount</span>
+                            <span class="font-bold text-primary-600">{{ trade.investment.total_investment|floatformat:2 }} {{ user.wallet.currency }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center py-3">
+                            <span class="text-gray-600">Investment Date</span>
+                            <span class="font-semibold">{{ trade.investment.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trade Timeline -->
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-6">Trade Timeline</h3>
+                    
+                    <div class="space-y-6">
+                        <div class="timeline-item completed">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Trade Initiated</h4>
+                                    <p class="text-sm text-gray-500">Trade session started successfully</p>
+                                </div>
+                                <span class="text-sm text-gray-500">{{ trade.start_time|date:"H:i" }}</span>
+                            </div>
+                        </div>
+                        
+                        {% if trade.status == 'running' %}
+                        <div class="timeline-item active">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Trading in Progress</h4>
+                                    <p class="text-sm text-gray-500">Automated trading algorithms are working</p>
+                                </div>
+                                <span class="text-sm text-primary-600 font-medium">Live</span>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-medium text-gray-400">Trade Completion</h4>
+                                    <p class="text-sm text-gray-400">Expected completion time</p>
+                                </div>
+                                <span class="text-sm text-gray-400">{{ trade.expected_completion_time|date:"H:i" }}</span>
+                            </div>
+                        </div>
+                        {% elif trade.status == 'completed' %}
+                        <div class="timeline-item completed">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Trading Session Completed</h4>
+                                    <p class="text-sm text-gray-500">All trading operations finished</p>
+                                </div>
+                                <span class="text-sm text-gray-500">{{ trade.completed_at|date:"H:i" }}</span>
+                            </div>
+                        </div>
+                        
+                        {% if profit_history %}
+                        <div class="timeline-item completed">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-medium text-gray-900">Profit Credited</h4>
+                                    <p class="text-sm text-gray-500">Earnings added to your account</p>
+                                </div>
+                                <span class="text-sm text-success-600 font-medium">+{{ profit_history.amount|floatformat:2 }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Progress Circle (for running trades) -->
+                {% if trade.status == 'running' %}
+                <div class="bg-white rounded-2xl p-6 card-shadow text-center">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Progress</h3>
+                    
+                    <div class="relative inline-flex items-center justify-center">
+                        <svg class="progress-ring w-32 h-32" viewBox="0 0 84 84">
+                            <circle cx="42" cy="42" r="40" stroke="#e5e7eb" stroke-width="4" fill="none"/>
+                            <circle class="progress-ring-circle" cx="42" cy="42" r="40" stroke="#3b82f6" stroke-width="4" fill="none" id="progress-circle"/>
+                        </svg>
+                        <div class="absolute text-center">
+                            <div class="text-2xl font-bold text-gray-900" id="progress-percentage">0%</div>
+                            <div class="text-xs text-gray-500">Complete</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-sm text-gray-500">
+                        Estimated completion in <span class="countdown-display font-mono font-bold"></span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Quick Stats -->
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">ROI</span>
+                            <span class="font-semibold text-primary-600">{{ trade.profit_rate }}%</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Profit Margin</span>
+                            <span class="font-semibold text-success-600">{{ trade.profit_amount|floatformat:2 }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Duration</span>
+                            <span class="font-semibold">{{ trade.investment.package.duration_hours }}h</span>
+                        </div>
+                        
+                        {% if trade.status == 'completed' %}
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-gray-600">Total Return</span>
+                            <span class="font-bold text-success-600">
+                                {{ trade.trade_amount|add:trade.profit_amount|floatformat:2 }}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Related Trades -->
+                {% if related_trades %}
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Related Trades</h3>
+                    
+                    <div class="space-y-3">
+                        {% for related_trade in related_trades %}
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">
+                                    #{{ related_trade.id|slice:":8" }}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    {{ related_trade.created_at|date:"M d" }}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm font-semibold 
+                                    {% if related_trade.status == 'completed' %}text-success-600
+                                    {% elif related_trade.status == 'running' %}text-primary-600
+                                    {% else %}text-gray-600{% endif %}">
+                                    {% if related_trade.status == 'completed' %}
+                                        +{{ related_trade.profit_amount|floatformat:0 }}
+                                    {% else %}
+                                        {{ related_trade.get_status_display }}
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'trading:trade_detail' related_trade.id %}" 
+                                   class="text-xs text-primary-600 hover:text-primary-700">View</a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Action Buttons -->
+                <div class="bg-white rounded-2xl p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
+                    
+                    <div class="space-y-3">
+                        {% if trade.status == 'completed' %}
+                            <a href="{% url 'trading:initiate_trade' %}" 
+                               class="w-full btn-primary text-center block">
+                                Start New Trade
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'trading:trades' %}" 
+                           class="w-full btn-secondary text-center block">
+                            View All Trades
+                        </a>
+                        
+                        <a href="{% url 'trading:dashboard' %}" 
+                           class="w-full text-primary-600 hover:text-primary-700 text-center block py-2 text-sm">
+                            Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Update countdown and progress for running trades
+    function updateTradeProgress() {
+        const countdownElement = document.querySelector('.countdown-timer');
+        const progressCircle = document.getElementById('progress-circle');
+        const progressPercentage = document.getElementById('progress-percentage');
+        
+        if (!countdownElement) return;
+        
+        const endTime = new Date(countdownElement.dataset.endTime).getTime();
+        const startTime = endTime - ({{ trade.investment.package.duration_hours }} * 60 * 60 * 1000);
+        const now = new Date().getTime();
+        const timeLeft = endTime - now;
+        const totalDuration = endTime - startTime;
+        
+        if (timeLeft > 0) {
+            // Update countdown
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+            
+            countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update countdown display in sidebar
+            const countdownDisplay = document.querySelector('.countdown-display');
+            if (countdownDisplay) {
+                countdownDisplay.textContent = `${hours}h ${minutes}m ${seconds}s`;
+            }
+            
+            // Update progress circle
+            if (progressCircle && progressPercentage) {
+                const progress = ((totalDuration - timeLeft) / totalDuration) * 100;
+                const circumference = 2 * Math.PI * 40; // radius = 40
+                const strokeDashoffset = circumference - (progress / 100) * circumference;
+                
+                progressCircle.style.strokeDashoffset = strokeDashoffset;
+                progressPercentage.textContent = Math.round(progress) + '%';
+            }
+        } else {
+            // Trade completed
+            countdownElement.innerHTML = '<span class="text-success-500 font-bold">COMPLETED</span>';
+            
+            if (progressCircle && progressPercentage) {
+                progressCircle.style.strokeDashoffset = 0;
+                progressPercentage.textContent = '100%';
+            }
+            
+            // Optionally reload page to show updated status
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        }
+    }
+
+    // Update every second for running trades
+    {% if trade.status == 'running' %}
+        setInterval(updateTradeProgress, 1000);
+        updateTradeProgress(); // Initial call
+    {% endif %}
+
+    // Print functionality
+    window.addEventListener('beforeprint', () => {
+        document.body.classList.add('print-mode');
+    });
+
+    window.addEventListener('afterprint', () => {
+        document.body.classList.remove('print-mode');
+    });
+</script>
+
+<style>
+    @media print {
+        .no-print, nav, footer, .btn-primary, .btn-secondary, .sidebar {
+            display: none !important;
+        }
+        
+        .lg\:col-span-2 {
+            grid-column: span 3 / span 3;
+        }
+        
+        .trade-status-card {
+            background: #f8fafc !important;
+            color: #1f2937 !important;
+        }
+    }
+</style>
 {% endblock %}
