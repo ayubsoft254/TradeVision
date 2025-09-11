@@ -1,0 +1,25 @@
+
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Sign Out" %} - TradeVision{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-12">
+  <div class="bg-white rounded-2xl card-shadow p-8 w-full max-w-md mx-auto">
+    <div class="flex flex-col items-center">
+      <div class="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4">
+        <i class="fas fa-sign-out-alt text-white text-2xl"></i>
+      </div>
+      <h2 class="text-2xl font-bold font-heading text-gray-900 mb-2">{% trans "Sign Out" %}</h2>
+      <p class="text-gray-600 mb-6 text-center">{% trans "Are you sure you want to sign out?" %}</p>
+      <form method="POST" action="{% url 'account_logout' %}" class="w-full">
+        {% csrf_token %}
+        <button type="submit" class="w-full bg-danger-600 hover:bg-danger-700 text-white font-semibold py-3 rounded-lg transition-all duration-200 text-lg shadow-md">
+          <i class="fas fa-sign-out-alt mr-2"></i>{% trans "Sign Out" %}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
