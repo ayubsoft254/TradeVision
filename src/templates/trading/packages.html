@@ -4,15 +4,25 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --primary: #3b82f6;
+        --primary-dark: #2563eb;
+        --secondary: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --light-bg: #f8fafc;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        --card-hover: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
     .package-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
-    }
-    
-    .package-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        padding: 2rem;
     }
     
     .package-card::before {
@@ -23,43 +33,197 @@
         right: 0;
         height: 4px;
         background: linear-gradient(90deg, #3b82f6, #10b981, #f59e0b);
+        opacity: 0.8;
+    }
+    
+    .package-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--card-hover);
+    }
+    
+    .package-premium {
+        border: 2px solid transparent;
+        background: linear-gradient(white, white), 
+                    linear-gradient(135deg, #8b5cf6, #ec4899, #f59e0b);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
     }
     
     .package-premium::before {
         background: linear-gradient(90deg, #8b5cf6, #ec4899, #f59e0b);
     }
     
-    .profit-calculator {
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    }
-    
     .recommended-badge {
         background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 0.5rem 1.5rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        position: absolute;
+        top: -10px;
+        right: 2rem;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
         animation: pulse 2s infinite;
     }
     
+    .profit-range {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #3b82f6, #10b981);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .wallet-balance {
+        background: white;
+        border-radius: 50px;
+        padding: 0.75rem 1.5rem;
+        box-shadow: var(--card-shadow);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .feature-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .feature-list li {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0;
+        color: #4b5563;
+    }
+    
+    .feature-list li i {
+        color: #10b981;
+        margin-right: 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .btn {
+        border: none;
+        border-radius: 12px;
+        padding: 1rem 2rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(to right, var(--primary), var(--primary-dark));
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn-secondary {
+        background: #f1f5f9;
+        color: #374151;
+    }
+    
+    .btn-secondary:hover {
+        background: #e5e7eb;
+        transform: translateY(-2px);
+    }
+    
+    .btn-success {
+        background: linear-gradient(to right, #10b981, #059669);
+        color: white;
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+    }
+    
+    .investment-input {
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1rem;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    
     .investment-input:focus {
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+    
+    .calculator-container {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: 20px;
+        padding: 3rem;
+    }
+    
+    .result-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+    }
+    
+    .result-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .faq-item {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+    }
+    
+    .faq-item:hover {
+        box-shadow: var(--card-hover);
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .current-investment {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        border-radius: 12px;
+        padding: 1rem;
+        border-left: 4px solid #3b82f6;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+<div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header Section -->
         <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold font-heading text-gray-900 mb-4">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">
                 Choose Your Trading Package
             </h1>
-            <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
                 Select a trading package that suits your investment goals. All packages include welcome bonuses and daily profit opportunities.
             </p>
             
             <!-- Wallet Balance Display -->
-            <div class="mt-6 inline-flex items-center space-x-2 bg-white rounded-full px-6 py-3 shadow-md">
-                <i class="fas fa-wallet text-primary-600"></i>
+            <div class="wallet-balance mx-auto">
+                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-wallet text-blue-600 text-sm"></i>
+                </div>
                 <span class="text-gray-600">Available Balance:</span>
                 <span class="font-bold text-gray-900">{{ wallet.balance|floatformat:2 }} {{ wallet.currency }}</span>
             </div>
@@ -68,13 +232,12 @@
         <!-- Packages Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {% for package_info in packages %}
-            <div class="package-card bg-white rounded-2xl p-8 card-shadow
-                {% if package_info.package.name == 'premium' %}package-premium{% endif %}">
+            <div class="package-card {% if package_info.package.name == 'premium' %}package-premium{% endif %}">
                 
                 <!-- Package Header -->
-                <div class="text-center mb-6">
+                <div class="text-center mb-6 relative">
                     {% if package_info.package.name == 'premium' %}
-                        <div class="recommended-badge text-white px-3 py-1 rounded-full text-xs font-semibold mb-4 inline-block">
+                        <div class="recommended-badge">
                             MOST POPULAR
                         </div>
                     {% endif %}
@@ -83,14 +246,14 @@
                         {{ package_info.package.display_name }}
                     </h3>
                     
-                    <div class="text-4xl font-bold text-primary-600 mb-2">
+                    <div class="profit-range mb-2">
                         {{ package_info.package.profit_min }}%-{{ package_info.package.profit_max }}%
                     </div>
-                    <p class="text-gray-500">Daily Profit Range</p>
+                    <p class="text-gray-500 text-sm">Daily Profit Range</p>
                 </div>
 
                 <!-- Package Features -->
-                <div class="space-y-4 mb-8">
+                <div class="space-y-4 mb-6">
                     <div class="flex items-center justify-between">
                         <span class="text-gray-600">Minimum Investment</span>
                         <span class="font-semibold">{{ package_info.min_investment|floatformat:0 }} {{ wallet.currency }}</span>
@@ -98,7 +261,7 @@
                     
                     <div class="flex items-center justify-between">
                         <span class="text-gray-600">Welcome Bonus</span>
-                        <span class="font-semibold text-success-600">{{ package_info.package.welcome_bonus }}%</span>
+                        <span class="font-semibold text-green-600">{{ package_info.package.welcome_bonus }}%</span>
                     </div>
                     
                     <div class="flex items-center justify-between">
@@ -108,7 +271,7 @@
                     
                     <div class="flex items-center justify-between">
                         <span class="text-gray-600">Est. Monthly Profit</span>
-                        <span class="font-semibold text-primary-600">
+                        <span class="font-semibold text-blue-600">
                             {{ package_info.monthly_profit|floatformat:0 }} {{ wallet.currency }}
                         </span>
                     </div>
@@ -116,14 +279,14 @@
 
                 <!-- Current Investment Display -->
                 {% if package_info.user_investment %}
-                <div class="bg-primary-50 rounded-lg p-4 mb-6">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm text-primary-600 font-medium">Your Investment</span>
-                        <span class="text-sm font-semibold text-primary-700">
+                <div class="current-investment mb-6">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-sm text-blue-600 font-medium">Your Investment</span>
+                        <span class="text-sm font-semibold text-blue-700">
                             {{ package_info.user_investment.total_invested|floatformat:2 }} {{ wallet.currency }}
                         </span>
                     </div>
-                    <div class="text-xs text-primary-500">
+                    <div class="text-xs text-blue-500">
                         {{ package_info.user_investment.count }} active investment{{ package_info.user_investment.count|pluralize }}
                     </div>
                 </div>
@@ -133,20 +296,24 @@
                 <div class="space-y-3">
                     {% if package_info.can_afford %}
                         <a href="{% url 'trading:invest' package_info.package.name %}" 
-                           class="w-full bg-gradient-primary text-white py-3 px-6 rounded-lg font-semibold text-center block hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                           class="btn {% if package_info.package.name == 'premium' %}btn-success{% else %}btn-primary{% endif %} w-full">
                             {% if package_info.user_investment %}
+                                <i class="fas fa-plus-circle mr-2"></i>
                                 Add More Investment
                             {% else %}
+                                <i class="fas fa-play-circle mr-2"></i>
                                 Start Investing
                             {% endif %}
                         </a>
                     {% else %}
                         <button disabled 
-                                class="w-full bg-gray-300 text-gray-500 py-3 px-6 rounded-lg font-semibold cursor-not-allowed">
+                                class="btn btn-secondary w-full cursor-not-allowed">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
                             Insufficient Balance
                         </button>
                         <a href="{% url 'payments:deposit' %}" 
-                           class="w-full border-2 border-primary-600 text-primary-600 py-2 px-6 rounded-lg font-medium text-center block hover:bg-primary-50 transition-colors duration-200 text-sm">
+                           class="btn btn-secondary w-full">
+                            <i class="fas fa-wallet mr-2"></i>
                             Add Funds
                         </a>
                     {% endif %}
@@ -155,21 +322,21 @@
                 <!-- Package Benefits -->
                 <div class="mt-6 pt-6 border-t border-gray-200">
                     <h4 class="font-semibold text-gray-900 mb-3">Package Benefits</h4>
-                    <ul class="space-y-2 text-sm text-gray-600">
-                        <li class="flex items-center">
-                            <i class="fas fa-check text-success-500 mr-2"></i>
+                    <ul class="feature-list">
+                        <li>
+                            <i class="fas fa-check-circle"></i>
                             {{ package_info.package.welcome_bonus }}% Welcome Bonus
                         </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-check text-success-500 mr-2"></i>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
                             Daily Profit Payments
                         </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-check text-success-500 mr-2"></i>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
                             24/7 Customer Support
                         </li>
-                        <li class="flex items-center">
-                            <i class="fas fa-check text-success-500 mr-2"></i>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
                             Automated Trading
                         </li>
                     </ul>
@@ -179,7 +346,7 @@
         </div>
 
         <!-- Profit Calculator Section -->
-        <div class="profit-calculator rounded-2xl p-8 mb-12">
+        <div class="calculator-container mb-12">
             <div class="text-center mb-8">
                 <h2 class="text-3xl font-bold text-gray-900 mb-4">
                     Profit Calculator
@@ -189,104 +356,106 @@
                 </p>
             </div>
 
-            <div class="max-w-2xl mx-auto bg-white rounded-xl p-6 shadow-lg">
-                <form id="calculator-form" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Package Selection -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Select Package
-                            </label>
-                            <select id="calc-package" 
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                                <option value="">Choose a package</option>
-                                {% for package_info in packages %}
-                                <option value="{{ package_info.package.id }}" 
-                                        data-min-stake="{{ package_info.package.min_stake }}"
-                                        data-welcome-bonus="{{ package_info.package.welcome_bonus }}"
-                                        data-profit-min="{{ package_info.package.profit_min }}"
-                                        data-profit-max="{{ package_info.package.profit_max }}">
-                                    {{ package_info.package.display_name }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        <!-- Investment Amount -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Investment Amount ({{ wallet.currency }})
-                            </label>
-                            <input type="number" 
-                                   id="calc-amount" 
-                                   placeholder="Enter amount"
-                                   min="0" 
-                                   step="0.01"
-                                   class="investment-input w-full px-4 py-3 border border-gray-300 rounded-lg transition-all duration-200">
-                        </div>
-                    </div>
-
-                    <!-- Results Display -->
-                    <div id="calc-results" class="hidden mt-8 p-6 bg-gray-50 rounded-lg">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Projected Returns</h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-primary-600" id="daily-profit">-</div>
-                                <div class="text-sm text-gray-500">Daily Profit Range</div>
+            <div class="max-w-2xl mx-auto">
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <form id="calculator-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Package Selection -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Select Package
+                                </label>
+                                <select id="calc-package" 
+                                        class="investment-input">
+                                    <option value="">Choose a package</option>
+                                    {% for package_info in packages %}
+                                    <option value="{{ package_info.package.id }}" 
+                                            data-min-stake="{{ package_info.package.min_stake }}"
+                                            data-welcome-bonus="{{ package_info.package.welcome_bonus }}"
+                                            data-profit-min="{{ package_info.package.profit_min }}"
+                                            data-profit-max="{{ package_info.package.profit_max }}">
+                                        {{ package_info.package.display_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-success-600" id="monthly-profit">-</div>
-                                <div class="text-sm text-gray-500">Monthly Potential</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-2xl font-bold text-warning-600" id="yearly-profit">-</div>
-                                <div class="text-sm text-gray-500">Yearly Potential</div>
+
+                            <!-- Investment Amount -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Investment Amount ({{ wallet.currency }})
+                                </label>
+                                <input type="number" 
+                                       id="calc-amount" 
+                                       placeholder="Enter amount"
+                                       min="0" 
+                                       step="0.01"
+                                       class="investment-input">
                             </div>
                         </div>
 
-                        <div class="mt-4 p-4 bg-white rounded-lg border">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-gray-600">Investment Amount:</span>
-                                <span class="font-semibold" id="investment-display">-</span>
+                        <!-- Results Display -->
+                        <div id="calc-results" class="hidden mt-8">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Projected Returns</h3>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div class="result-card text-center">
+                                    <div class="result-value text-blue-600" id="daily-profit">-</div>
+                                    <div class="text-sm text-gray-500">Daily Profit Range</div>
+                                </div>
+                                <div class="result-card text-center">
+                                    <div class="result-value text-green-600" id="monthly-profit">-</div>
+                                    <div class="text-sm text-gray-500">Monthly Potential</div>
+                                </div>
+                                <div class="result-card text-center">
+                                    <div class="result-value text-amber-600" id="yearly-profit">-</div>
+                                    <div class="text-sm text-gray-500">Yearly Potential</div>
+                                </div>
                             </div>
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-gray-600">Welcome Bonus:</span>
-                                <span class="font-semibold text-success-600" id="bonus-display">-</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-600">Total Trading Amount:</span>
-                                <span class="font-semibold text-primary-600" id="total-display">-</span>
+
+                            <div class="bg-gray-50 rounded-xl p-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-gray-600">Investment Amount:</span>
+                                    <span class="font-semibold" id="investment-display">-</span>
+                                </div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-gray-600">Welcome Bonus:</span>
+                                    <span class="font-semibold text-green-600" id="bonus-display">-</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Total Trading Amount:</span>
+                                    <span class="font-semibold text-blue-600" id="total-display">-</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
 
         <!-- FAQ Section -->
-        <div class="bg-white rounded-2xl p-8 card-shadow">
+        <div class="bg-white rounded-2xl p-8 shadow-lg">
             <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">
                 Frequently Asked Questions
             </h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="space-y-6">
-                    <div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div class="faq-item">
                         <h3 class="font-semibold text-gray-900 mb-2">How do trading packages work?</h3>
                         <p class="text-gray-600 text-sm">
                             Choose a package, make an investment, and our automated trading system generates daily profits within the specified range.
                         </p>
                     </div>
                     
-                    <div>
+                    <div class="faq-item">
                         <h3 class="font-semibold text-gray-900 mb-2">When are profits paid?</h3>
                         <p class="text-gray-600 text-sm">
                             Profits are calculated and paid daily after each 24-hour trading cycle is completed.
                         </p>
                     </div>
                     
-                    <div>
+                    <div class="faq-item">
                         <h3 class="font-semibold text-gray-900 mb-2">Can I withdraw my investment?</h3>
                         <p class="text-gray-600 text-sm">
                             Yes, you can withdraw your principal investment at any time, subject to our terms and conditions.
@@ -294,22 +463,22 @@
                     </div>
                 </div>
                 
-                <div class="space-y-6">
-                    <div>
+                <div class="space-y-4">
+                    <div class="faq-item">
                         <h3 class="font-semibold text-gray-900 mb-2">What is the welcome bonus?</h3>
                         <p class="text-gray-600 text-sm">
                             A percentage bonus added to your investment that increases your total trading amount and potential profits.
                         </p>
                     </div>
                     
-                    <div>
+                    <div class="faq-item">
                         <h3 class="font-semibold text-gray-900 mb-2">Are there any hidden fees?</h3>
                         <p class="text-gray-600 text-sm">
                             No hidden fees. All costs and profit sharing arrangements are clearly stated in our terms.
                         </p>
                     </div>
                     
-                    <div>
+                    <div class="faq-item">
                         <h3 class="font-semibold text-gray-900 mb-2">How secure are my funds?</h3>
                         <p class="text-gray-600 text-sm">
                             We use bank-level security and encryption to protect all user funds and personal information.
@@ -319,8 +488,8 @@
             </div>
             
             <div class="mt-8 text-center">
-                <a href="{% url 'core:faq' %}" class="text-primary-600 hover:text-primary-700 font-medium">
-                    View All FAQs <i class="fas fa-arrow-right ml-1"></i>
+                <a href="{% url 'core:faq' %}" class="btn btn-secondary">
+                    View All FAQs <i class="fas fa-arrow-right ml-2"></i>
                 </a>
             </div>
         </div>
@@ -369,11 +538,11 @@
         
         // Update display
         document.getElementById('daily-profit').textContent = 
-            `${minDailyProfit.toFixed(2)} - ${maxDailyProfit.toFixed(2)} {{ wallet.currency }}`;
+            `${minDailyProfit.toFixed(2)} - ${maxDailyProfit.toFixed(2)}`;
         document.getElementById('monthly-profit').textContent = 
-            `~${monthlyProfit.toFixed(0)} {{ wallet.currency }}`;
+            `~${monthlyProfit.toFixed(0)}`;
         document.getElementById('yearly-profit').textContent = 
-            `~${yearlyProfit.toFixed(0)} {{ wallet.currency }}`;
+            `~${yearlyProfit.toFixed(0)}`;
         document.getElementById('investment-display').textContent = 
             `${amount.toFixed(2)} {{ wallet.currency }}`;
         document.getElementById('bonus-display').textContent = 
@@ -387,24 +556,6 @@
     packageSelect.addEventListener('change', updateCalculator);
     amountInput.addEventListener('input', updateCalculator);
 
-    // Real-time AJAX calculator (optional enhancement)
-    function fetchCalculation() {
-        const packageId = packageSelect.value;
-        const amount = amountInput.value;
-        
-        if (packageId && amount) {
-            fetch(`{% url 'trading:package_calculator' %}?package_id=${packageId}&amount=${amount}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update with server-calculated values if needed
-                        console.log('Server calculation:', data.data);
-                    }
-                })
-                .catch(error => console.log('Calculator error:', error));
-        }
-    }
-
     // Add loading states to buttons
     document.querySelectorAll('a[href*="invest"]').forEach(button => {
         button.addEventListener('click', function() {
@@ -413,5 +564,18 @@
             }
         });
     });
+
+    // Loading indicator function
+    function showLoading() {
+        const loading = document.createElement('div');
+        loading.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        loading.innerHTML = `
+            <div class="bg-white rounded-lg p-6 flex items-center">
+                <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+                <span>Processing...</span>
+            </div>
+        `;
+        document.body.appendChild(loading);
+    }
 </script>
 {% endblock %}

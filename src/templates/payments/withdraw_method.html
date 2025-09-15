@@ -3,67 +3,290 @@
 
 {% block title %}Withdraw via {{ payment_method.display_name }} - TradeVision{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #3b82f6;
+        --primary-dark: #2563eb;
+        --secondary: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --light-bg: #f8fafc;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        --card-hover: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    body {
+        background-color: var(--light-bg);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    .gradient-bg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+    
+    .card:hover {
+        box-shadow: var(--card-hover);
+        transform: translateY(-2px);
+    }
+    
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(to right, var(--primary), var(--primary-dark));
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    
+    .form-control {
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    
+    .nav-breadcrumb {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: var(--card-shadow);
+    }
+    
+    .method-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        color: white;
+    }
+    
+    .balance-display {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+    
+    .info-card {
+        border-left: 4px solid var(--primary);
+    }
+    
+    .warning-card {
+        border-left: 4px solid var(--warning);
+    }
+    
+    .success-card {
+        border-left: 4px solid var(--secondary);
+    }
+    
+    .fee-calculator {
+        background: #f1f5f9;
+        border-radius: 8px;
+        padding: 1.25rem;
+        transition: all 0.3s ease;
+    }
+    
+    .fee-calculator.visible {
+        background: linear-gradient(135deg, #d6e4ff 0%, #ebf4ff 100%);
+    }
+    
+    .security-notice {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+    
+    .method-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        background-color: #ebf5ff;
+        color: var(--primary);
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .step-indicator {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+    
+    .step-indicator::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 1.5rem;
+        right: 1.5rem;
+        height: 2px;
+        background: #e2e8f0;
+        z-index: 1;
+    }
+    
+    .step {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background: white;
+        border: 2px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        color: #64748b;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .step.active {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: white;
+    }
+    
+    .step.completed {
+        background: var(--secondary);
+        border-color: var(--secondary);
+        color: white;
+    }
+    
+    .step-label {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        color: #64748b;
+        white-space: nowrap;
+    }
+    
+    .step-divider {
+        flex: 1;
+        height: 2px;
+        background: #e2e8f0;
+    }
+    
+    @media (max-width: 768px) {
+        .step-indicator::after {
+            display: none;
+        }
+        
+        .step {
+            margin: 0 0.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Breadcrumb -->
-        <nav class="flex mb-8" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                <li class="inline-flex items-center">
-                    <a href="{% url 'trading:dashboard' %}" class="text-gray-700 hover:text-primary-600 inline-flex items-center">
-                        <i class="fas fa-home mr-2"></i>Dashboard
-                    </a>
-                </li>
-                <li>
-                    <div class="flex items-center">
-                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
-                        <a href="{% url 'payments:withdraw' %}" class="text-gray-700 hover:text-primary-600">Withdraw</a>
-                    </div>
-                </li>
-                <li aria-current="page">
-                    <div class="flex items-center">
-                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
-                        <span class="text-gray-500">{{ payment_method.display_name }}</span>
-                    </div>
-                </li>
-            </ol>
-        </nav>
+        <div class="nav-breadcrumb mb-8">
+            <nav class="flex" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                    <li class="inline-flex items-center">
+                        <a href="{% url 'trading:dashboard' %}" class="text-gray-700 hover:text-primary-600 inline-flex items-center">
+                            <i class="fas fa-home mr-2"></i>Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                            <a href="{% url 'payments:withdraw' %}" class="text-gray-700 hover:text-primary-600">Withdraw</a>
+                        </div>
+                    </li>
+                    <li aria-current="page">
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                            <span class="text-primary-500 font-medium">{{ payment_method.display_name }}</span>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+        </div>
 
         <!-- Header -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="w-16 h-16 bg-gradient-warning rounded-lg flex items-center justify-center">
-                        {% if payment_method.name == 'binance_pay' %}
-                            <i class="fab fa-bitcoin text-white text-2xl"></i>
-                        {% elif payment_method.name == 'mobile_money' %}
-                            <i class="fas fa-mobile-alt text-white text-2xl"></i>
-                        {% elif payment_method.name == 'bank_transfer' %}
-                            <i class="fas fa-university text-white text-2xl"></i>
-                        {% elif payment_method.name == 'p2p' %}
-                            <i class="fas fa-users text-white text-2xl"></i>
-                        {% elif payment_method.name == 'agent' %}
-                            <i class="fas fa-user-tie text-white text-2xl"></i>
-                        {% elif payment_method.name == 'crypto' %}
-                            <i class="fab fa-bitcoin text-white text-2xl"></i>
-                        {% else %}
-                            <i class="fas fa-credit-card text-white text-2xl"></i>
-                        {% endif %}
+        <div class="card mb-8">
+            <div class="card-body">
+                <div class="flex flex-col md:flex-row md:items-center justify-between">
+                    <div class="flex items-center space-x-4 mb-4 md:mb-0">
+                        <div class="method-icon">
+                            {% if payment_method.name == 'binance_pay' %}
+                                <i class="fab fa-bitcoin"></i>
+                            {% elif payment_method.name == 'mobile_money' %}
+                                <i class="fas fa-mobile-alt"></i>
+                            {% elif payment_method.name == 'bank_transfer' %}
+                                <i class="fas fa-university"></i>
+                            {% elif payment_method.name == 'p2p' %}
+                                <i class="fas fa-users"></i>
+                            {% elif payment_method.name == 'agent' %}
+                                <i class="fas fa-user-tie"></i>
+                            {% elif payment_method.name == 'crypto' %}
+                                <i class="fab fa-bitcoin"></i>
+                            {% else %}
+                                <i class="fas fa-credit-card"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">
+                                Withdraw via {{ payment_method.display_name }}
+                            </h1>
+                            <div class="flex flex-wrap items-center mt-2 gap-2">
+                                <span class="method-badge">
+                                    <i class="fas fa-clock mr-1"></i> Processing: {{ payment_method.processing_time }}
+                                </span>
+                                <span class="method-badge">
+                                    <i class="fas fa-percentage mr-1"></i> Fee: {{ payment_method.processing_fee }}%
+                                </span>
+                                <span class="method-badge">
+                                    <i class="fas fa-money-bill-wave mr-1"></i> Min: {{ payment_method.min_amount }} {{ wallet.currency }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h1 class="text-2xl font-bold font-heading text-gray-900">
-                            Withdraw via {{ payment_method.display_name }}
-                        </h1>
-                        <p class="text-gray-600 mt-1">
-                            Processing Fee: {{ payment_method.processing_fee }}% | 
-                            Processing Time: {{ payment_method.processing_time }}
-                        </p>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <div class="text-sm text-gray-500">Available for Withdrawal</div>
-                    <div class="text-xl font-bold text-success-600">
-                        {{ wallet.profit_balance|floatformat:2 }} {{ wallet.currency }}
+                    <div class="balance-display text-center md:text-right">
+                        <div class="text-sm font-medium opacity-90">Available for Withdrawal</div>
+                        <div class="text-2xl font-bold mt-1">
+                            {{ wallet.profit_balance|floatformat:2 }} {{ wallet.currency }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -71,566 +294,571 @@
 
         {% if wallet.profit_balance <= 0 %}
         <!-- Insufficient Balance Warning -->
-        <div class="bg-warning-50 border border-warning-200 rounded-lg p-6 mb-8">
-            <div class="flex items-center">
-                <div class="w-12 h-12 bg-warning-100 rounded-full flex items-center justify-center">
-                    <i class="fas fa-exclamation-triangle text-warning-600 text-xl"></i>
+        <div class="card warning-card mb-8">
+            <div class="card-body">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-warning-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-warning-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-900">Insufficient Balance</h3>
+                        <p class="text-gray-600 mt-1">
+                            You don't have any profits available for withdrawal. Only profit balance can be withdrawn.
+                        </p>
+                    </div>
                 </div>
-                <div class="ml-4">
-                    <h3 class="text-lg font-medium text-warning-800">Insufficient Balance</h3>
-                    <p class="text-warning-700 mt-1">
-                        You don't have any profits available for withdrawal. Only profit balance can be withdrawn.
-                    </p>
+                <div class="mt-6 flex flex-wrap gap-4">
+                    <a href="{% url 'trading:packages' %}" 
+                       class="btn-primary inline-flex items-center">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        Start Trading
+                    </a>
+                    <a href="{% url 'payments:deposit' %}" 
+                       class="inline-flex items-center px-4 py-2 bg-success-600 text-white rounded-lg hover:bg-success-700 transition-colors duration-200">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        Make Deposit
+                    </a>
                 </div>
-            </div>
-            <div class="mt-4 flex space-x-4">
-                <a href="{% url 'trading:packages' %}" 
-                   class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
-                    <i class="fas fa-chart-line mr-2"></i>
-                    Start Trading
-                </a>
-                <a href="{% url 'payments:deposit' %}" 
-                   class="inline-flex items-center px-4 py-2 bg-success-600 text-white rounded-lg hover:bg-success-700 transition-colors duration-200">
-                    <i class="fas fa-plus-circle mr-2"></i>
-                    Make Deposit
-                </a>
             </div>
         </div>
         {% else %}
 
+        <!-- Progress Steps -->
+        <div class="card mb-8">
+            <div class="card-body">
+                <div class="step-indicator justify-between">
+                    <div class="flex flex-col items-center relative">
+                        <div class="step completed">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <span class="step-label">Select Method</span>
+                    </div>
+                    <div class="step-divider"></div>
+                    <div class="flex flex-col items-center relative">
+                        <div class="step active">
+                            2
+                        </div>
+                        <span class="step-label">Enter Details</span>
+                    </div>
+                    <div class="step-divider"></div>
+                    <div class="flex flex-col items-center relative">
+                        <div class="step">
+                            3
+                        </div>
+                        <span class="step-label">Confirmation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Main Form -->
             <div class="lg:col-span-2">
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-6">Withdrawal Details</h2>
-                    
-                    <form method="post" class="space-y-6">
-                        {% csrf_token %}
-                        
-                        <!-- Amount Field -->
-                        <div>
-                            <label for="{{ form.amount.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                Amount to Withdraw <span class="text-red-500">*</span>
-                            </label>
-                            {{ form.amount }}
-                            {% if form.amount.errors %}
-                                <div class="mt-1 text-sm text-red-600">
-                                    {% for error in form.amount.errors %}{{ error }}{% endfor %}
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="text-lg font-semibold text-gray-900">Withdrawal Details</h2>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" class="space-y-6">
+                            {% csrf_token %}
+                            
+                            <!-- Amount Field -->
+                            <div>
+                                <label for="{{ form.amount.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Amount to Withdraw <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    {{ form.amount }}
+                                    <button type="button" onclick="setMaxAmount()" class="absolute right-2 top-2 px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200">
+                                        MAX
+                                    </button>
                                 </div>
-                            {% endif %}
-                            <div class="mt-1 text-sm text-gray-500">
-                                Available: {{ wallet.profit_balance|floatformat:2 }} {{ wallet.currency }} | 
-                                Min: {{ payment_method.min_amount }} {{ wallet.currency }}
-                            </div>
-                        </div>
-
-                        <!-- Fee Calculator -->
-                        <div id="fee-calculator" class="bg-gray-50 rounded-lg p-4 hidden">
-                            <h3 class="text-sm font-semibold text-gray-700 mb-3">Withdrawal Summary</h3>
-                            <div class="space-y-2 text-sm">
-                                <div class="flex justify-between">
-                                    <span>Withdrawal Amount:</span>
-                                    <span id="calc-amount">0.00 {{ wallet.currency }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Processing Fee ({{ payment_method.processing_fee }}%):</span>
-                                    <span id="calc-fee">0.00 {{ wallet.currency }}</span>
-                                </div>
-                                <div class="flex justify-between font-semibold border-t pt-2">
-                                    <span>You will receive:</span>
-                                    <span id="calc-net" class="text-success-600">0.00 {{ wallet.currency }}</span>
+                                {% if form.amount.errors %}
+                                    <div class="mt-1 text-sm text-red-600">
+                                        {% for error in form.amount.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="mt-2 text-sm text-gray-500 flex justify-between">
+                                    <span>Available: {{ wallet.profit_balance|floatformat:2 }} {{ wallet.currency }}</span>
+                                    <span>Min: {{ payment_method.min_amount }} {{ wallet.currency }}</span>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Payment Method Specific Fields -->
-                        {% if payment_method.name == 'binance_pay' %}
-                            <!-- Binance Pay Fields -->
-                            <div>
-                                <label for="{{ form.binance_id.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.binance_id.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.binance_id }}
-                                {% if form.binance_id.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.binance_id.errors %}{{ error }}{% endfor %}
+                            <!-- Fee Calculator -->
+                            <div id="fee-calculator" class="fee-calculator">
+                                <h3 class="text-sm font-semibold text-gray-700 mb-3">Withdrawal Summary</h3>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Withdrawal Amount:</span>
+                                        <span id="calc-amount">0.00 {{ wallet.currency }}</span>
                                     </div>
-                                {% endif %}
-                                <div class="mt-1 text-sm text-gray-500">{{ form.binance_id.help_text }}</div>
-                            </div>
-
-                        {% elif payment_method.name == 'mobile_money' %}
-                            <!-- Mobile Money Fields -->
-                            <div>
-                                <label for="{{ form.provider.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Mobile Money Provider <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.provider }}
-                                {% if form.provider.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.provider.errors %}{{ error }}{% endfor %}
+                                    <div class="flex justify-between">
+                                        <span>Processing Fee ({{ payment_method.processing_fee }}%):</span>
+                                        <span id="calc-fee">0.00 {{ wallet.currency }}</span>
                                     </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div>
-                                <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.phone_number.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.phone_number }}
-                                {% if form.phone_number.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.phone_number.errors %}{{ error }}{% endfor %}
+                                    <div class="flex justify-between font-semibold border-t pt-2 mt-2">
+                                        <span>You will receive:</span>
+                                        <span id="calc-net" class="text-success-600">0.00 {{ wallet.currency }}</span>
                                     </div>
-                                {% endif %}
-                                <div class="mt-1 text-sm text-gray-500">{{ form.phone_number.help_text }}</div>
-                            </div>
-                            
-                            <div>
-                                <label for="{{ form.account_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.account_name.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.account_name }}
-                                {% if form.account_name.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.account_name.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
+                                </div>
                             </div>
 
-                        {% elif payment_method.name == 'bank_transfer' %}
-                            <!-- Bank Transfer Fields -->
-                            <div>
-                                <label for="{{ form.bank_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.bank_name.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.bank_name }}
-                                {% if form.bank_name.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.bank_name.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div>
-                                <label for="{{ form.account_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.account_number.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.account_number }}
-                                {% if form.account_number.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.account_number.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div>
-                                <label for="{{ form.account_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.account_name.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.account_name }}
-                                {% if form.account_name.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.account_name.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            
-                            {% if form.swift_code %}
-                            <div>
-                                <label for="{{ form.swift_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.swift_code.label }}
-                                </label>
-                                {{ form.swift_code }}
-                                {% if form.swift_code.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.swift_code.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="mt-1 text-sm text-gray-500">{{ form.swift_code.help_text }}</div>
-                            </div>
-                            {% endif %}
+                            <!-- Payment Method Specific Fields -->
+                            {% if payment_method.name == 'binance_pay' %}
+                                <!-- Binance Pay Fields -->
+                                <div>
+                                    <label for="{{ form.binance_id.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.binance_id.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.binance_id }}
+                                    {% if form.binance_id.errors %}
+                                        <div class="mt-1 text-sm text-red-600">
+                                            {% for error in form.binance_id.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="mt-1 text-sm text-gray-500">{{ form.binance_id.help_text }}</div>
+                                </div>
 
-                        {% elif payment_method.name == 'crypto' %}
-                            <!-- Cryptocurrency Fields -->
-                            <div>
-                                <label for="{{ form.currency.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.currency.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.currency }}
-                                {% if form.currency.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.currency.errors %}{{ error }}{% endfor %}
+                            {% elif payment_method.name == 'mobile_money' %}
+                                <!-- Mobile Money Fields -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="{{ form.provider.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                            Mobile Money Provider <span class="text-red-500">*</span>
+                                        </label>
+                                        {{ form.provider }}
+                                        {% if form.provider.errors %}
+                                            <div class="mt-1 text-sm text-red-600">
+                                                {% for error in form.provider.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
                                     </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div>
-                                <label for="{{ form.wallet_address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.wallet_address.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.wallet_address }}
-                                {% if form.wallet_address.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.wallet_address.errors %}{{ error }}{% endfor %}
+                                    
+                                    <div>
+                                        <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                            {{ form.phone_number.label }} <span class="text-red-500">*</span>
+                                        </label>
+                                        {{ form.phone_number }}
+                                        {% if form.phone_number.errors %}
+                                            <div class="mt-1 text-sm text-red-600">
+                                                {% for error in form.phone_number.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
                                     </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div>
-                                <label for="{{ form.network.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.network.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.network }}
-                                {% if form.network.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.network.errors %}{{ error }}{% endfor %}
+                                </div>
+                                
+                                <div>
+                                    <label for="{{ form.account_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.account_name.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.account_name }}
+                                    {% if form.account_name.errors %}
+                                        <div class="mt-1 text-sm text-red-600">
+                                            {% for error in form.account_name.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="mt-1 text-sm text-gray-500">{{ form.phone_number.help_text }}</div>
+                                </div>
+
+                            {% elif payment_method.name == 'bank_transfer' %}
+                                <!-- Bank Transfer Fields -->
+                                <div>
+                                    <label for="{{ form.bank_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.bank_name.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.bank_name }}
+                                    {% if form.bank_name.errors %}
+                                        <div class="mt-1 text-sm text-red-600">
+                                            {% for error in form.bank_name.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="{{ form.account_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                            {{ form.account_number.label }} <span class="text-red-500">*</span>
+                                        </label>
+                                        {{ form.account_number }}
+                                        {% if form.account_number.errors %}
+                                            <div class="mt-1 text-sm text-red-600">
+                                                {% for error in form.account_number.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
                                     </div>
-                                {% endif %}
-                                <div class="mt-1 text-sm text-gray-500">{{ form.network.help_text }}</div>
-                            </div>
-
-                        {% elif payment_method.name == 'p2p' %}
-                            <!-- P2P Fields -->
-                            {% if method_data.merchants %}
-                            <div>
-                                <label for="{{ form.merchant.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.merchant.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.merchant }}
-                                {% if form.merchant.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.merchant.errors %}{{ error }}{% endfor %}
+                                    
+                                    <div>
+                                        <label for="{{ form.account_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                            {{ form.account_name.label }} <span class="text-red-500">*</span>
+                                        </label>
+                                        {{ form.account_name }}
+                                        {% if form.account_name.errors %}
+                                            <div class="mt-1 text-sm text-red-600">
+                                                {% for error in form.account_name.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
                                     </div>
+                                </div>
+                                
+                                {% if form.swift_code %}
+                                <div>
+                                    <label for="{{ form.swift_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.swift_code.label }}
+                                    </label>
+                                    {{ form.swift_code }}
+                                    {% if form.swift_code.errors %}
+                                        <div class="mt-1 text-sm text-red-600">
+                                            {% for error in form.swift_code.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="mt-1 text-sm text-gray-500">{{ form.swift_code.help_text }}</div>
+                                </div>
                                 {% endif %}
-                            </div>
-                            {% endif %}
 
-                            <div>
-                                <label for="{{ form.payment_method.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Payment Method <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.payment_method }}
-                            </div>
-
-                            <div>
-                                <label for="{{ form.account_details.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.account_details.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.account_details }}
-                                {% if form.account_details.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.account_details.errors %}{{ error }}{% endfor %}
+                            {% elif payment_method.name == 'crypto' %}
+                                <!-- Cryptocurrency Fields -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="{{ form.currency.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                            {{ form.currency.label }} <span class="text-red-500">*</span>
+                                        </label>
+                                        {{ form.currency }}
+                                        {% if form.currency.errors %}
+                                            <div class="mt-1 text-sm text-red-600">
+                                                {% for error in form.currency.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
                                     </div>
-                                {% endif %}
-                                <div class="mt-1 text-sm text-gray-500">{{ form.account_details.help_text }}</div>
-                            </div>
-
-                        {% elif payment_method.name == 'agent' %}
-                            <!-- Agent Fields -->
-                            {% if method_data.agents %}
-                            <div>
-                                <label for="{{ form.agent.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.agent.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.agent }}
-                                {% if form.agent.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.agent.errors %}{{ error }}{% endfor %}
+                                    
+                                    <div>
+                                        <label for="{{ form.network.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                            {{ form.network.label }} <span class="text-red-500">*</span>
+                                        </label>
+                                        {{ form.network }}
+                                        {% if form.network.errors %}
+                                            <div class="mt-1 text-sm text-red-600">
+                                                {% for error in form.network.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
                                     </div>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-
-                            <div>
-                                <label for="{{ form.contact_method.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.contact_method.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.contact_method }}
-                            </div>
-
-                            <div>
-                                <label for="{{ form.location_details.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.location_details.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.location_details }}
-                                {% if form.location_details.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.location_details.errors %}{{ error }}{% endfor %}
+                                </div>
+                                
+                                <div>
+                                    <label for="{{ form.wallet_address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.wallet_address.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    <div class="relative">
+                                        {{ form.wallet_address }}
+                                        <button type="button" onclick="pasteFromClipboard()" class="absolute right-2 top-2 px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200">
+                                            <i class="fas fa-paste mr-1"></i> Paste
+                                        </button>
                                     </div>
-                                {% endif %}
-                                <div class="mt-1 text-sm text-gray-500">{{ form.location_details.help_text }}</div>
-                            </div>
+                                    {% if form.wallet_address.errors %}
+                                        <div class="mt-1 text-sm text-red-600">
+                                            {% for error in form.wallet_address.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="mt-1 text-sm text-gray-500">{{ form.network.help_text }}</div>
+                                </div>
 
-                        {% else %}
-                            <!-- Generic Withdrawal Address -->
-                            <div>
-                                <label for="{{ form.withdrawal_address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.withdrawal_address.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.withdrawal_address }}
-                                {% if form.withdrawal_address.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.withdrawal_address.errors %}{{ error }}{% endfor %}
+                            {% elif payment_method.name == 'p2p' %}
+                                <!-- P2P Fields -->
+                                {% if method_data.merchants %}
+                                <div>
+                                    <label for="{{ form.merchant.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.merchant.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.merchant }}
+                                    {% if form.merchant.errors %}
+                                        <div class="mt-1 text-sm text-red-600">
+                                            {% for error in form.merchant.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="{{ form.payment_method.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                            Payment Method <span class="text-red-500">*</span>
+                                        </label>
+                                        {{ form.payment_method }}
                                     </div>
-                                {% endif %}
-                                <div class="mt-1 text-sm text-gray-500">{{ form.withdrawal_address.help_text }}</div>
-                            </div>
-                        {% endif %}
+                                </div>
 
-                        <!-- Confirmation Checkbox -->
-                        {% if form.confirm_withdrawal %}
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <div class="flex items-start">
-                                {{ form.confirm_withdrawal }}
-                                <label for="{{ form.confirm_withdrawal.id_for_label }}" class="ml-3 text-sm text-yellow-800">
-                                    {{ form.confirm_withdrawal.label }}
-                                </label>
-                            </div>
-                            {% if form.confirm_withdrawal.errors %}
-                                <div class="mt-2 text-sm text-red-600">
-                                    {% for error in form.confirm_withdrawal.errors %}{{ error }}{% endfor %}
+                                <div>
+                                    <label for="{{ form.account_details.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.account_details.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.account_details }}
+                                    {% if form.account_details.errors %}
+                                        <div class="mt-1 text-sm text-red-600">
+                                            {% for error in form.account_details.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="mt-1 text-sm text-gray-500">{{ form.account_details.help_text }}</div>
+                                </div>
+
+                            {% elif payment_method.name == 'agent' %}
+                                <!-- Agent Fields -->
+                                {% if method_data.agents %}
+                                <div>
+                                    <label for="{{ form.agent.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.agent.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.agent }}
+                                    {% if form.agent.errors %}
+                                        <div class="mt-1 text-sm text-red-600">
+                                            {% for error in form.agent.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="{{ form.contact_method.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                            {{ form.contact_method.label }} <span class="text-red-500">*</span>
+                                        </label>
+                                        {{ form.contact_method }}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="{{ form.location_details.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.location_details.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.location_details }}
+                                    {% if form.location_details.errors %}
+                                        <div class="mt-1 text-sm text-red-600">
+                                            {% for error in form.location_details.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="mt-1 text-sm text-gray-500">{{ form.location_details.help_text }}</div>
+                                </div>
+
+                            {% else %}
+                                <!-- Generic Withdrawal Address -->
+                                <div>
+                                    <label for="{{ form.withdrawal_address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                        {{ form.withdrawal_address.label }} <span class="text-red-500">*</span>
+                                    </label>
+                                    {{ form.withdrawal_address }}
+                                    {% if form.withdrawal_address.errors %}
+                                        <div class="mt-1 text-sm text-red-600">
+                                            {% for error in form.withdrawal_address.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <div class="mt-1 text-sm text-gray-500">{{ form.withdrawal_address.help_text }}</div>
                                 </div>
                             {% endif %}
-                        </div>
-                        {% endif %}
 
-                        <!-- Submit Button -->
-                        <div class="flex items-center space-x-4">
-                            <button type="submit" 
-                                    class="flex-1 bg-gradient-warning text-white py-3 px-6 rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-200">
-                                <i class="fas fa-minus-circle mr-2"></i>
-                                Submit Withdrawal Request
-                            </button>
-                            <a href="{% url 'payments:withdraw' %}" 
-                               class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                                Cancel
-                            </a>
-                        </div>
-                    </form>
+                            <!-- Confirmation Checkbox -->
+                            {% if form.confirm_withdrawal %}
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <div class="flex items-start">
+                                    {{ form.confirm_withdrawal }}
+                                    <label for="{{ form.confirm_withdrawal.id_for_label }}" class="ml-3 text-sm text-yellow-800">
+                                        {{ form.confirm_withdrawal.label }}
+                                    </label>
+                                </div>
+                                {% if form.confirm_withdrawal.errors %}
+                                    <div class="mt-2 text-sm text-red-600">
+                                        {% for error in form.confirm_withdrawal.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            <!-- Submit Button -->
+                            <div class="flex flex-col sm:flex-row items-center gap-4 pt-4">
+                                <button type="submit" 
+                                        class="btn-primary flex-1 inline-flex items-center justify-center">
+                                    <i class="fas fa-paper-plane mr-2"></i>
+                                    Submit Withdrawal Request
+                                </button>
+                                <a href="{% url 'payments:withdraw' %}" 
+                                   class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200 w-full sm:w-auto text-center">
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
 
             <!-- Sidebar -->
             <div class="space-y-6">
                 <!-- Withdrawal Information -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-info-circle text-warning-500 mr-2"></i>
-                        Withdrawal Instructions
-                    </h3>
-                    
-                    {% if payment_method.name == 'binance_pay' %}
-                        <div class="space-y-3 text-sm text-gray-600">
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Enter your Binance account ID or email</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Funds will be sent to your Binance account</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Processing usually takes 1-2 hours</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Double-check your account details</span>
-                            </div>
-                        </div>
+                <div class="card info-card">
+                    <div class="card-body">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-info-circle text-primary-500 mr-2"></i>
+                            Withdrawal Instructions
+                        </h3>
                         
-                    {% elif payment_method.name == 'mobile_money' %}
-                        <div class="space-y-3 text-sm text-gray-600">
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Select your mobile money provider</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Enter your registered mobile number</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Funds sent directly to your mobile wallet</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Processing within 1-3 hours</span>
-                            </div>
-                        </div>
-                        
-                    {% elif payment_method.name == 'bank_transfer' %}
-                        <div class="space-y-3 text-sm text-gray-600">
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Provide accurate bank account details</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Account name must match your profile</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Processing takes 24-48 hours</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>SWIFT code required for international transfers</span>
-                            </div>
-                        </div>
-                        
-                    {% elif payment_method.name == 'crypto' %}
-                        <div class="space-y-3 text-sm text-gray-600">
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Select your preferred cryptocurrency</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Enter your wallet address carefully</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Specify the correct network (ERC20, BEP20, etc.)</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-exclamation-triangle text-warning-500 mt-1"></i>
-                                <span>Wrong address/network = permanent loss of funds</span>
-                            </div>
-                        </div>
-                        
-                    {% elif payment_method.name == 'p2p' %}
-                        <div class="space-y-3 text-sm text-gray-600">
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Choose a trusted P2P merchant</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Follow merchant's withdrawal process</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Provide your payment account details</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Processing time varies by merchant</span>
-                            </div>
-                        </div>
-                        
-                    {% elif payment_method.name == 'agent' %}
-                        <div class="space-y-3 text-sm text-gray-600">
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Select a local agent in your area</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Agent will contact you to arrange pickup</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Meet at agreed location for cash payment</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Bring valid ID for verification</span>
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Available Merchants/Agents -->
-                {% if payment_method.name == 'p2p' and method_data.merchants %}
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-users text-warning-500 mr-2"></i>
-                        Available P2P Merchants
-                    </h3>
-                    <div class="space-y-3">
-                        {% for merchant in method_data.merchants|slice:":5" %}
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <div class="font-medium text-gray-900">{{ merchant.name }}</div>
-                                <div class="text-sm text-gray-500">@{{ merchant.username }}</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="flex items-center text-sm text-warning-600">
-                                    <i class="fas fa-star mr-1"></i>
-                                    {{ merchant.rating|floatformat:1 }}
+                        {% if payment_method.name == 'binance_pay' %}
+                            <div class="space-y-3 text-sm text-gray-600">
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Enter your Binance account ID or email</span>
                                 </div>
-                                <div class="text-xs text-gray-500">{{ merchant.total_orders }} orders</div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Funds will be sent to your Binance account</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Processing usually takes 1-2 hours</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Double-check your account details</span>
+                                </div>
                             </div>
-                        </div>
-                        {% endfor %}
+                            
+                        {% elif payment_method.name == 'mobile_money' %}
+                            <div class="space-y-3 text-sm text-gray-600">
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Select your mobile money provider</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Enter your registered mobile number</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Funds sent directly to your mobile wallet</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Processing within 1-3 hours</span>
+                                </div>
+                            </div>
+                            
+                        {% elif payment_method.name == 'bank_transfer' %}
+                            <div class="space-y-3 text-sm text-gray-600">
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Provide accurate bank account details</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Account name must match your profile</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Processing takes 24-48 hours</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>SWIFT code required for international transfers</span>
+                                </div>
+                            </div>
+                            
+                        {% elif payment_method.name == 'crypto' %}
+                            <div class="space-y-3 text-sm text-gray-600">
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Select your preferred cryptocurrency</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Enter your wallet address carefully</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Specify the correct network (ERC20, BEP20, etc.)</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-exclamation-triangle text-warning-500 mt-1"></i>
+                                    <span>Wrong address/network = permanent loss of funds</span>
+                                </div>
+                            </div>
+                            
+                        {% elif payment_method.name == 'p2p' %}
+                            <div class="space-y-3 text-sm text-gray-600">
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Choose a trusted P2P merchant</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Follow merchant's withdrawal process</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Provide your payment account details</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Processing time varies by merchant</span>
+                                </div>
+                            </div>
+                            
+                        {% elif payment_method.name == 'agent' %}
+                            <div class="space-y-3 text-sm text-gray-600">
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Select a local agent in your area</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Agent will contact you to arrange pickup</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Meet at agreed location for cash payment</span>
+                                </div>
+                                <div class="flex items-start space-x-2">
+                                    <i class="fas fa-check text-success-500 mt-1"></i>
+                                    <span>Bring valid ID for verification</span>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
-                
-                {% elif payment_method.name == 'agent' and method_data.agents %}
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-user-tie text-warning-500 mr-2"></i>
-                        Available Local Agents
-                    </h3>
-                    <div class="space-y-3">
-                        {% for agent in method_data.agents|slice:":5" %}
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <div class="font-medium text-gray-900">{{ agent.name }}</div>
-                                <div class="text-sm text-gray-500">{{ agent.city }}</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="flex items-center text-sm text-warning-600">
-                                    <i class="fas fa-star mr-1"></i>
-                                    {{ agent.rating|floatformat:1 }}
-                                </div>
-                                <div class="text-xs text-gray-500">{{ agent.total_transactions }} transactions</div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
 
                 <!-- Account Balance Breakdown -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-wallet text-warning-500 mr-2"></i>
-                        Account Balance
-                    </h3>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Total Balance:</span>
-                            <span class="font-medium text-gray-900">{{ wallet.total_balance|floatformat:2 }} {{ wallet.currency }}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Trading Balance:</span>
-                            <span class="font-medium text-primary-600">{{ wallet.balance|floatformat:2 }} {{ wallet.currency }}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Profit Balance:</span>
-                            <span class="font-medium text-success-600">{{ wallet.profit_balance|floatformat:2 }} {{ wallet.currency }}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-600">Locked Balance:</span>
-                            <span class="font-medium text-warning-600">{{ wallet.locked_balance|floatformat:2 }} {{ wallet.currency }}</span>
-                        </div>
-                        
-                        <div class="border-t pt-3">
-                            <div class="bg-success-50 rounded-lg p-3">
-                                <div class="text-sm font-medium text-success-800">Available for Withdrawal</div>
-                                <div class="text-lg font-bold text-success-900">{{ wallet.profit_balance|floatformat:2 }} {{ wallet.currency }}</div>
-                                <div class="text-xs text-success-700 mt-1">Only profit balance can be withdrawn</div>
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-wallet text-primary-500 mr-2"></i>
+                            Account Balance
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Total Balance:</span>
+                                <span class="font-medium text-gray-900">{{ wallet.total_balance|floatformat:2 }} {{ wallet.currency }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Trading Balance:</span>
+                                <span class="font-medium text-primary-600">{{ wallet.balance|floatformat:2 }} {{ wallet.currency }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Profit Balance:</span>
+                                <span class="font-medium text-success-600">{{ wallet.profit_balance|floatformat:2 }} {{ wallet.currency }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Locked Balance:</span>
+                                <span class="font-medium text-warning-600">{{ wallet.locked_balance|floatformat:2 }} {{ wallet.currency }}</span>
+                            </div>
+                            
+                            <div class="border-t pt-3">
+                                <div class="bg-success-50 rounded-lg p-3">
+                                    <div class="text-sm font-medium text-success-800">Available for Withdrawal</div>
+                                    <div class="text-lg font-bold text-success-900">{{ wallet.profit_balance|floatformat:2 }} {{ wallet.currency }}</div>
+                                    <div class="text-xs text-success-700 mt-1">Only profit balance can be withdrawn</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Security & Processing Notice -->
-                <div class="bg-gradient-warning rounded-lg p-6 text-white">
-                    <h3 class="font-semibold mb-2">
+                <div class="security-notice">
+                    <h3 class="font-semibold mb-2 flex items-center">
                         <i class="fas fa-shield-alt mr-2"></i>
                         Security Notice
                     </h3>
@@ -654,20 +882,22 @@
                 </div>
 
                 <!-- Important Notes -->
-                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <div class="flex items-start">
-                        <div class="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <i class="fas fa-exclamation text-red-600 text-xs"></i>
-                        </div>
-                        <div class="ml-3">
-                            <h4 class="text-sm font-medium text-red-800 mb-2">Important Withdrawal Notes</h4>
-                            <ul class="text-sm text-red-700 space-y-1">
-                                <li>• Double-check all account details before submitting</li>
-                                <li>• Wrong details may result in permanent loss of funds</li>
-                                <li>• Only profit balance is available for withdrawal</li>
-                                <li>• Processing fees are deducted from withdrawal amount</li>
-                                <li>• Minimum withdrawal limits apply</li>
-                            </ul>
+                <div class="card warning-card">
+                    <div class="card-body">
+                        <div class="flex items-start">
+                            <div class="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <i class="fas fa-exclamation text-red-600 text-xs"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-red-800 mb-2">Important Withdrawal Notes</h4>
+                                <ul class="text-sm text-red-700 space-y-1">
+                                    <li>• Double-check all account details before submitting</li>
+                                    <li>• Wrong details may result in permanent loss of funds</li>
+                                    <li>• Only profit balance is available for withdrawal</li>
+                                    <li>• Processing fees are deducted from withdrawal amount</li>
+                                    <li>• Minimum withdrawal limits apply</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -692,7 +922,9 @@ function updateWithdrawalCalculation() {
         document.getElementById('calc-amount').textContent = `${amount.toFixed(2)} {{ wallet.currency }}`;
         document.getElementById('calc-fee').textContent = `${fee.toFixed(2)} {{ wallet.currency }}`;
         document.getElementById('calc-net').textContent = `${netAmount.toFixed(2)} {{ wallet.currency }}`;
-        document.getElementById('fee-calculator').classList.remove('hidden');
+        
+        const feeCalculator = document.getElementById('fee-calculator');
+        feeCalculator.classList.add('visible');
         
         // Validation feedback
         if (amount > maxAmount) {
@@ -706,10 +938,36 @@ function updateWithdrawalCalculation() {
             hideValidationMessage();
         }
     } else {
-        document.getElementById('fee-calculator').classList.add('hidden');
+        document.getElementById('fee-calculator').classList.remove('visible');
         amountInput.classList.remove('border-red-500');
         hideValidationMessage();
     }
+}
+
+// Set max amount function
+function setMaxAmount() {
+    const amountInput = document.querySelector('input[name="amount"]');
+    const maxAmount = {{ wallet.profit_balance }};
+    amountInput.value = maxAmount.toFixed(2);
+    updateWithdrawalCalculation();
+    
+    // Show confirmation message
+    showValidationMessage('Maximum amount set', 'success');
+    setTimeout(hideValidationMessage, 2000);
+}
+
+// Paste from clipboard for crypto addresses
+function pasteFromClipboard() {
+    navigator.clipboard.readText().then(text => {
+        const addressInput = document.querySelector('input[name="wallet_address"]');
+        if (addressInput) {
+            addressInput.value = text;
+            showValidationMessage('Address pasted from clipboard', 'success');
+            setTimeout(hideValidationMessage, 2000);
+        }
+    }).catch(err => {
+        showValidationMessage('Failed to read from clipboard', 'error');
+    });
 }
 
 // Validation message functions
@@ -753,24 +1011,24 @@ function validateWithdrawalForm() {
     const minAmount = {{ payment_method.min_amount }};
     
     if (amount <= 0) {
-        alert('Please enter a valid withdrawal amount.');
+        showToast('Please enter a valid withdrawal amount.', 'error');
         return false;
     }
     
     if (amount > maxAmount) {
-        alert(`Amount cannot exceed your available balance of ${maxAmount} {{ wallet.currency }}`);
+        showToast(`Amount cannot exceed your available balance of ${maxAmount} {{ wallet.currency }}`, 'error');
         return false;
     }
     
     if (amount < minAmount) {
-        alert(`Minimum withdrawal amount is ${minAmount} {{ wallet.currency }}`);
+        showToast(`Minimum withdrawal amount is ${minAmount} {{ wallet.currency }}`, 'error');
         return false;
     }
     
     // Check confirmation checkbox if present
     const confirmCheckbox = document.querySelector('input[name="confirm_withdrawal"]');
     if (confirmCheckbox && !confirmCheckbox.checked) {
-        alert('Please confirm your withdrawal request by checking the confirmation box.');
+        showToast('Please confirm your withdrawal request by checking the confirmation box.', 'error');
         return false;
     }
     
@@ -786,36 +1044,34 @@ function validateWithdrawalForm() {
     );
 }
 
+// Toast notification function
+function showToast(message, type) {
+    // Remove existing toasts
+    const existingToasts = document.querySelectorAll('.toast-notification');
+    existingToasts.forEach(toast => toast.remove());
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast-notification fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white ${
+        type === 'error' ? 'bg-red-500' : 'bg-green-500'
+    }`;
+    toast.textContent = message;
+    
+    // Add to document
+    document.body.appendChild(toast);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        toast.remove();
+    }, 5000);
+}
+
 // Add form validation on submit
 document.querySelector('form').addEventListener('submit', function(e) {
     if (!validateWithdrawalForm()) {
         e.preventDefault();
     }
 });
-
-// Auto-fill max amount button (you can add this to template if needed)
-function setMaxAmount() {
-    const amountInput = document.querySelector('input[name="amount"]');
-    const maxAmount = {{ wallet.profit_balance }};
-    amountInput.value = maxAmount.toFixed(2);
-    updateWithdrawalCalculation();
-}
-
-// Copy address helper for crypto withdrawals
-function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(function() {
-        alert('Copied to clipboard!');
-    }).catch(function() {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        alert('Copied to clipboard!');
-    });
-}
 
 // Address validation for crypto withdrawals
 {% if payment_method.name == 'crypto' %}

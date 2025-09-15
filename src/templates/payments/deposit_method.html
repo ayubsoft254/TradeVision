@@ -3,478 +3,315 @@
 
 {% block title %}Deposit via {{ payment_method.display_name }} - TradeVision{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ========= GLOBAL CLEAN CORPORATE STYLES ========= */
+body {
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f9fafb;
+  color: #1f2937;
+}
+
+h1, h2, h3, h4 {
+  font-family: "Segoe UI", Roboto, sans-serif;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ========= BREADCRUMBS ========= */
+nav[aria-label="Breadcrumb"] a {
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+nav[aria-label="Breadcrumb"] a:hover {
+  color: #2563eb;
+}
+nav[aria-label="Breadcrumb"] i {
+  font-size: 0.8rem;
+}
+
+/* ========= CARDS ========= */
+.bg-white {
+  background-color: #ffffff;
+}
+.rounded-lg {
+  border-radius: 0.75rem;
+}
+.shadow-sm {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.border-gray-200 {
+  border-color: #e5e7eb;
+}
+
+/* ========= BUTTONS ========= */
+button, .btn {
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.bg-gradient-primary {
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+}
+.bg-gradient-primary:hover {
+  background: linear-gradient(90deg, #1d4ed8, #1e40af);
+}
+.text-primary-600 {
+  color: #2563eb;
+}
+.text-primary-500 {
+  color: #3b82f6;
+}
+.text-success-500 {
+  color: #16a34a;
+}
+.text-warning-600 {
+  color: #d97706;
+}
+
+/* Cancel Button */
+a.cancel-btn {
+  border: 1px solid #d1d5db;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  color: #374151;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+a.cancel-btn:hover {
+  background-color: #f3f4f6;
+}
+
+/* ========= FORM ELEMENTS ========= */
+form input, form select, form textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  color: #111827;
+  background-color: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+form input:focus, form select:focus, form textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
+  outline: none;
+}
+
+/* ========= TRANSACTION SUMMARY ========= */
+#fee-calculator {
+  border: 1px solid #e5e7eb;
+}
+#fee-calculator h3 {
+  font-weight: 600;
+}
+#calc-net {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+/* ========= SIDEBAR ========= */
+.sidebar h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.sidebar .space-y-3 i {
+  font-size: 0.85rem;
+}
+
+/* ========= SECURITY NOTICE ========= */
+.bg-gradient-primary {
+  background: linear-gradient(90deg, #2563eb, #1d4ed8);
+}
+
+/* ========= RESPONSIVE ========= */
+@media (max-width: 768px) {
+  .lg\:grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Breadcrumb -->
-        <nav class="flex mb-8" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                <li class="inline-flex items-center">
-                    <a href="{% url 'trading:dashboard' %}" class="text-gray-700 hover:text-primary-600 inline-flex items-center">
-                        <i class="fas fa-home mr-2"></i>Dashboard
-                    </a>
-                </li>
-                <li>
-                    <div class="flex items-center">
-                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
-                        <a href="{% url 'payments:deposit' %}" class="text-gray-700 hover:text-primary-600">Deposit</a>
-                    </div>
-                </li>
-                <li aria-current="page">
-                    <div class="flex items-center">
-                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
-                        <span class="text-gray-500">{{ payment_method.display_name }}</span>
-                    </div>
-                </li>
-            </ol>
-        </nav>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        <!-- Header -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="w-16 h-16 bg-gradient-primary rounded-lg flex items-center justify-center">
-                        {% if payment_method.name == 'binance_pay' %}
-                            <i class="fab fa-bitcoin text-white text-2xl"></i>
-                        {% elif payment_method.name == 'mobile_money' %}
-                            <i class="fas fa-mobile-alt text-white text-2xl"></i>
-                        {% elif payment_method.name == 'bank_transfer' %}
-                            <i class="fas fa-university text-white text-2xl"></i>
-                        {% elif payment_method.name == 'p2p' %}
-                            <i class="fas fa-users text-white text-2xl"></i>
-                        {% elif payment_method.name == 'agent' %}
-                            <i class="fas fa-user-tie text-white text-2xl"></i>
-                        {% elif payment_method.name == 'crypto' %}
-                            <i class="fab fa-bitcoin text-white text-2xl"></i>
-                        {% else %}
-                            <i class="fas fa-credit-card text-white text-2xl"></i>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <h1 class="text-2xl font-bold font-heading text-gray-900">
-                            Deposit via {{ payment_method.display_name }}
-                        </h1>
-                        <p class="text-gray-600 mt-1">
-                            Processing Fee: {{ payment_method.processing_fee }}% | 
-                            Processing Time: {{ payment_method.processing_time }}
-                        </p>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <div class="text-sm text-gray-500">Current Balance</div>
-                    <div class="text-xl font-bold text-primary-600">
-                        {{ wallet.balance|floatformat:2 }} {{ wallet.currency }}
-                    </div>
-                </div>
-            </div>
+    <!-- Breadcrumb -->
+    <nav class="flex mb-8" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center space-x-1 md:space-x-3">
+        <li class="inline-flex items-center">
+          <a href="{% url 'trading:dashboard' %}" class="inline-flex items-center">
+            <i class="fas fa-home mr-2"></i> Dashboard
+          </a>
+        </li>
+        <li>
+          <div class="flex items-center">
+            <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+            <a href="{% url 'payments:deposit' %}">Deposit</a>
+          </div>
+        </li>
+        <li aria-current="page">
+          <div class="flex items-center">
+            <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+            <span class="text-gray-500">{{ payment_method.display_name }}</span>
+          </div>
+        </li>
+      </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <div class="w-16 h-16 bg-gradient-primary rounded-lg flex items-center justify-center">
+            {% if payment_method.name == 'binance_pay' %}
+              <i class="fab fa-bitcoin text-white text-2xl"></i>
+            {% elif payment_method.name == 'mobile_money' %}
+              <i class="fas fa-mobile-alt text-white text-2xl"></i>
+            {% elif payment_method.name == 'bank_transfer' %}
+              <i class="fas fa-university text-white text-2xl"></i>
+            {% elif payment_method.name == 'p2p' %}
+              <i class="fas fa-users text-white text-2xl"></i>
+            {% elif payment_method.name == 'agent' %}
+              <i class="fas fa-user-tie text-white text-2xl"></i>
+            {% elif payment_method.name == 'crypto' %}
+              <i class="fab fa-bitcoin text-white text-2xl"></i>
+            {% else %}
+              <i class="fas fa-credit-card text-white text-2xl"></i>
+            {% endif %}
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold">Deposit via {{ payment_method.display_name }}</h1>
+            <p class="text-gray-600 mt-1">
+              Processing Fee: {{ payment_method.processing_fee }}% | 
+              Processing Time: {{ payment_method.processing_time }}
+            </p>
+          </div>
         </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Main Form -->
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-6">Deposit Details</h2>
-                    
-                    <form method="post" enctype="multipart/form-data" class="space-y-6">
-                        {% csrf_token %}
-                        
-                        <!-- Amount Field -->
-                        <div>
-                            <label for="{{ form.amount.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                Amount to Deposit <span class="text-red-500">*</span>
-                            </label>
-                            {{ form.amount }}
-                            {% if form.amount.errors %}
-                                <div class="mt-1 text-sm text-red-600">
-                                    {% for error in form.amount.errors %}{{ error }}{% endfor %}
-                                </div>
-                            {% endif %}
-                            <div class="mt-1 text-sm text-gray-500">
-                                Min: {{ payment_method.min_amount }} {{ wallet.currency }} | 
-                                Max: {{ payment_method.max_amount|default:"No limit" }} {{ wallet.currency }}
-                            </div>
-                        </div>
-
-                        <!-- Fee Calculator -->
-                        <div id="fee-calculator" class="bg-gray-50 rounded-lg p-4 hidden">
-                            <h3 class="text-sm font-semibold text-gray-700 mb-3">Transaction Summary</h3>
-                            <div class="space-y-2 text-sm">
-                                <div class="flex justify-between">
-                                    <span>Deposit Amount:</span>
-                                    <span id="calc-amount">0.00 {{ wallet.currency }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Processing Fee ({{ payment_method.processing_fee }}%):</span>
-                                    <span id="calc-fee">0.00 {{ wallet.currency }}</span>
-                                </div>
-                                <div class="flex justify-between font-semibold border-t pt-2">
-                                    <span>You will receive:</span>
-                                    <span id="calc-net" class="text-success-600">0.00 {{ wallet.currency }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Payment Method Specific Fields -->
-                        {% if payment_method.name == 'binance_pay' %}
-                            <!-- Binance Pay Fields -->
-                            <div>
-                                <label for="{{ form.binance_id.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.binance_id.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.binance_id }}
-                                {% if form.binance_id.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.binance_id.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="mt-1 text-sm text-gray-500">{{ form.binance_id.help_text }}</div>
-                            </div>
-                            
-                            {% if form.transaction_reference %}
-                            <div>
-                                <label for="{{ form.transaction_reference.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.transaction_reference.label }}
-                                </label>
-                                {{ form.transaction_reference }}
-                                <div class="mt-1 text-sm text-gray-500">{{ form.transaction_reference.help_text }}</div>
-                            </div>
-                            {% endif %}
-
-                        {% elif payment_method.name == 'p2p' %}
-                            <!-- P2P Fields -->
-                            {% if method_data.merchants %}
-                            <div>
-                                <label for="{{ form.merchant.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.merchant.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.merchant }}
-                                {% if form.merchant.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.merchant.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-
-                            <div>
-                                <label for="{{ form.payment_method.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    Payment Method <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.payment_method }}
-                            </div>
-
-                            <div>
-                                <label for="{{ form.account_details.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.account_details.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.account_details }}
-                                {% if form.account_details.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.account_details.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="mt-1 text-sm text-gray-500">{{ form.account_details.help_text }}</div>
-                            </div>
-
-                        {% elif payment_method.name == 'agent' %}
-                            <!-- Agent Fields -->
-                            {% if method_data.agents %}
-                            <div>
-                                <label for="{{ form.agent.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.agent.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.agent }}
-                                {% if form.agent.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.agent.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-
-                            <div>
-                                <label for="{{ form.contact_method.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.contact_method.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.contact_method }}
-                            </div>
-
-                            <div>
-                                <label for="{{ form.location_details.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                    {{ form.location_details.label }} <span class="text-red-500">*</span>
-                                </label>
-                                {{ form.location_details }}
-                                {% if form.location_details.errors %}
-                                    <div class="mt-1 text-sm text-red-600">
-                                        {% for error in form.location_details.errors %}{{ error }}{% endfor %}
-                                    </div>
-                                {% endif %}
-                                <div class="mt-1 text-sm text-gray-500">{{ form.location_details.help_text }}</div>
-                            </div>
-                        {% endif %}
-
-                        <!-- Common Fields for All Methods -->
-                        {% if form.payment_proof %}
-                        <div>
-                            <label for="{{ form.payment_proof.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                {{ form.payment_proof.label }}
-                            </label>
-                            {{ form.payment_proof }}
-                            {% if form.payment_proof.errors %}
-                                <div class="mt-1 text-sm text-red-600">
-                                    {% for error in form.payment_proof.errors %}{{ error }}{% endfor %}
-                                </div>
-                            {% endif %}
-                            <div class="mt-1 text-sm text-gray-500">{{ form.payment_proof.help_text }}</div>
-                        </div>
-                        {% endif %}
-
-                        {% if form.notes %}
-                        <div>
-                            <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                                {{ form.notes.label }}
-                            </label>
-                            {{ form.notes }}
-                            {% if form.notes.errors %}
-                                <div class="mt-1 text-sm text-red-600">
-                                    {% for error in form.notes.errors %}{{ error }}{% endfor %}
-                                </div>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-
-                        <!-- Submit Button -->
-                        <div class="flex items-center space-x-4">
-                            <button type="submit" 
-                                    class="flex-1 bg-gradient-primary text-white py-3 px-6 rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-200">
-                                <i class="fas fa-plus-circle mr-2"></i>
-                                Submit Deposit Request
-                            </button>
-                            <a href="{% url 'payments:deposit' %}" 
-                               class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                                Cancel
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Sidebar -->
-            <div class="space-y-6">
-                <!-- Payment Instructions -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-info-circle text-primary-500 mr-2"></i>
-                        Payment Instructions
-                    </h3>
-                    
-                    {% if payment_method.name == 'binance_pay' %}
-                        <div class="space-y-3 text-sm text-gray-600">
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Enter your Binance account ID or email</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Send the exact amount from your Binance account</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Include transaction reference if available</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Processing is usually instant</span>
-                            </div>
-                        </div>
-                        
-                    {% elif payment_method.name == 'mobile_money' %}
-                        <div class="space-y-3 text-sm text-gray-600">
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Use M-Pesa or your mobile money provider</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Send to our business number</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Upload payment confirmation SMS</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Instant processing after verification</span>
-                            </div>
-                        </div>
-                        
-                    {% elif payment_method.name == 'p2p' %}
-                        <div class="space-y-3 text-sm text-gray-600">
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Choose a verified merchant</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Follow merchant's payment instructions</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Provide your payment details</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Upload proof of payment</span>
-                            </div>
-                        </div>
-                        
-                    {% elif payment_method.name == 'agent' %}
-                        <div class="space-y-3 text-sm text-gray-600">
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Select a local agent near you</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Contact agent using preferred method</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Arrange meeting location and time</span>
-                            </div>
-                            <div class="flex items-start space-x-2">
-                                <i class="fas fa-check text-success-500 mt-1"></i>
-                                <span>Complete cash transaction with agent</span>
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Available Merchants/Agents -->
-                {% if payment_method.name == 'p2p' and method_data.merchants %}
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-users text-primary-500 mr-2"></i>
-                        Top P2P Merchants
-                    </h3>
-                    <div class="space-y-3">
-                        {% for merchant in method_data.merchants|slice:":5" %}
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <div class="font-medium text-gray-900">{{ merchant.name }}</div>
-                                <div class="text-sm text-gray-500">@{{ merchant.username }}</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="flex items-center text-sm text-warning-600">
-                                    <i class="fas fa-star mr-1"></i>
-                                    {{ merchant.rating|floatformat:1 }}
-                                </div>
-                                <div class="text-xs text-gray-500">{{ merchant.total_orders }} orders</div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                
-                {% elif payment_method.name == 'agent' and method_data.agents %}
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-user-tie text-primary-500 mr-2"></i>
-                        Local Agents
-                    </h3>
-                    <div class="space-y-3">
-                        {% for agent in method_data.agents|slice:":5" %}
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div>
-                                <div class="font-medium text-gray-900">{{ agent.name }}</div>
-                                <div class="text-sm text-gray-500">{{ agent.city }}</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="flex items-center text-sm text-warning-600">
-                                    <i class="fas fa-star mr-1"></i>
-                                    {{ agent.rating|floatformat:1 }}
-                                </div>
-                                <div class="text-xs text-gray-500">{{ agent.total_transactions }} transactions</div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Security Notice -->
-                <div class="bg-gradient-primary rounded-lg p-6 text-white">
-                    <h3 class="font-semibold mb-2">
-                        <i class="fas fa-shield-alt mr-2"></i>
-                        Security Notice
-                    </h3>
-                    <p class="text-sm opacity-90 mb-4">
-                        Only send payments to verified accounts. Never share your login credentials.
-                    </p>
-                    <div class="flex items-center text-sm">
-                        <i class="fas fa-lock mr-2"></i>
-                        <span>All transactions are monitored for security</span>
-                    </div>
-                </div>
-            </div>
+        <div class="text-right">
+          <div class="text-sm text-gray-500">Current Balance</div>
+          <div class="text-xl font-bold text-primary-600">
+            {{ wallet.balance|floatformat:2 }} {{ wallet.currency }}
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
+    <!-- GRID -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+      <!-- Form -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 class="text-lg font-semibold mb-6">Deposit Details</h2>
+          
+          <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Amount Field -->
+            <div>
+              <label for="{{ form.amount.id_for_label }}" class="block text-sm font-medium mb-2">
+                Amount to Deposit <span class="text-red-500">*</span>
+              </label>
+              {{ form.amount }}
+              {% if form.amount.errors %}
+                <div class="mt-1 text-sm text-red-600">
+                  {% for error in form.amount.errors %}{{ error }}{% endfor %}
+                </div>
+              {% endif %}
+              <div class="mt-1 text-sm text-gray-500">
+                Min: {{ payment_method.min_amount }} {{ wallet.currency }} | 
+                Max: {{ payment_method.max_amount|default:"No limit" }} {{ wallet.currency }}
+              </div>
+            </div>
+
+            <!-- Fee Calculator -->
+            <div id="fee-calculator" class="bg-gray-50 rounded-lg p-4 hidden">
+              <h3 class="text-sm font-semibold mb-3">Transaction Summary</h3>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between"><span>Deposit Amount:</span><span id="calc-amount">0.00 {{ wallet.currency }}</span></div>
+                <div class="flex justify-between"><span>Processing Fee ({{ payment_method.processing_fee }}%):</span><span id="calc-fee">0.00 {{ wallet.currency }}</span></div>
+                <div class="flex justify-between font-semibold border-t pt-2"><span>You will receive:</span><span id="calc-net">0.00 {{ wallet.currency }}</span></div>
+              </div>
+            </div>
+
+            <!-- Dynamic fields (binance, p2p, agent...) -->
+            {{ block.super }}
+
+            <!-- Submit -->
+            <div class="flex items-center space-x-4">
+              <button type="submit" class="flex-1 bg-gradient-primary text-white py-3 px-6 rounded-lg font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                <i class="fas fa-plus-circle mr-2"></i> Submit Deposit Request
+              </button>
+              <a href="{% url 'payments:deposit' %}" class="cancel-btn">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="space-y-6 sidebar">
+        {{ block.super }}
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-// Fee calculator
+// ===== Fee Calculator =====
 function updateFeeCalculation() {
-    const amountInput = document.querySelector('input[name="amount"]');
-    const amount = parseFloat(amountInput.value) || 0;
-    const feePercentage = {{ payment_method.processing_fee }};
-    
-    if (amount > 0) {
-        const fee = amount * (feePercentage / 100);
-        const netAmount = amount - fee;
-        
-        document.getElementById('calc-amount').textContent = `${amount.toFixed(2)} {{ wallet.currency }}`;
-        document.getElementById('calc-fee').textContent = `${fee.toFixed(2)} {{ wallet.currency }}`;
-        document.getElementById('calc-net').textContent = `${netAmount.toFixed(2)} {{ wallet.currency }}`;
-        document.getElementById('fee-calculator').classList.remove('hidden');
-    } else {
-        document.getElementById('fee-calculator').classList.add('hidden');
-    }
+  const amountInput = document.querySelector('input[name="amount"]');
+  const amount = parseFloat(amountInput.value) || 0;
+  const feePercentage = {{ payment_method.processing_fee }};
+
+  if (amount > 0) {
+    const fee = amount * (feePercentage / 100);
+    const netAmount = amount - fee;
+
+    document.getElementById('calc-amount').textContent = `${amount.toFixed(2)} {{ wallet.currency }}`;
+    document.getElementById('calc-fee').textContent = `${fee.toFixed(2)} {{ wallet.currency }}`;
+    document.getElementById('calc-net').textContent = `${netAmount.toFixed(2)} {{ wallet.currency }}`;
+    document.getElementById('fee-calculator').classList.remove('hidden');
+  } else {
+    document.getElementById('fee-calculator').classList.add('hidden');
+  }
 }
 
-// Add event listener to amount input
+// Attach fee calculation
 document.addEventListener('DOMContentLoaded', function() {
-    const amountInput = document.querySelector('input[name="amount"]');
-    if (amountInput) {
-        amountInput.addEventListener('input', updateFeeCalculation);
-        amountInput.addEventListener('change', updateFeeCalculation);
-    }
+  const amountInput = document.querySelector('input[name="amount"]');
+  if (amountInput) {
+    amountInput.addEventListener('input', updateFeeCalculation);
+    amountInput.addEventListener('change', updateFeeCalculation);
+  }
 });
 
-// Form validation
+// ===== Form Validation =====
 function validateForm() {
-    const amountInput = document.querySelector('input[name="amount"]');
-    const amount = parseFloat(amountInput.value) || 0;
-    const minAmount = {{ payment_method.min_amount }};
-    const maxAmount = {{ payment_method.max_amount|default:"999999999" }};
-    
-    if (amount < minAmount) {
-        alert(`Minimum deposit amount is ${minAmount} {{ wallet.currency }}`);
-        return false;
-    }
-    
-    if (amount > maxAmount) {
-        alert(`Maximum deposit amount is ${maxAmount} {{ wallet.currency }}`);
-        return false;
-    }
-    
-    return true;
+  const amountInput = document.querySelector('input[name="amount"]');
+  const amount = parseFloat(amountInput.value) || 0;
+  const minAmount = {{ payment_method.min_amount }};
+  const maxAmount = {{ payment_method.max_amount|default:"999999999" }};
+
+  if (amount < minAmount) {
+    alert(`Minimum deposit amount is ${minAmount} {{ wallet.currency }}`);
+    return false;
+  }
+  if (amount > maxAmount) {
+    alert(`Maximum deposit amount is ${maxAmount} {{ wallet.currency }}`);
+    return false;
+  }
+  return true;
 }
 
-// Add form validation on submit
+// Attach validation
 document.querySelector('form').addEventListener('submit', function(e) {
-    if (!validateForm()) {
-        e.preventDefault();
-    }
+  if (!validateForm()) e.preventDefault();
 });
 </script>
 {% endblock %}
