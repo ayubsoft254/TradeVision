@@ -31,12 +31,11 @@ RUN mkdir -p /app/staticfiles /app/media
 
 # Note: We'll run collectstatic after migrations in docker-compose
 
-# Copy entrypoint script
-COPY entrypoint.sh /app/
-RUN chmod +x /app/entrypoint.sh
+# Create directories for static and media files
+RUN mkdir -p /app/staticfiles /app/media
 
 # Expose port 7373
 EXPOSE 7373
 
-# Use entrypoint script
-ENTRYPOINT ["/app/entrypoint.sh"]
+# Default command (will be overridden by docker-compose)
+CMD ["python", "manage.py", "runserver", "0.0.0.0:7373"]
