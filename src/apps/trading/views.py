@@ -184,6 +184,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     
     def is_trading_allowed(self):
         """Check if trading is currently allowed"""
+        # Get current time in the configured timezone (Africa/Nairobi)
         now = timezone.now()
         current_weekday = now.weekday()
         current_time = now.time()
@@ -192,9 +193,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         if current_weekday >= 5:
             return False
         
-        # Check trading hours (8 AM to 6 PM)
-        trading_start = datetime.strptime('08:00', '%H:%M').time()
-        trading_end = datetime.strptime('18:00', '%H:%M').time()
+        # Check trading hours (8 AM to 6 PM) in the local timezone
+        from datetime import time
+        trading_start = time(8, 0)  # 8:00 AM
+        trading_end = time(18, 0)   # 6:00 PM
         
         return trading_start <= current_time <= trading_end
 
@@ -533,6 +535,7 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
     
     def is_trading_allowed(self):
         """Check if trading is currently allowed"""
+        # Get current time in the configured timezone (Africa/Nairobi)
         now = timezone.now()
         current_weekday = now.weekday()
         current_time = now.time()
@@ -541,9 +544,10 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
         if current_weekday >= 5:
             return False
         
-        # Check trading hours
-        trading_start = datetime.strptime('08:00', '%H:%M').time()
-        trading_end = datetime.strptime('18:00', '%H:%M').time()
+        # Check trading hours (8 AM to 6 PM) in the local timezone
+        from datetime import time
+        trading_start = time(8, 0)  # 8:00 AM
+        trading_end = time(18, 0)   # 6:00 PM
         
         return trading_start <= current_time <= trading_end
 
