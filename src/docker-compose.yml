@@ -8,11 +8,21 @@ services:
       POSTGRES_USER: tradevision
       POSTGRES_PASSWORD: tradevision123
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tradevision"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
     ports:
       - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   web:
     build: .
@@ -21,10 +31,12 @@ services:
       python wait-for-it.py db 5432 &&
       echo 'Running migrations...' &&
       python manage.py migrate &&
+      echo 'Running django-celery-beat migrations...' &&
+      python manage.py migrate django_celery_beat &&
       echo 'Collecting static files...' &&
       python manage.py collectstatic --noinput &&
-      echo 'Starting Django server...' &&
-      python manage.py runserver 0.0.0.0:7373
+      echo 'Starting Gunicorn server...' &&
+      gunicorn tradevision.wsgi:application -c gunicorn.conf.py
       "
     volumes:
       - .:/app
@@ -34,9 +46,12 @@ services:
       - "7373:7373"
     environment:
       - DEBUG=1
+      - DJANGO_SETTINGS_MODULE=tradevision.settings
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
 
@@ -46,14 +61,17 @@ services:
       sh -c "
       python wait-for-it.py db 5432 &&
       python wait-for-it.py redis 6379 &&
+      echo 'Waiting for web service to complete migrations...' &&
+      sleep 10 &&
       echo 'Starting Celery worker...' &&
       celery -A tradevision worker --loglevel=info
       "
     volumes:
       - .:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=tradevision.settings
     depends_on:
-      - db
-      - redis
+      - web
     env_file:
       - .env
 
@@ -63,14 +81,17 @@ services:
       sh -c "
       python wait-for-it.py db 5432 &&
       python wait-for-it.py redis 6379 &&
+      echo 'Waiting for web service to complete migrations...' &&
+      sleep 15 &&
       echo 'Starting Celery beat...' &&
       celery -A tradevision beat --loglevel=info
       "
     volumes:
       - .:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=tradevision.settings
     depends_on:
-      - db
-      - redis
+      - web
     env_file:
       - .env
 

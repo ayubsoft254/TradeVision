@@ -4,6 +4,7 @@ FROM python:3.11-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV DJANGO_SETTINGS_MODULE=tradevision.settings
 
 # Set work directory
 WORKDIR /app
@@ -20,10 +21,8 @@ RUN apt-get update \
 
 # Install Python dependencies
 COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Install psycopg2 explicitly (in case it's missing from requirements.txt)
-RUN pip install --no-cache-dir psycopg2-binary
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
 
 # Copy project files
 COPY . /app/
@@ -32,18 +31,19 @@ COPY . /app/
 RUN chmod +x /app/wait-for-it.py
 
 # Create static and media directories
-RUN mkdir -p /app/static /app/media
-
-# Create directories for static and media files
 RUN mkdir -p /app/staticfiles /app/media
 
-# Note: We'll run collectstatic after migrations in docker-compose
-
-# Create directories for static and media files
-RUN mkdir -p /app/staticfiles /app/media
+# Create a non-root user
+RUN adduser --disabled-password --gecos '' appuser \
+    && chown -R appuser:appuser /app
+USER appuser
 
 # Expose port 7373
 EXPOSE 7373
 
-# Default command (will be overridden by docker-compose)
-CMD ["python", "manage.py", "runserver", "0.0.0.0:7373"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:7373/health/ || exit 1
+
+# Default command
+CMD ["gunicorn", "tradevision.wsgi:application", "-c", "gunicorn.conf.py"]
