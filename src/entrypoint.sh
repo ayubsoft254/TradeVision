@@ -1,39 +1,99 @@
-#!/bin/bash
+version: '3.8'
 
-# Wait for PostgreSQL to be ready
-echo "Waiting for PostgreSQL..."
-while ! nc -z db 5432; do
-  sleep 0.1
-done
-echo "PostgreSQL started"
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: tradevision
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"  # Changed external port to 5433
 
-# Run migrations
-echo "Running database migrations..."
-python manage.py migrate
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"  # Changed external port to 6380
 
-# Create superuser if it doesn't exist (optional)
-echo "Creating superuser if needed..."
-python manage.py shell << EOF
-from django.contrib.auth import get_user_model
-User = get_user_model()
-if not User.objects.filter(is_superuser=True).exists():
-    print("Creating superuser...")
-    # You can uncomment and modify these lines to create a default superuser
-    # User.objects.create_superuser(
-    #     email='admin@tradevision.com',
-    #     password='admin123',
-    #     first_name='Admin',
-    #     last_name='User'
-    # )
-    print("Remember to create a superuser manually with: python manage.py createsuperuser")
-else:
-    print("Superuser already exists")
-EOF
+  web:
+    build: .
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "7373:7373"
+    environment:
+      - DEBUG=1
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
 
-# Collect static files
-echo "Collecting static files..."
-python manage.py collectstatic --noinput
+  celery:
+    build: .
+    command: |
+      sh -c "
+        python -c \"
+import socket, time, sys
+def wait_for_port(host, port, timeout=60):
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            result = sock.connect_ex((host, port))
+            sock.close()
+            if result == 0: sys.exit(0)
+        except: pass
+        time.sleep(0.1)
+    sys.exit(1)
+wait_for_port('db', 5432)
+        \" &&
+        celery -A tradevision worker --loglevel=info
+      "
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
 
-# Start the Django development server
-echo "Starting Django server..."
-exec python manage.py runserver 0.0.0.0:7373
+  celery-beat:
+    build: .
+    command: |
+      sh -c "
+        python -c \"
+import socket, time, sys
+def wait_for_port(host, port, timeout=60):
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            result = sock.connect_ex((host, port))
+            sock.close()
+            if result == 0: sys.exit(0)
+        except: pass
+        time.sleep(0.1)
+    sys.exit(1)
+wait_for_port('db', 5432)
+        \" &&
+        celery -A tradevision beat --loglevel=info
+      "
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
