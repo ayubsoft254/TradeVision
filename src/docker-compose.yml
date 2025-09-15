@@ -5,9 +5,9 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     environment:
       POSTGRES_DB: tradevision
-      POSTGRES_HOST_AUTH_METHOD: trust
-    ports:
-      - "5433:5432"
+      POSTGRES_USER: tradevision
+      POSTGRES_PASSWORD: tradevision123
+    restart: unless-stopped
 
   redis:
     image: redis:7-alpine
