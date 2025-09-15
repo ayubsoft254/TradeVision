@@ -5,253 +5,517 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="bg-gradient-bg text-white py-16">
+<section class="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white py-20">
     <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-        <h1 class="text-4xl font-bold font-heading mb-4">Terms & Conditions</h1>
-        <p class="text-xl text-gray-200">Last updated: January 2025</p>
+        <h1 class="text-4xl md:text-5xl font-bold font-heading mb-6">Terms & Conditions</h1>
+        <p class="text-xl text-blue-200 max-w-2xl mx-auto">Last updated: January 2025</p>
+        <div class="mt-6 flex justify-center">
+            <div class="inline-flex items-center px-4 py-2 rounded-full bg-blue-800/30 backdrop-blur-sm border border-blue-600/30">
+                <span class="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></span>
+                <span class="text-sm font-medium">Legal Documentation</span>
+            </div>
+        </div>
     </div>
 </section>
 
 <!-- Terms Content -->
-<section class="py-16 bg-white">
+<section class="py-16 bg-gradient-to-b from-gray-50 to-white">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="prose prose-lg max-w-none">
+        <div class="bg-white rounded-2xl shadow-lg p-8 md:p-10 border border-gray-100">
             <!-- Table of Contents -->
-            <div class="bg-gray-50 rounded-lg p-6 mb-8">
-                <h2 class="text-xl font-bold text-gray-900 mb-4">Table of Contents</h2>
-                <ul class="space-y-2 text-primary-600">
-                    <li><a href="#acceptance" class="hover:text-primary-700">1. Acceptance of Terms</a></li>
-                    <li><a href="#services" class="hover:text-primary-700">2. Description of Services</a></li>
-                    <li><a href="#eligibility" class="hover:text-primary-700">3. Eligibility</a></li>
-                    <li><a href="#account" class="hover:text-primary-700">4. Account Registration</a></li>
-                    <li><a href="#trading" class="hover:text-primary-700">5. Trading Services</a></li>
-                    <li><a href="#payments" class="hover:text-primary-700">6. Payments and Fees</a></li>
-                    <li><a href="#risks" class="hover:text-primary-700">7. Risk Disclosure</a></li>
-                    <li><a href="#prohibited" class="hover:text-primary-700">8. Prohibited Activities</a></li>
-                    <li><a href="#termination" class="hover:text-primary-700">9. Termination</a></li>
-                    <li><a href="#disclaimer" class="hover:text-primary-700">10. Disclaimer</a></li>
-                    <li><a href="#limitation" class="hover:text-primary-700">11. Limitation of Liability</a></li>
-                    <li><a href="#governing" class="hover:text-primary-700">12. Governing Law</a></li>
-                    <li><a href="#contact" class="hover:text-primary-700">13. Contact Information</a></li>
-                </ul>
+            <div class="bg-blue-50 rounded-xl p-6 mb-10 border border-blue-100">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-list-ol text-blue-600 mr-3"></i>Table of Contents
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <a href="#acceptance" class="flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 p-2 rounded-lg transition-colors duration-200">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs mr-3">1</span>
+                        <span>Acceptance of Terms</span>
+                    </a>
+                    <a href="#services" class="flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 p-2 rounded-lg transition-colors duration-200">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs mr-3">2</span>
+                        <span>Description of Services</span>
+                    </a>
+                    <a href="#eligibility" class="flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 p-2 rounded-lg transition-colors duration-200">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs mr-3">3</span>
+                        <span>Eligibility</span>
+                    </a>
+                    <a href="#account" class="flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 p-2 rounded-lg transition-colors duration-200">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs mr-3">4</span>
+                        <span>Account Registration</span>
+                    </a>
+                    <a href="#trading" class="flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 p-2 rounded-lg transition-colors duration-200">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs mr-3">5</span>
+                        <span>Trading Services</span>
+                    </a>
+                    <a href="#payments" class="flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 p-2 rounded-lg transition-colors duration-200">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs mr-3">6</span>
+                        <span>Payments and Fees</span>
+                    </a>
+                    <a href="#risks" class="flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 p-2 rounded-lg transition-colors duration-200">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs mr-3">7</span>
+                        <span>Risk Disclosure</span>
+                    </a>
+                    <a href="#prohibited" class="flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 p-2 rounded-lg transition-colors duration-200">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs mr-3">8</span>
+                        <span>Prohibited Activities</span>
+                    </a>
+                    <a href="#termination" class="flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 p-2 rounded-lg transition-colors duration-200">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs mr-3">9</span>
+                        <span>Termination</span>
+                    </a>
+                    <a href="#disclaimer" class="flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 p-2 rounded-lg transition-colors duration-200">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs mr-3">10</span>
+                        <span>Disclaimer</span>
+                    </a>
+                    <a href="#limitation" class="flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 p-2 rounded-lg transition-colors duration-200">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs mr-3">11</span>
+                        <span>Limitation of Liability</span>
+                    </a>
+                    <a href="#governing" class="flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 p-2 rounded-lg transition-colors duration-200">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs mr-3">12</span>
+                        <span>Governing Law</span>
+                    </a>
+                    <a href="#contact" class="flex items-center text-blue-600 hover:text-blue-800 hover:bg-blue-100/50 p-2 rounded-lg transition-colors duration-200">
+                        <span class="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs mr-3">13</span>
+                        <span>Contact Information</span>
+                    </a>
+                </div>
             </div>
 
             <!-- Terms Sections -->
-            <section id="acceptance" class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">1. Acceptance of Terms</h2>
-                <p class="text-gray-600 leading-relaxed mb-4">
-                    By accessing and using TradeVision's platform and services, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
-                </p>
-                <p class="text-gray-600 leading-relaxed">
-                    These terms constitute a legally binding agreement between you and TradeVision. We reserve the right to modify these terms at any time, and such modifications will be effective immediately upon posting.
-                </p>
-            </section>
-
-            <section id="services" class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">2. Description of Services</h2>
-                <p class="text-gray-600 leading-relaxed mb-4">
-                    TradeVision provides automated trading services designed to generate profits through algorithmic trading strategies. Our services include:
-                </p>
-                <ul class="list-disc pl-6 space-y-2 text-gray-600 mb-4">
-                    <li>Automated trading packages with varying durations and profit rates</li>
-                    <li>Real-time portfolio monitoring and management</li>
-                    <li>Secure deposit and withdrawal systems</li>
-                    <li>24/7 customer support services</li>
-                    <li>Educational resources and market analysis</li>
-                </ul>
-                <p class="text-gray-600 leading-relaxed">
-                    All trading activities are conducted through our proprietary algorithms and systems, designed to minimize risk while maximizing profit potential.
-                </p>
-            </section>
-
-            <section id="eligibility" class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">3. Eligibility</h2>
-                <p class="text-gray-600 leading-relaxed mb-4">
-                    To use our services, you must:
-                </p>
-                <ul class="list-disc pl-6 space-y-2 text-gray-600 mb-4">
-                    <li>Be at least 18 years of age</li>
-                    <li>Have the legal capacity to enter into binding agreements</li>
-                    <li>Provide accurate and complete registration information</li>
-                    <li>Reside in a jurisdiction where our services are legally permitted</li>
-                    <li>Comply with all applicable laws and regulations</li>
-                </ul>
-                <p class="text-gray-600 leading-relaxed">
-                    We reserve the right to refuse service to anyone at our sole discretion.
-                </p>
-            </section>
-
-            <section id="account" class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">4. Account Registration</h2>
-                <p class="text-gray-600 leading-relaxed mb-4">
-                    Account registration requires providing accurate, current, and complete information. You are responsible for:
-                </p>
-                <ul class="list-disc pl-6 space-y-2 text-gray-600 mb-4">
-                    <li>Maintaining the confidentiality of your account credentials</li>
-                    <li>All activities that occur under your account</li>
-                    <li>Immediately notifying us of any unauthorized use</li>
-                    <li>Keeping your account information updated and accurate</li>
-                </ul>
-                <p class="text-gray-600 leading-relaxed">
-                    We may require identity verification before allowing certain activities or transactions.
-                </p>
-            </section>
-
-            <section id="trading" class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">5. Trading Services</h2>
-                <p class="text-gray-600 leading-relaxed mb-4">
-                    Our trading services operate under the following conditions:
-                </p>
-                <ul class="list-disc pl-6 space-y-2 text-gray-600 mb-4">
-                    <li>Minimum investment amounts as specified in each trading package</li>
-                    <li>Daily profit rates are estimates and not guaranteed returns</li>
-                    <li>Trading durations are fixed according to the selected package</li>
-                    <li>Profits are calculated and distributed according to our published schedule</li>
-                    <li>Early termination may result in penalty fees</li>
-                </ul>
-                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-exclamation-triangle text-yellow-400"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-yellow-700">
-                                <strong>Important:</strong> All trading involves risk, and past performance does not guarantee future results.
+            <div class="space-y-12">
+                <section id="acceptance" class="scroll-mt-20">
+                    <div class="flex items-start mb-6">
+                        <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">1</span>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Acceptance of Terms</h2>
+                            <p class="text-gray-600 leading-relaxed mb-4">
+                                By accessing and using TradeVision's platform and services, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+                            </p>
+                            <p class="text-gray-600 leading-relaxed">
+                                These terms constitute a legally binding agreement between you and TradeVision. We reserve the right to modify these terms at any time, and such modifications will be effective immediately upon posting.
                             </p>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
 
-            <section id="payments" class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">6. Payments and Fees</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div class="bg-gray-50 rounded-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Deposits</h3>
-                        <ul class="space-y-2 text-sm text-gray-600">
-                            <li>• Minimum deposit varies by package</li>
-                            <li>• Instant processing for most methods</li>
-                            <li>• No deposit fees</li>
-                            <li>• Multiple payment methods accepted</li>
-                        </ul>
-                    </div>
-                    <div class="bg-gray-50 rounded-lg p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Withdrawals</h3>
-                        <ul class="space-y-2 text-sm text-gray-600">
-                            <li>• Processed within 24 hours</li>
-                            <li>• Minimum withdrawal: $10</li>
-                            <li>• Standard processing fees apply</li>
-                            <li>• Identity verification required</li>
-                        </ul>
-                    </div>
-                </div>
-                <p class="text-gray-600 leading-relaxed">
-                    All fees are clearly disclosed before transaction confirmation. We reserve the right to modify fee structures with 30 days notice.
-                </p>
-            </section>
-
-            <section id="risks" class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">7. Risk Disclosure</h2>
-                <div class="bg-red-50 border-l-4 border-red-400 p-6 mb-6">
-                    <div class="flex">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-exclamation-circle text-red-400"></i>
-                        </div>
-                        <div class="ml-3">
-                            <h3 class="text-lg font-medium text-red-800 mb-2">Important Risk Warning</h3>
-                            <p class="text-sm text-red-700 leading-relaxed">
-                                Trading and investment activities carry inherent risks. You should only invest money you can afford to lose. Past performance does not guarantee future results, and profit projections are estimates only.
+                <section id="services" class="scroll-mt-20">
+                    <div class="flex items-start mb-6">
+                        <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">2</span>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Description of Services</h2>
+                            <p class="text-gray-600 leading-relaxed mb-4">
+                                TradeVision provides automated trading services designed to generate profits through algorithmic trading strategies. Our services include:
+                            </p>
+                            <ul class="space-y-3 mb-4">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Automated trading packages with varying durations and profit rates</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Real-time portfolio monitoring and management</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Secure deposit and withdrawal systems</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">24/7 customer support services</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Educational resources and market analysis</span>
+                                </li>
+                            </ul>
+                            <p class="text-gray-600 leading-relaxed">
+                                All trading activities are conducted through our proprietary algorithms and systems, designed to minimize risk while maximizing profit potential.
                             </p>
                         </div>
                     </div>
-                </div>
-                <p class="text-gray-600 leading-relaxed mb-4">
-                    By using our services, you acknowledge and accept the following risks:
-                </p>
-                <ul class="list-disc pl-6 space-y-2 text-gray-600">
-                    <li>Market volatility may affect trading performance</li>
-                    <li>Technology failures could impact service availability</li>
-                    <li>Regulatory changes may affect operations</li>
-                    <li>Economic factors beyond our control may influence results</li>
-                </ul>
-            </section>
+                </section>
 
-            <section id="prohibited" class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">8. Prohibited Activities</h2>
-                <p class="text-gray-600 leading-relaxed mb-4">
-                    The following activities are strictly prohibited:
-                </p>
-                <ul class="list-disc pl-6 space-y-2 text-gray-600">
-                    <li>Creating multiple accounts to circumvent limits</li>
-                    <li>Using our platform for money laundering or illegal activities</li>
-                    <li>Attempting to manipulate or interfere with our systems</li>
-                    <li>Providing false or misleading information</li>
-                    <li>Violating applicable laws or regulations</li>
-                    <li>Engaging in fraudulent or deceptive practices</li>
-                </ul>
-            </section>
-
-            <section id="termination" class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">9. Termination</h2>
-                <p class="text-gray-600 leading-relaxed mb-4">
-                    Either party may terminate this agreement at any time. We reserve the right to suspend or terminate accounts for:
-                </p>
-                <ul class="list-disc pl-6 space-y-2 text-gray-600 mb-4">
-                    <li>Violation of these terms and conditions</li>
-                    <li>Suspicious or fraudulent activity</li>
-                    <li>Failure to provide required documentation</li>
-                    <li>Extended periods of inactivity</li>
-                </ul>
-                <p class="text-gray-600 leading-relaxed">
-                    Upon termination, any outstanding balances will be processed according to our standard procedures.
-                </p>
-            </section>
-
-            <section id="disclaimer" class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">10. Disclaimer</h2>
-                <p class="text-gray-600 leading-relaxed mb-4">
-                    Our services are provided "as is" without warranties of any kind. We disclaim all warranties, express or implied, including but not limited to:
-                </p>
-                <ul class="list-disc pl-6 space-y-2 text-gray-600">
-                    <li>Merchantability and fitness for a particular purpose</li>
-                    <li>Uninterrupted or error-free operation</li>
-                    <li>Accuracy or completeness of information</li>
-                    <li>Guaranteed profits or returns</li>
-                </ul>
-            </section>
-
-            <section id="limitation" class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">11. Limitation of Liability</h2>
-                <p class="text-gray-600 leading-relaxed">
-                    To the maximum extent permitted by law, TradeVision shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or other intangible losses resulting from your use of our services.
-                </p>
-            </section>
-
-            <section id="governing" class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">12. Governing Law</h2>
-                <p class="text-gray-600 leading-relaxed">
-                    These terms shall be governed by and construed in accordance with the laws of Kenya. Any disputes shall be resolved through binding arbitration in Nairobi, Kenya.
-                </p>
-            </section>
-
-            <section id="contact" class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">13. Contact Information</h2>
-                <p class="text-gray-600 leading-relaxed mb-4">
-                    For questions about these terms and conditions, please contact us:
-                </p>
-                <div class="bg-gray-50 rounded-lg p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <section id="eligibility" class="scroll-mt-20">
+                    <div class="flex items-start mb-6">
+                        <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">3</span>
                         <div>
-                            <p class="text-sm text-gray-600">Email:</p>
-                            <p class="font-medium text-gray-900">legal@tradevision.com</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-600">Phone:</p>
-                            <p class="font-medium text-gray-900">+254 700 000 000</p>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Eligibility</h2>
+                            <p class="text-gray-600 leading-relaxed mb-4">
+                                To use our services, you must:
+                            </p>
+                            <ul class="space-y-3 mb-4">
+                                <li class="flex items-start">
+                                    <i class="fas fa-user-check text-blue-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Be at least 18 years of age</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-user-check text-blue-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Have the legal capacity to enter into binding agreements</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-user-check text-blue-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Provide accurate and complete registration information</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-user-check text-blue-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Reside in a jurisdiction where our services are legally permitted</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-user-check text-blue-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Comply with all applicable laws and regulations</span>
+                                </li>
+                            </ul>
+                            <p class="text-gray-600 leading-relaxed">
+                                We reserve the right to refuse service to anyone at our sole discretion.
+                            </p>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+
+                <section id="account" class="scroll-mt-20">
+                    <div class="flex items-start mb-6">
+                        <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">4</span>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Account Registration</h2>
+                            <p class="text-gray-600 leading-relaxed mb-4">
+                                Account registration requires providing accurate, current, and complete information. You are responsible for:
+                            </p>
+                            <ul class="space-y-3 mb-4">
+                                <li class="flex items-start">
+                                    <i class="fas fa-key text-purple-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Maintaining the confidentiality of your account credentials</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-shield-alt text-purple-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">All activities that occur under your account</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-bell text-purple-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Immediately notifying us of any unauthorized use</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-sync-alt text-purple-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Keeping your account information updated and accurate</span>
+                                </li>
+                            </ul>
+                            <p class="text-gray-600 leading-relaxed">
+                                We may require identity verification before allowing certain activities or transactions.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="trading" class="scroll-mt-20">
+                    <div class="flex items-start mb-6">
+                        <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">5</span>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Trading Services</h2>
+                            <p class="text-gray-600 leading-relaxed mb-4">
+                                Our trading services operate under the following conditions:
+                            </p>
+                            <ul class="space-y-3 mb-6">
+                                <li class="flex items-start">
+                                    <i class="fas fa-chart-line text-green-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Minimum investment amounts as specified in each trading package</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-percentage text-green-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Daily profit rates are estimates and not guaranteed returns</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-calendar-alt text-green-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Trading durations are fixed according to the selected package</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-money-bill-wave text-green-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Profits are calculated and distributed according to our published schedule</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-exclamation-triangle text-yellow-500 mt-1 mr-3"></i>
+                                    <span class="text-gray-600">Early termination may result in penalty fees</span>
+                                </li>
+                            </ul>
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-lg mb-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-exclamation-triangle text-yellow-500 text-xl"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="text-lg font-medium text-yellow-800 mb-2">Important Notice</h3>
+                                        <p class="text-yellow-700">
+                                            All trading involves risk, and past performance does not guarantee future results. Profit projections are estimates only.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="payments" class="scroll-mt-20">
+                    <div class="flex items-start mb-6">
+                        <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">6</span>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Payments and Fees</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div class="bg-blue-50 rounded-xl p-6 border border-blue-100">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                        <i class="fas fa-arrow-down text-green-500 mr-2"></i>Deposits
+                                    </h3>
+                                    <ul class="space-y-3 text-gray-600">
+                                        <li class="flex items-center">
+                                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                            <span>Minimum deposit varies by package</span>
+                                        </li>
+                                        <li class="flex items-center">
+                                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                            <span>Instant processing for most methods</span>
+                                        </li>
+                                        <li class="flex items-center">
+                                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                            <span>No deposit fees</span>
+                                        </li>
+                                        <li class="flex items-center">
+                                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                            <span>Multiple payment methods accepted</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="bg-blue-50 rounded-xl p-6 border border-blue-100">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                                        <i class="fas fa-arrow-up text-blue-500 mr-2"></i>Withdrawals
+                                    </h3>
+                                    <ul class="space-y-3 text-gray-600">
+                                        <li class="flex items-center">
+                                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                            <span>Processed within 24 hours</span>
+                                        </li>
+                                        <li class="flex items-center">
+                                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                            <span>Minimum withdrawal: $10</span>
+                                        </li>
+                                        <li class="flex items-center">
+                                            <i class="fas fa-info-circle text-blue-500 mr-3"></i>
+                                            <span>Standard processing fees apply</span>
+                                        </li>
+                                        <li class="flex items-center">
+                                            <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                            <span>Identity verification required</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 leading-relaxed">
+                                All fees are clearly disclosed before transaction confirmation. We reserve the right to modify fee structures with 30 days notice.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="risks" class="scroll-mt-20">
+                    <div class="flex items-start mb-6">
+                        <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">7</span>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Risk Disclosure</h2>
+                            <div class="bg-red-50 border-l-4 border-red-400 p-6 rounded-lg mb-6">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="text-lg font-medium text-red-800 mb-2">Important Risk Warning</h3>
+                                        <p class="text-red-700 leading-relaxed">
+                                            Trading and investment activities carry inherent risks. You should only invest money you can afford to lose. Past performance does not guarantee future results, and profit projections are estimates only.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 leading-relaxed mb-4">
+                                By using our services, you acknowledge and accept the following risks:
+                            </p>
+                            <ul class="space-y-3 text-gray-600">
+                                <li class="flex items-start">
+                                    <i class="fas fa-exclamation-triangle text-red-500 mt-1 mr-3"></i>
+                                    <span>Market volatility may affect trading performance</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-exclamation-triangle text-red-500 mt-1 mr-3"></i>
+                                    <span>Technology failures could impact service availability</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-exclamation-triangle text-red-500 mt-1 mr-3"></i>
+                                    <span>Regulatory changes may affect operations</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-exclamation-triangle text-red-500 mt-1 mr-3"></i>
+                                    <span>Economic factors beyond our control may influence results</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="prohibited" class="scroll-mt-20">
+                    <div class="flex items-start mb-6">
+                        <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">8</span>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Prohibited Activities</h2>
+                            <p class="text-gray-600 leading-relaxed mb-4">
+                                The following activities are strictly prohibited:
+                            </p>
+                            <ul class="grid grid-cols-1 md:grid-cols-2 gap-3 text-gray-600">
+                                <li class="flex items-start">
+                                    <i class="fas fa-ban text-red-500 mt-1 mr-3"></i>
+                                    <span>Creating multiple accounts to circumvent limits</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-ban text-red-500 mt-1 mr-3"></i>
+                                    <span>Using our platform for money laundering or illegal activities</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-ban text-red-500 mt-1 mr-3"></i>
+                                    <span>Attempting to manipulate or interfere with our systems</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-ban text-red-500 mt-1 mr-3"></i>
+                                    <span>Providing false or misleading information</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-ban text-red-500 mt-1 mr-3"></i>
+                                    <span>Violating applicable laws or regulations</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-ban text-red-500 mt-1 mr-3"></i>
+                                    <span>Engaging in fraudulent or deceptive practices</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="termination" class="scroll-mt-20">
+                    <div class="flex items-start mb-6">
+                        <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">9</span>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Termination</h2>
+                            <p class="text-gray-600 leading-relaxed mb-4">
+                                Either party may terminate this agreement at any time. We reserve the right to suspend or terminate accounts for:
+                            </p>
+                            <ul class="space-y-3 mb-4 text-gray-600">
+                                <li class="flex items-start">
+                                    <i class="fas fa-times-circle text-red-500 mt-1 mr-3"></i>
+                                    <span>Violation of these terms and conditions</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-times-circle text-red-500 mt-1 mr-3"></i>
+                                    <span>Suspicious or fraudulent activity</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-times-circle text-red-500 mt-1 mr-3"></i>
+                                    <span>Failure to provide required documentation</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-times-circle text-red-500 mt-1 mr-3"></i>
+                                    <span>Extended periods of inactivity</span>
+                                </li>
+                            </ul>
+                            <p class="text-gray-600 leading-relaxed">
+                                Upon termination, any outstanding balances will be processed according to our standard procedures.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="disclaimer" class="scroll-mt-20">
+                    <div class="flex items-start mb-6">
+                        <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">10</span>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Disclaimer</h2>
+                            <p class="text-gray-600 leading-relaxed mb-4">
+                                Our services are provided "as is" without warranties of any kind. We disclaim all warranties, express or implied, including but not limited to:
+                            </p>
+                            <ul class="space-y-3 text-gray-600">
+                                <li class="flex items-start">
+                                    <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                                    <span>Merchantability and fitness for a particular purpose</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                                    <span>Uninterrupted or error-free operation</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                                    <span>Accuracy or completeness of information</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                                    <span>Guaranteed profits or returns</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="limitation" class="scroll-mt-20">
+                    <div class="flex items-start mb-6">
+                        <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">11</span>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Limitation of Liability</h2>
+                            <p class="text-gray-600 leading-relaxed">
+                                To the maximum extent permitted by law, TradeVision shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or other intangible losses resulting from your use of our services.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="governing" class="scroll-mt-20">
+                    <div class="flex items-start mb-6">
+                        <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">12</span>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Governing Law</h2>
+                            <p class="text-gray-600 leading-relaxed">
+                                These terms shall be governed by and construed in accordance with the laws of Kenya. Any disputes shall be resolved through binding arbitration in Nairobi, Kenya.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="contact" class="scroll-mt-20">
+                    <div class="flex items-start mb-6">
+                        <span class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center text-lg font-bold mr-4 flex-shrink-0">13</span>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-900 mb-4">Contact Information</h2>
+                            <p class="text-gray-600 leading-relaxed mb-6">
+                                For questions about these terms and conditions, please contact us:
+                            </p>
+                            <div class="bg-blue-50 rounded-xl p-6 border border-blue-100">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                            <i class="fas fa-envelope text-blue-600"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-600">Email</p>
+                                            <p class="font-medium text-gray-900">legal@tradevision.com</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                                            <i class="fas fa-phone text-blue-600"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-600">Phone</p>
+                                            <p class="font-medium text-gray-900">+254 700 000 000</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </div>
     </div>
 </section>
@@ -288,9 +552,9 @@ window.addEventListener('scroll', function() {
     });
 
     navLinks.forEach(link => {
-        link.classList.remove('font-bold');
+        link.classList.remove('bg-blue-100', 'text-blue-800');
         if (link.getAttribute('href') === '#' + current) {
-            link.classList.add('font-bold');
+            link.classList.add('bg-blue-100', 'text-blue-800');
         }
     });
 });

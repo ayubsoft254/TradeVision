@@ -4,63 +4,238 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --primary: #3b82f6;
+        --primary-dark: #2563eb;
+        --secondary: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --light-bg: #f8fafc;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        --card-hover: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+    }
+    
     .metric-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: var(--card-shadow);
         transition: all 0.3s ease;
-        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.1);
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
     
     .metric-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        box-shadow: var(--card-hover);
     }
     
-    .profit-pulse {
+    .metric-card:hover::before {
+        opacity: 1;
+    }
+    
+    .card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+    
+    .wallet-icon {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        color: var(--primary);
+    }
+    
+    .investment-icon {
+        background: linear-gradient(135deg, #d1e9ff 0%, #bae6fd 100%);
+        color: #0ea5e9;
+    }
+    
+    .profit-icon {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        color: var(--secondary);
+    }
+    
+    .streak-icon {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        color: var(--warning);
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .status-active {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+    
+    .status-inactive {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        color: white;
+    }
+    
+    .btn {
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(to right, var(--primary), var(--primary-dark));
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    
+    .trade-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .trade-card:hover {
+        border-color: var(--primary);
+        box-shadow: var(--card-shadow);
+    }
+    
+    .profit-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin-bottom: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .profit-item:hover {
+        background: #f1f5f9;
+        transform: translateX(5px);
+    }
+    
+    .countdown-timer {
+        font-family: 'Fira Code', monospace;
+        font-weight: 600;
+        color: var(--primary);
+    }
+    
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--secondary);
+        margin-right: 0.5rem;
         animation: pulse 2s infinite;
     }
     
-    .trading-status-active {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
     }
     
-    .trading-status-inactive {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6b7280;
+    }
+    
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+<div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header Section -->
-        <div class="mb-8">
-            <div class="md:flex md:items-center md:justify-between">
-                <div class="flex-1 min-w-0">
-                    <h1 class="text-3xl font-bold font-heading text-gray-900">
+        <div class="dashboard-header">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div class="flex-1 min-w-0 mb-4 md:mb-0">
+                    <h1 class="text-3xl font-bold text-white">
                         Welcome back, {{ user.first_name|default:"Trader" }}!
                     </h1>
-                    <p class="mt-1 text-sm text-gray-500">
+                    <p class="mt-2 text-blue-100">
                         {% if trading_allowed %}
-                            <span class="inline-flex items-center text-success-600">
-                                <span class="w-2 h-2 bg-success-500 rounded-full mr-2 profit-pulse"></span>
+                            <span class="inline-flex items-center">
+                                <span class="pulse-dot"></span>
                                 Trading markets are open
                             </span>
                         {% else %}
-                            <span class="inline-flex items-center text-gray-500">
-                                <span class="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
+                            <span class="inline-flex items-center">
+                                <span class="w-2 h-2 bg-blue-200 rounded-full mr-2"></span>
                                 Markets closed (Mon-Fri, 8AM-6PM)
                             </span>
                         {% endif %}
                     </p>
                 </div>
-                <div class="mt-4 flex md:mt-0 md:ml-4 space-x-3">
+                <div class="flex space-x-3">
                     {% if trading_allowed %}
-                        <a href="{% url 'trading:initiate_trade' %}" class="btn-primary">
+                        <a href="{% url 'trading:initiate_trade' %}" class="btn btn-primary">
                             <i class="fas fa-play mr-2"></i>Start Trade
                         </a>
                     {% endif %}
-                    <a href="{% url 'trading:packages' %}" class="btn-secondary">
+                    <a href="{% url 'trading:packages' %}" class="btn btn-secondary">
                         <i class="fas fa-plus mr-2"></i>New Investment
                     </a>
                 </div>
@@ -69,17 +244,17 @@
 
         <!-- Trading Status Card -->
         <div class="mb-8">
-            <div class="{% if trading_allowed %}trading-status-active{% else %}trading-status-inactive{% endif %} rounded-2xl p-6 text-white">
+            <div class="metric-card">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-lg font-semibold mb-2">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">
                             {% if trading_allowed %}
-                                <i class="fas fa-chart-line mr-2"></i>Markets Open
+                                <i class="fas fa-chart-line mr-2 text-green-600"></i>Markets Open
                             {% else %}
-                                <i class="fas fa-pause-circle mr-2"></i>Markets Closed
+                                <i class="fas fa-pause-circle mr-2 text-gray-500"></i>Markets Closed
                             {% endif %}
                         </h3>
-                        <p class="text-sm opacity-90">
+                        <p class="text-gray-600">
                             {% if trading_allowed %}
                                 Perfect time to start your trading sessions and maximize profits
                             {% else %}
@@ -88,8 +263,8 @@
                         </p>
                     </div>
                     <div class="text-right">
-                        <div class="text-2xl font-bold" id="current-time"></div>
-                        <div class="text-sm opacity-75">Local Time</div>
+                        <div class="text-2xl font-bold text-gray-900" id="current-time"></div>
+                        <div class="text-sm text-gray-500">Local Time</div>
                     </div>
                 </div>
             </div>
@@ -98,7 +273,7 @@
         <!-- Key Metrics Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Wallet Balance -->
-            <div class="metric-card bg-white rounded-2xl p-6 card-shadow">
+            <div class="metric-card">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Wallet Balance</p>
@@ -106,8 +281,8 @@
                             {{ wallet.balance|floatformat:2 }} <span class="text-sm text-gray-500">{{ wallet.currency }}</span>
                         </p>
                     </div>
-                    <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-wallet text-primary-600 text-xl"></i>
+                    <div class="card-icon wallet-icon">
+                        <i class="fas fa-wallet"></i>
                     </div>
                 </div>
                 <div class="mt-4 flex justify-between text-sm">
@@ -117,7 +292,7 @@
             </div>
 
             <!-- Total Invested -->
-            <div class="metric-card bg-white rounded-2xl p-6 card-shadow">
+            <div class="metric-card">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Invested</p>
@@ -125,8 +300,8 @@
                             {{ total_invested|floatformat:2 }} <span class="text-sm text-gray-500">{{ wallet.currency }}</span>
                         </p>
                     </div>
-                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-chart-pie text-blue-600 text-xl"></i>
+                    <div class="card-icon investment-icon">
+                        <i class="fas fa-chart-pie"></i>
                     </div>
                 </div>
                 <div class="mt-4 text-sm text-gray-500">
@@ -135,34 +310,34 @@
             </div>
 
             <!-- Total Profits -->
-            <div class="metric-card bg-white rounded-2xl p-6 card-shadow">
+            <div class="metric-card">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Profits</p>
-                        <p class="text-2xl font-bold text-success-600 mt-2">
+                        <p class="text-2xl font-bold text-green-600 mt-2">
                             +{{ total_profits|floatformat:2 }} <span class="text-sm text-gray-500">{{ wallet.currency }}</span>
                         </p>
                     </div>
-                    <div class="w-12 h-12 bg-success-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-arrow-trend-up text-success-600 text-xl"></i>
+                    <div class="card-icon profit-icon">
+                        <i class="fas fa-arrow-trend-up"></i>
                     </div>
                 </div>
-                <div class="mt-4 text-sm text-success-600">
+                <div class="mt-4 text-sm text-green-600">
                     ROI: {{ performance_metrics.roi_percentage|floatformat:1 }}%
                 </div>
             </div>
 
             <!-- Trading Streak -->
-            <div class="metric-card bg-white rounded-2xl p-6 card-shadow">
+            <div class="metric-card">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Trading Streak</p>
-                        <p class="text-2xl font-bold text-warning-600 mt-2">
+                        <p class="text-2xl font-bold text-amber-600 mt-2">
                             {{ performance_metrics.trading_streak }} <span class="text-sm text-gray-500">days</span>
                         </p>
                     </div>
-                    <div class="w-12 h-12 bg-warning-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-fire text-warning-600 text-xl"></i>
+                    <div class="card-icon streak-icon">
+                        <i class="fas fa-fire"></i>
                     </div>
                 </div>
                 <div class="mt-4 text-sm text-gray-500">
@@ -174,11 +349,11 @@
         <!-- Charts Section -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <!-- Profit Chart -->
-            <div class="bg-white rounded-2xl p-6 card-shadow">
+            <div class="metric-card">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-semibold text-gray-900">Daily Profits (7 Days)</h3>
                     <div class="flex items-center space-x-2 text-sm text-gray-500">
-                        <span class="w-3 h-3 bg-primary-500 rounded-full"></span>
+                        <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
                         <span>Profit {{ wallet.currency }}</span>
                     </div>
                 </div>
@@ -188,7 +363,7 @@
             </div>
 
             <!-- Investment Distribution -->
-            <div class="bg-white rounded-2xl p-6 card-shadow">
+            <div class="metric-card">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-semibold text-gray-900">Investment Distribution</h3>
                     <span class="text-sm text-gray-500">By Package</span>
@@ -202,10 +377,10 @@
         <!-- Active Trades & Recent Activity -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Active Trades -->
-            <div class="bg-white rounded-2xl p-6 card-shadow">
+            <div class="metric-card">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-semibold text-gray-900">Active Trades</h3>
-                    <a href="{% url 'trading:trades' %}" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                    <a href="{% url 'trading:trades' %}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                         View All <i class="fas fa-arrow-right ml-1"></i>
                     </a>
                 </div>
@@ -213,13 +388,10 @@
                 {% if active_trades %}
                     <div class="space-y-4">
                         {% for trade in active_trades %}
-                        <div class="border border-gray-200 rounded-lg p-4 hover:border-primary-300 transition-colors duration-200">
+                        <div class="trade-card">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="font-medium text-gray-900">{{ trade.investment.package.display_name }}</span>
-                                <span class="px-2 py-1 text-xs font-medium rounded-full 
-                                    {% if trade.status == 'running' %}bg-success-100 text-success-800
-                                    {% elif trade.status == 'pending' %}bg-warning-100 text-warning-800
-                                    {% endif %}">
+                                <span class="status-badge {% if trade.status == 'running' %}status-active{% else %}status-inactive{% endif %}">
                                     {{ trade.get_status_display }}
                                 </span>
                             </div>
@@ -230,8 +402,7 @@
                             {% if trade.status == 'running' %}
                             <div class="flex items-center justify-between">
                                 <span class="text-xs text-gray-400">Time Remaining:</span>
-                                <span class="countdown-timer text-sm font-mono font-bold text-primary-600" 
-                                      data-end-time="{{ trade.expected_completion_time|date:'c' }}">
+                                <span class="countdown-timer" data-end-time="{{ trade.expected_completion_time|date:'c' }}">
                                     --:--:--
                                 </span>
                             </div>
@@ -240,11 +411,11 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="text-center py-8">
-                        <i class="fas fa-chart-line text-gray-300 text-4xl mb-4"></i>
+                    <div class="empty-state">
+                        <i class="fas fa-chart-line empty-state-icon"></i>
                         <p class="text-gray-500 mb-4">No active trades</p>
                         {% if trading_allowed %}
-                            <a href="{% url 'trading:initiate_trade' %}" class="btn-primary btn-sm">
+                            <a href="{% url 'trading:initiate_trade' %}" class="btn btn-primary">
                                 Start Your First Trade
                             </a>
                         {% endif %}
@@ -253,37 +424,35 @@
             </div>
 
             <!-- Recent Profits -->
-            <div class="bg-white rounded-2xl p-6 card-shadow">
+            <div class="metric-card">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-semibold text-gray-900">Recent Profits</h3>
-                    <a href="{% url 'trading:profits' %}" class="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                    <a href="{% url 'trading:profits' %}" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                         View All <i class="fas fa-arrow-right ml-1"></i>
                     </a>
                 </div>
 
                 {% if recent_profits %}
-                    <div class="space-y-4">
+                    <div class="space-y-3">
                         {% for profit in recent_profits %}
-                        <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-success-100 rounded-lg flex items-center justify-center">
-                                    <i class="fas fa-plus text-success-600"></i>
-                                </div>
-                                <div>
-                                    <p class="font-medium text-gray-900">{{ profit.investment.package.display_name }}</p>
-                                    <p class="text-sm text-gray-500">{{ profit.date_earned|date:"M d, Y" }}</p>
-                                </div>
+                        <div class="profit-item">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                                <i class="fas fa-plus text-green-600"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">{{ profit.investment.package.display_name }}</p>
+                                <p class="text-sm text-gray-500">{{ profit.date_earned|date:"M d, Y" }}</p>
                             </div>
                             <div class="text-right">
-                                <p class="font-semibold text-success-600">+{{ profit.amount|floatformat:2 }}</p>
+                                <p class="font-semibold text-green-600">+{{ profit.amount|floatformat:2 }}</p>
                                 <p class="text-xs text-gray-500">{{ wallet.currency }}</p>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <div class="text-center py-8">
-                        <i class="fas fa-coins text-gray-300 text-4xl mb-4"></i>
+                    <div class="empty-state">
+                        <i class="fas fa-coins empty-state-icon"></i>
                         <p class="text-gray-500">No profits yet</p>
                         <p class="text-sm text-gray-400 mt-1">Start trading to earn daily profits</p>
                     </div>
@@ -295,6 +464,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // Update current time
     function updateTime() {
@@ -324,22 +494,47 @@
                 borderColor: '#3b82f6',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 tension: 0.4,
-                fill: true
+                fill: true,
+                borderWidth: 3,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleFont: { size: 14 },
+                    bodyFont: { size: 14 },
+                    padding: 12,
+                    cornerRadius: 8
+                }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { color: '#f3f4f6' }
+                    grid: { 
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        font: { size: 12 },
+                        callback: function(value) {
+                            return '{{ wallet.currency }} ' + value;
+                        }
+                    }
                 },
                 x: {
-                    grid: { display: false }
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 12 }
+                    }
                 }
             }
         }
@@ -360,19 +555,54 @@
                     '#10b981', 
                     '#f59e0b',
                     '#ef4444',
-                    '#8b5cf6'
-                ]
+                    '#8b5cf6',
+                    '#ec4899',
+                    '#06b6d4'
+                ],
+                borderWidth: 0,
+                borderRadius: 6,
+                hoverOffset: 12
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '70%',
             plugins: {
                 legend: {
-                    position: 'bottom'
+                    position: 'bottom',
+                    labels: {
+                        font: { size: 12 },
+                        padding: 20,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
                 }
             }
         }
     });
+
+    // Countdown timers for active trades
+    function updateCountdowns() {
+        document.querySelectorAll('.countdown-timer').forEach(timer => {
+            const endTime = new Date(timer.dataset.endTime);
+            const now = new Date();
+            const diff = endTime - now;
+            
+            if (diff <= 0) {
+                timer.textContent = '00:00:00';
+                return;
+            }
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            timer.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        });
+    }
+    
+    setInterval(updateCountdowns, 1000);
+    updateCountdowns();
 </script>
 {% endblock %}

@@ -30,76 +30,81 @@
                 extend: {
                     colors: {
                         primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
+                            50: '#f8f9fa',
+                            100: '#e9ecef',
+                            200: '#dee2e6',
+                            300: '#ced4da',
+                            400: '#adb5bd',
+                            500: '#6c757d',
+                            600: '#495057',
+                            700: '#343a40',
+                            800: '#212529',
+                            900: '#121416',
+                        },
+                        accent: {
+                            50: '#f0f8ff',
+                            100: '#e1effe',
+                            200: '#bae1fd',
+                            300: '#7cc4fa',
+                            400: '#38a5f5',
+                            500: '#0d8aed',
+                            600: '#026dc8',
+                            700: '#0356a3',
+                            800: '#074685',
+                            900: '#0c386e',
                         },
                         success: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            300: '#86efac',
-                            400: '#4ade80',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            800: '#166534',
-                            900: '#14532d',
+                            50: '#f3faf7',
+                            100: '#def7ec',
+                            200: '#bcf0da',
+                            300: '#84e1bc',
+                            400: '#31c48d',
+                            500: '#0e9f6e',
+                            600: '#057a55',
+                            700: '#046c4e',
+                            800: '#03543f',
+                            900: '#014737',
                         },
                         warning: {
-                            50: '#fffbeb',
-                            100: '#fef3c7',
-                            200: '#fde68a',
-                            300: '#fcd34d',
-                            400: '#fbbf24',
-                            500: '#f59e0b',
-                            600: '#d97706',
-                            700: '#b45309',
-                            800: '#92400e',
-                            900: '#78350f',
+                            50: '#fdfdea',
+                            100: '#fdf6b2',
+                            200: '#fce96a',
+                            300: '#faca15',
+                            400: '#e3a008',
+                            500: '#c27803',
+                            600: '#9f580a',
+                            700: '#8e4b10',
+                            800: '#723b13',
+                            900: '#633112',
                         },
                         danger: {
-                            50: '#fef2f2',
-                            100: '#fee2e2',
-                            200: '#fecaca',
-                            300: '#fca5a5',
-                            400: '#f87171',
-                            500: '#ef4444',
-                            600: '#dc2626',
-                            700: '#b91c1c',
-                            800: '#991b1b',
-                            900: '#7f1d1d',
-                        },
-                        dark: {
-                            50: '#f8fafc',
-                            100: '#f1f5f9',
-                            200: '#e2e8f0',
-                            300: '#cbd5e1',
-                            400: '#94a3b8',
-                            500: '#64748b',
-                            600: '#475569',
-                            700: '#334155',
-                            800: '#1e293b',
-                            900: '#0f172a',
+                            50: '#fdf2f2',
+                            100: '#fde8e8',
+                            200: '#fbd5d5',
+                            300: '#f8b4b4',
+                            400: '#f98080',
+                            500: '#f05252',
+                            600: '#e02424',
+                            700: '#c81e1e',
+                            800: '#9b1c1c',
+                            900: '#771d1d',
                         }
                     },
                     fontFamily: {
                         'sans': ['Inter', 'ui-sans-serif', 'system-ui'],
-                        'heading': ['Poppins', 'ui-sans-serif', 'system-ui'],
+                        'heading': ['Georgia', 'Times New Roman', 'serif'],
+                        'serif': ['Georgia', 'Times New Roman', 'serif'],
+                    },
+                    spacing: {
+                        '18': '4.5rem',
+                        '88': '22rem',
+                        '128': '32rem',
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.5s ease-in-out',
                         'slide-up': 'slideUp 0.3s ease-out',
                         'bounce-in': 'bounceIn 0.6s ease-out',
                         'pulse-slow': 'pulse 3s infinite',
-                        'spin-slow': 'spin 3s linear infinite',
                     },
                     keyframes: {
                         fadeIn: {
@@ -129,10 +134,17 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
     <style>
+        /* Classic professional styling */
+        body {
+            color: #2D3748;
+            background-color: #FAFAF9;
+            line-height: 1.6;
+        }
+        
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -151,111 +163,192 @@
             background: #94a3b8;
         }
         
-        /* Gradient backgrounds */
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* Elegant navigation */
+        nav {
+            background: #ffffff;
+            border-bottom: 1px solid #E5E7EB;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
         
-        .gradient-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        .nav-link {
+            position: relative;
+            transition: all 0.3s ease;
         }
         
-        .gradient-success {
-            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: #0d8aed;
+            transition: width 0.3s ease;
         }
         
-        .gradient-warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        .nav-link:hover:after {
+            width: 100%;
         }
         
-        /* Card shadows */
-        .card-shadow {
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        /* Currency Ticker Styles */
+        .ticker-wrap {
+            position: relative;
+            overflow: hidden;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            color: #495057;
+            border-top: 1px solid #e9ecef;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .ticker {
+            display: inline-flex;
+            gap: 3rem;
+            white-space: nowrap;
+            animation: ticker-scroll 30s linear infinite;
+        }
+
+        .ticker-item {
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Ticker Scroll Animation */
+        @keyframes ticker-scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
         }
         
-        .card-shadow-lg {
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        /* Elegant cards */
+        .elegant-card {
+            background: #ffffff;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
         }
         
-        /* Loading spinner */
+        .elegant-card:hover {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.07);
+            transform: translateY(-2px);
+        }
+        
+        /* Classic buttons */
+        .classic-btn {
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .classic-btn-primary {
+            background-color: #0d8aed;
+            color: white;
+        }
+        
+        .classic-btn-primary:hover {
+            background-color: #026dc8;
+            transform: translateY(-1px);
+        }
+        
+        /* Elegant form elements */
+        .elegant-input {
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            padding: 10px 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .elegant-input:focus {
+            outline: none;
+            border-color: #0d8aed;
+            box-shadow: 0 0 0 3px rgba(13, 138, 237, 0.1);
+        }
+        
+        /* Section dividers */
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #E5E7EB, transparent);
+            margin: 3rem 0;
+        }
+        
+        /* Footer styling */
+        footer {
+            background: #121416;
+            color: #E5E7EB;
+        }
+        
+        footer a {
+            transition: color 0.3s ease;
+        }
+        
+        footer a:hover {
+            color: #ffffff;
+        }
+        
+        /* Status indicators */
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        /* Loading animation */
         .spinner {
-            border: 3px solid #f3f4f6;
-            border-top: 3px solid #3b82f6;
+            border: 2px solid #f3f4f6;
+            border-top: 2px solid #0d8aed;
             border-radius: 50%;
             width: 20px;
             height: 20px;
             animation: spin 1s linear infinite;
         }
         
-        /* Countdown timer styles */
-        .countdown-timer {
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            font-variant-numeric: tabular-nums;
-        }
-        
-        /* Trading card hover effects */
-        .trading-card {
-            transition: all 0.3s ease;
-        }
-        
-        .trading-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* Status indicators */
-        .status-active {
-            background-color: #22c55e;
-            animation: pulse 2s infinite;
-        }
-        
-        .status-pending {
-            background-color: #f59e0b;
-            animation: pulse 2s infinite;
-        }
-        
-        .status-completed {
-            background-color: #6b7280;
-        }
-        
-        /* Chart containers */
-        .chart-container {
-            position: relative;
-            height: 300px;
+        /* Table styling */
+        .elegant-table {
             width: 100%;
+            border-collapse: collapse;
         }
         
-        /* Mobile optimizations */
-        @media (max-width: 640px) {
+        .elegant-table th {
+            background-color: #f8f9fa;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        
+        .elegant-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        
+        .elegant-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .elegant-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
             .mobile-hidden {
                 display: none;
             }
             
-            .mobile-full {
-                width: 100vw;
-                margin-left: calc(-50vw + 50%);
+            .mobile-stack {
+                flex-direction: column;
             }
-        }
-        
-        /* Print styles */
-        @media print {
-            .no-print {
-                display: none !important;
-            }
-        }
-        
-        /* Dark mode support */
-        .dark .bg-white {
-            background-color: #1e293b;
-        }
-        
-        .dark .text-gray-900 {
-            color: #f1f5f9;
-        }
-        
-        .dark .border-gray-200 {
-            border-color: #334155;
         }
     </style>
     
@@ -263,104 +356,110 @@
 </head>
 <body class="h-full bg-gray-50 font-sans antialiased">
     <!-- Loading Overlay -->
-    <div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div id="loading-overlay" class="fixed inset-0 bg-white bg-opacity-80 flex items-center justify-center z-50 hidden">
         <div class="text-center">
             <div class="spinner mx-auto mb-4"></div>
             <p class="text-gray-600">Loading...</p>
         </div>
     </div>
     
+    <!-- Currency Ticker -->
+    <div class="ticker-wrap">
+        <div class="ticker">
+            <div class="ticker-item"><i class="fas fa-dollar-sign text-green-500"></i> EUR/USD: <span>1.0765 ▲</span></div>
+            <div class="ticker-item"><i class="fas fa-bitcoin text-yellow-500"></i> BTC/USD: <span>45230 ▲</span></div>
+            <div class="ticker-item"><i class="fas fa-coins text-blue-400"></i> ETH/USD: <span>3120 ▼</span></div>
+            <div class="ticker-item"><i class="fas fa-yen-sign text-red-400"></i> USD/JPY: <span>147.88 ▼</span></div>
+            <div class="ticker-item"><i class="fas fa-chart-line text-green-400"></i> Gold: <span>2150 ▲</span></div>
+            <div class="ticker-item"><i class="fas fa-euro-sign text-green-300"></i> GBP/USD: <span>1.2589 ▲</span></div>
+            <div class="ticker-item"><i class="fas fa-dollar-sign text-green-400"></i> AUD/USD: <span>0.6765 ▼</span></div>
+            <div class="ticker-item"><i class="fas fa-dollar-sign text-green-400"></i> USD/CAD: <span>1.3452 ▲</span></div>
+            <div class="ticker-item"><i class="fas fa-bitcoin text-yellow-400"></i> LTC/USD: <span>180.32 ▼</span></div>
+            <div class="ticker-item"><i class="fas fa-chart-line text-green-400"></i> Silver: <span>25.74 ▲</span></div>
+        </div>
+    </div>
+
     <!-- Navigation -->
-    <nav class="bg-white shadow-lg sticky top-0 z-40 border-b border-gray-200">
+    <nav class="sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
-                <!-- Logo and Brand -->
+                
+                <!-- Logo -->
                 <div class="flex items-center">
                     <a href="{% url 'core:home' %}" class="flex items-center space-x-3 group">
-                        <div class="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                        <div class="w-10 h-10 bg-accent-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shadow-sm">
                             <i class="fas fa-chart-line text-white text-lg"></i>
                         </div>
-                        <span class="text-xl font-bold font-heading text-gray-900 group-hover:text-primary-600 transition-colors duration-200">TradeVision</span>
+                        <span class="text-xl font-serif font-semibold text-gray-900 group-hover:text-accent-600 transition-colors duration-200">TradeVision</span>
                     </a>
                 </div>
-                
+
                 <!-- Desktop Navigation -->
                 <div class="hidden md:flex items-center space-x-1">
                     {% if user.is_authenticated %}
-                        <!-- Dashboard Navigation -->
-                        <a href="{% url 'trading:dashboard' %}" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200">
+                        <a href="{% url 'trading:dashboard' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">
                             <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                         </a>
-                        <a href="{% url 'trading:packages' %}" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200">
+                        <a href="{% url 'trading:packages' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">
                             <i class="fas fa-box mr-2"></i>Packages
                         </a>
-                        <a href="{% url 'payments:deposit' %}" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-success-600 hover:bg-success-50 transition-all duration-200">
+                        <a href="{% url 'payments:deposit' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-success-600">
                             <i class="fas fa-plus-circle mr-2"></i>Deposit
                         </a>
-                        <a href="{% url 'payments:withdraw' %}" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-warning-600 hover:bg-warning-50 transition-all duration-200">
+                        <a href="{% url 'payments:withdraw' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-warning-600">
                             <i class="fas fa-minus-circle mr-2"></i>Withdraw
                         </a>
-                        
-                        <!-- Wallet Balance (Desktop) -->
+
+                        <!-- Balance -->
                         {% if user.wallet %}
-                        <div class="px-3 py-2 bg-gray-100 rounded-lg ml-2">
+                        <div class="px-3 py-2 bg-gray-100 rounded-md ml-2 border border-gray-200">
                             <div class="text-xs text-gray-500">Balance</div>
                             <div class="text-sm font-semibold text-gray-900">
                                 {{ user.wallet.balance|floatformat:2 }} {{ user.wallet.currency }}
                             </div>
                         </div>
                         {% endif %}
-                        
+
                         <!-- User Dropdown -->
                         <div class="relative ml-3" x-data="{ open: false }">
-                            <button @click="open = !open" class="flex items-center space-x-2 text-gray-700 hover:text-primary-600 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200">
+                            <button @click="open = !open" class="flex items-center space-x-2 text-gray-700 hover:text-accent-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 border border-gray-200 hover:border-accent-200">
                                 {% if user.profile.avatar %}
                                     <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="w-8 h-8 rounded-full">
                                 {% else %}
-                                    <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                                        <i class="fas fa-user text-primary-600 text-sm"></i>
+                                    <div class="w-8 h-8 bg-accent-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user text-accent-600 text-sm"></i>
                                     </div>
                                 {% endif %}
                                 <span class="hidden lg:block">{{ user.full_name|default:user.email|truncatechars:15 }}</span>
                                 <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
                             </button>
-                            
-                            <!-- Dropdown Menu -->
-                            <div x-show="open" 
-                                 @click.away="open = false" 
-                                 x-transition:enter="transition ease-out duration-200"
-                                 x-transition:enter-start="opacity-0 scale-95"
-                                 x-transition:enter-end="opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-150"
-                                 x-transition:leave-start="opacity-100 scale-100"
-                                 x-transition:leave-end="opacity-0 scale-95"
-                                 class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-1 z-50 border border-gray-200">
-                                
-                                <!-- User Info -->
+
+                            <!-- Dropdown -->
+                            <div x-show="open"
+                                @click.away="open = false"
+                                x-transition
+                                class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-2 z-50 border border-gray-200">
                                 <div class="px-4 py-3 border-b border-gray-100">
                                     <p class="text-sm font-medium text-gray-900">{{ user.full_name|default:"User" }}</p>
                                     <p class="text-sm text-gray-500">{{ user.email }}</p>
                                 </div>
-                                
-                                <!-- Menu Items -->
-                                <a href="{% url 'accounts:profile' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                                <a href="{% url 'accounts:profile' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
                                     <i class="fas fa-user mr-3 text-gray-400"></i>Profile
                                 </a>
-                                <a href="{% url 'accounts:security' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                                <a href="{% url 'accounts:security' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
                                     <i class="fas fa-shield-alt mr-3 text-gray-400"></i>Security
                                 </a>
-                                <a href="{% url 'accounts:referrals' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                                <a href="{% url 'accounts:referrals' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
                                     <i class="fas fa-users mr-3 text-gray-400"></i>Referrals
                                 </a>
-                                <a href="{% url 'payments:transactions' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                                <a href="{% url 'payments:transactions' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
                                     <i class="fas fa-history mr-3 text-gray-400"></i>Transactions
                                 </a>
-                                <a href="{% url 'core:support_tickets' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200">
+                                <a href="{% url 'core:support_tickets' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
                                     <i class="fas fa-life-ring mr-3 text-gray-400"></i>Support
                                 </a>
-                                
                                 <div class="border-t border-gray-100 mt-1 pt-1">
-                                    <a href="{% url 'account_logout' %}" class="flex items-center px-4 py-2 text-sm text-danger-600 hover:bg-danger-50 transition-colors duration-200">
+                                    <a href="{% url 'account_logout' %}" class="flex items-center px-4 py-2 text-sm text-danger-600 hover:bg-danger-50 transition">
                                         <i class="fas fa-sign-out-alt mr-3"></i>Logout
                                     </a>
                                 </div>
@@ -368,72 +467,21 @@
                         </div>
                     {% else %}
                         <!-- Guest Navigation -->
-                        <a href="{% url 'core:about' %}" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200">About</a>
-                        <a href="{% url 'core:faq' %}" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200">FAQ</a>
-                        <a href="{% url 'account_login' %}" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all duration-200">Login</a>
-                        <a href="{% url 'account_signup' %}" class="bg-gradient-primary text-white px-6 py-2 rounded-lg text-sm font-medium hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                        <a href="{% url 'core:about' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">About</a>
+                        <a href="{% url 'core:faq' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">FAQ</a>
+                        <a href="{% url 'account_login' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">Login</a>
+                        <a href="{% url 'account_signup' %}" class="classic-btn classic-btn-primary ml-2">
                             Get Started
                         </a>
                     {% endif %}
                 </div>
-                
-                <!-- Mobile menu button -->
+
+                <!-- Mobile Button -->
                 <div class="md:hidden flex items-center">
-                    <button x-data @click="$dispatch('toggle-mobile-menu')" class="text-gray-700 hover:text-primary-600 p-2 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                    <button x-data @click="$dispatch('toggle-mobile-menu')" class="text-gray-700 hover:text-accent-600 p-2 rounded-md hover:bg-gray-100 transition-all duration-200 border border-gray-200">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Mobile Navigation -->
-        <div x-data="{ open: false }" 
-             @toggle-mobile-menu.window="open = !open" 
-             x-show="open" 
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 -translate-y-1"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-1"
-             class="md:hidden bg-white border-t border-gray-200 shadow-lg">
-            <div class="px-4 pt-2 pb-3 space-y-1">
-                {% if user.is_authenticated %}
-                    <!-- Wallet Balance (Mobile) -->
-                    {% if user.wallet %}
-                    <div class="px-3 py-3 bg-gradient-primary rounded-lg text-white mb-3">
-                        <div class="text-sm opacity-90">Your Balance</div>
-                        <div class="text-lg font-bold">{{ user.wallet.balance|floatformat:2 }} {{ user.wallet.currency }}</div>
-                    </div>
-                    {% endif %}
-                    
-                    <a href="{% url 'trading:dashboard' %}" class="mobile-nav-link block px-3 py-3 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200">
-                        <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
-                    </a>
-                    <a href="{% url 'trading:packages' %}" class="mobile-nav-link block px-3 py-3 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200">
-                        <i class="fas fa-box mr-3"></i>Packages
-                    </a>
-                    <a href="{% url 'payments:deposit' %}" class="mobile-nav-link block px-3 py-3 text-base font-medium text-gray-700 hover:text-success-600 hover:bg-success-50 rounded-lg transition-all duration-200">
-                        <i class="fas fa-plus-circle mr-3"></i>Deposit
-                    </a>
-                    <a href="{% url 'payments:withdraw' %}" class="mobile-nav-link block px-3 py-3 text-base font-medium text-gray-700 hover:text-warning-600 hover:bg-warning-50 rounded-lg transition-all duration-200">
-                        <i class="fas fa-minus-circle mr-3"></i>Withdraw
-                    </a>
-                    
-                    <div class="border-t border-gray-200 mt-3 pt-3">
-                        <a href="{% url 'accounts:profile' %}" class="mobile-nav-link block px-3 py-3 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200">
-                            <i class="fas fa-user mr-3"></i>Profile
-                        </a>
-                        <a href="{% url 'account_logout' %}" class="mobile-nav-link block px-3 py-3 text-base font-medium text-danger-600 hover:bg-danger-50 rounded-lg transition-all duration-200">
-                            <i class="fas fa-sign-out-alt mr-3"></i>Logout
-                        </a>
-                    </div>
-                {% else %}
-                    <a href="{% url 'core:about' %}" class="mobile-nav-link block px-3 py-3 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200">About</a>
-                    <a href="{% url 'core:faq' %}" class="mobile-nav-link block px-3 py-3 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200">FAQ</a>
-                    <a href="{% url 'account_login' %}" class="mobile-nav-link block px-3 py-3 text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200">Login</a>
-                    <a href="{% url 'account_signup' %}" class="mobile-nav-link block px-3 py-3 text-base font-medium bg-gradient-primary text-white hover:shadow-lg rounded-lg transition-all duration-200">Get Started</a>
-                {% endif %}
             </div>
         </div>
     </nav>
@@ -450,7 +498,7 @@
                      x-transition:leave="transition ease-in duration-200"
                      x-transition:leave-start="opacity-100 transform translate-x-0"
                      x-transition:leave-end="opacity-0 transform translate-x-full"
-                     class="bg-white shadow-lg rounded-lg overflow-hidden border-l-4 {% if message.tags == 'success' %}border-success-500{% elif message.tags == 'error' %}border-danger-500{% elif message.tags == 'warning' %}border-warning-500{% else %}border-primary-500{% endif %}">
+                     class="bg-white shadow-lg rounded-lg overflow-hidden border-l-4 {% if message.tags == 'success' %}border-success-500{% elif message.tags == 'error' %}border-danger-500{% elif message.tags == 'warning' %}border-warning-500{% else %}border-accent-500{% endif %}">
                     <div class="p-4">
                         <div class="flex items-start">
                             <div class="flex-shrink-0">
@@ -461,7 +509,7 @@
                                 {% elif message.tags == 'warning' %}
                                     <i class="fas fa-exclamation-triangle text-warning-500 text-xl"></i>
                                 {% else %}
-                                    <i class="fas fa-info-circle text-primary-500 text-xl"></i>
+                                    <i class="fas fa-info-circle text-accent-500 text-xl"></i>
                                 {% endif %}
                             </div>
                             <div class="ml-3 w-0 flex-1">
@@ -480,21 +528,21 @@
     {% endif %}
     
     <!-- Main Content -->
-    <main class="{% if user.is_authenticated %}{% else %}{% endif %}">
+    <main class="min-h-screen">
         {% block content %}{% endblock %}
     </main>
     
     <!-- Footer -->
-    <footer class="bg-dark-900 text-white mt-auto">
+    <footer>
         <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <!-- Brand Column -->
                 <div class="col-span-1 md:col-span-2">
                     <div class="flex items-center space-x-3 mb-6">
-                        <div class="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
+                        <div class="w-12 h-12 bg-accent-600 rounded-lg flex items-center justify-center">
                             <i class="fas fa-chart-line text-white text-xl"></i>
                         </div>
-                        <span class="text-2xl font-bold font-heading">TradeVision</span>
+                        <span class="text-2xl font-serif font-semibold text-white">TradeVision</span>
                     </div>
                     <p class="text-gray-300 mb-6 max-w-md">Empowering individuals with sustainable and transparent financial growth opportunities through smart trading solutions.</p>
                     
@@ -535,19 +583,19 @@
                     <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase mb-4">Support</h3>
                     <ul class="space-y-3">
                         <li class="flex items-center text-gray-300">
-                            <i class="fas fa-envelope mr-2 text-primary-500"></i> 
+                            <i class="fas fa-envelope mr-2 text-accent-400"></i> 
                             <a href="mailto:support@tradevision.com" class="hover:text-white transition-colors duration-200">support@tradevision.com</a>
                         </li>
                         <li class="flex items-center text-gray-300">
-                            <i class="fas fa-phone mr-2 text-primary-500"></i> 
+                            <i class="fas fa-phone mr-2 text-accent-400"></i> 
                             <a href="tel:+254700000000" class="hover:text-white transition-colors duration-200">+254 700 000 000</a>
                         </li>
                         <li class="flex items-center text-gray-300">
-                            <i class="fab fa-telegram mr-2 text-primary-500"></i> 
+                            <i class="fab fa-telegram mr-2 text-accent-400"></i> 
                             <a href="#" class="hover:text-white transition-colors duration-200">@TradeVisionSupport</a>
                         </li>
                         <li class="flex items-center text-gray-300">
-                            <i class="fab fa-whatsapp mr-2 text-primary-500"></i> 
+                            <i class="fab fa-whatsapp mr-2 text-accent-400"></i> 
                             <a href="#" class="hover:text-white transition-colors duration-200">+254 700 000 001</a>
                         </li>
                         <li><a href="{% url 'core:contact' %}" class="text-gray-300 hover:text-white transition-colors duration-200">Contact Form</a></li>
@@ -575,7 +623,7 @@
     
     <!-- Back to Top Button -->
     <button id="back-to-top" 
-            class="fixed bottom-6 right-6 bg-primary-600 text-white p-3 rounded-full shadow-lg hover:bg-primary-700 transition-all duration-300 transform hover:scale-110 hidden z-40">
+            class="fixed bottom-6 right-6 bg-accent-600 text-white p-3 rounded-full shadow-lg hover:bg-accent-700 transition-all duration-300 transform hover:scale-110 hidden z-40">
         <i class="fas fa-arrow-up"></i>
     </button>
     
@@ -586,6 +634,7 @@
     
     <!-- Chart.js (for trading charts) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     
     <!-- Custom JavaScript -->
     <script>
@@ -774,6 +823,32 @@
                     });
             });
         }
+
+        // Ticker value randomization
+        function randomizeValue(base, variation) {
+            let change = (Math.random() * variation * 2 - variation).toFixed(2);
+            let newValue = (base + parseFloat(change)).toFixed(2);
+            let arrow = change >= 0 ? "▲" : "▼";
+            let color = change >= 0 ? "text-green-500" : "text-red-500";
+            return { value: newValue, arrow: arrow, color: color };
+        }
+
+        function updateTicker() {
+            let eurusd = randomizeValue(1.0765, 0.01);
+            let btcusd = randomizeValue(45230, 300);
+            let ethusd = randomizeValue(3120, 50);
+            let usdjpy = randomizeValue(147.88, 0.5);
+            let gold   = randomizeValue(2150, 10);
+
+            document.querySelector(".ticker-item:nth-child(1) span").innerHTML = `<span class="font-bold ${eurusd.color}">${eurusd.value} ${eurusd.arrow}</span>`;
+            document.querySelector(".ticker-item:nth-child(2) span").innerHTML = `<span class="font-bold ${btcusd.color}">${btcusd.value} ${btcusd.arrow}</span>`;
+            document.querySelector(".ticker-item:nth-child(3) span").innerHTML = `<span class="font-bold ${ethusd.color}">${ethusd.value} ${ethusd.arrow}</span>`;
+            document.querySelector(".ticker-item:nth-child(4) span").innerHTML = `<span class="font-bold ${usdjpy.color}">${usdjpy.value} ${usdjpy.arrow}</span>`;
+            document.querySelector(".ticker-item:nth-child(5) span").innerHTML = `<span class="font-bold ${gold.color}">${gold.value} ${gold.arrow}</span>`;
+        }
+
+        // Update every 5 seconds
+        setInterval(updateTicker, 5000);
     </script>
     
     {% block extra_js %}{% endblock %}

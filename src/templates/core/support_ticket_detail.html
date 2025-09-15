@@ -1,338 +1,49 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "base.html" %}
 
-{% block title %}Ticket #{{ ticket.ticket_number }} - TradeVision{% endblock %}
+{% block title %}Support | TradeVision{% endblock %}
 
 {% block content %}
-<!-- Header -->
-<section class="bg-white border-b border-gray-200 py-8">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Breadcrumb -->
-        <nav class="mb-6">
-            <ol class="flex items-center space-x-2 text-sm text-gray-500">
-                <li><a href="{% url 'core:home' %}" class="hover:text-primary-600 transition-colors duration-200">Home</a></li>
-                <li><i class="fas fa-chevron-right text-xs"></i></li>
-                <li><a href="{% url 'core:support_tickets' %}" class="hover:text-primary-600 transition-colors duration-200">Support Tickets</a></li>
-                <li><i class="fas fa-chevron-right text-xs"></i></li>
-                <li class="text-gray-900">Ticket #{{ ticket.ticket_number }}</li>
-            </ol>
-        </nav>
-        
-        <!-- Ticket Header -->
-        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-            <div class="flex-1">
-                <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ ticket.subject }}</h1>
-                
-                <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-6">
-                    <span class="flex items-center">
-                        <i class="fas fa-ticket-alt mr-2"></i>
-                        Ticket #{{ ticket.ticket_number }}
-                    </span>
-                    <span class="flex items-center">
-                        <i class="fas fa-calendar mr-2"></i>
-                        Created {{ ticket.created_at|date:"M d, Y \a\t g:i A" }}
-                    </span>
-                    <span class="flex items-center">
-                        <i class="fas fa-folder mr-2"></i>
-                        {{ ticket.get_category_display }}
-                    </span>
-                    <span class="flex items-center">
-                        <i class="fas fa-flag mr-2 
-                            {% if ticket.priority == 'high' %}text-red-500
-                            {% elif ticket.priority == 'medium' %}text-yellow-500
-                            {% else %}text-green-500{% endif %}"></i>
-                        {{ ticket.get_priority_display }} Priority
-                    </span>
-                </div>
-            </div>
-            
-            <!-- Status Badge -->
-            <div class="flex items-center space-x-4">
-                <span class="px-4 py-2 rounded-full text-sm font-medium
-                    {% if ticket.status == 'open' %}bg-blue-100 text-blue-800
-                    {% elif ticket.status == 'in_progress' %}bg-yellow-100 text-yellow-800
-                    {% elif ticket.status == 'waiting_customer' %}bg-orange-100 text-orange-800
-                    {% elif ticket.status == 'resolved' %}bg-green-100 text-green-800
-                    {% elif ticket.status == 'closed' %}bg-gray-100 text-gray-800
-                    {% endif %}">
-                    <i class="fas fa-circle mr-2 text-xs"></i>
-                    {% if ticket.status == 'open' %}Open
-                    {% elif ticket.status == 'in_progress' %}In Progress
-                    {% elif ticket.status == 'waiting_customer' %}Waiting for Your Response
-                    {% elif ticket.status == 'resolved' %}Resolved
-                    {% elif ticket.status == 'closed' %}Closed
-                    {% endif %}
-                </span>
-            </div>
+<main class="pt-10">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- 🔹 Support Info Box -->
+    <div class="bg-white shadow-lg rounded-xl p-8 border border-gray-100">
+      <h1 class="text-2xl font-semibold text-gray-800 mb-4">Support Center</h1>
+      <p class="text-gray-600 leading-relaxed mb-6">
+        Need help? Our support team is here to assist you with technical issues, account
+        management, and product inquiries. Please use the contact details or open a ticket
+        below for faster assistance.
+      </p>
+
+      <!-- 🔹 Contact Details -->
+      <div class="space-y-4 mb-6">
+        <div>
+          <h2 class="text-lg font-medium text-gray-800">📧 Email Support</h2>
+          <p class="text-gray-600">support@tradevision.com</p>
         </div>
-    </div>
-</section>
-
-<!-- Ticket Content -->
-<section class="py-8 bg-gray-50">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-            <!-- Messages -->
-            <div class="divide-y divide-gray-200">
-                <!-- Initial Message -->
-                <div class="p-6">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            {% if ticket.user.profile.avatar %}
-                                <img src="{{ ticket.user.profile.avatar.url }}" 
-                                     alt="{{ ticket.user.get_full_name }}" 
-                                     class="w-full h-full rounded-full object-cover">
-                            {% else %}
-                                <i class="fas fa-user text-primary-600"></i>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-2">
-                                <div>
-                                    <span class="font-medium text-gray-900">
-                                        {{ ticket.user.get_full_name|default:ticket.user.username }}
-                                    </span>
-                                    <span class="text-sm text-gray-500 ml-2">(You)</span>
-                                </div>
-                                <time class="text-sm text-gray-500" datetime="{{ ticket.created_at|date:'c' }}">
-                                    {{ ticket.created_at|date:"M d, Y \a\t g:i A" }}
-                                </time>
-                            </div>
-                            
-                            <div class="prose prose-sm max-w-none text-gray-700">
-                                {{ ticket.description|linebreaks }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Additional Messages -->
-                {% for message in messages %}
-                <div class="p-6 {% if message.sender == ticket.user %}bg-blue-50{% endif %}">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
-                            {% if message.sender == ticket.user %}bg-primary-100{% else %}bg-gray-100{% endif %}">
-                            {% if message.sender.profile.avatar %}
-                                <img src="{{ message.sender.profile.avatar.url }}" 
-                                     alt="{{ message.sender.get_full_name }}" 
-                                     class="w-full h-full rounded-full object-cover">
-                            {% else %}
-                                {% if message.sender == ticket.user %}
-                                    <i class="fas fa-user text-primary-600"></i>
-                                {% else %}
-                                    <i class="fas fa-headset text-gray-600"></i>
-                                {% endif %}
-                            {% endif %}
-                        </div>
-                        
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-2">
-                                <div>
-                                    <span class="font-medium text-gray-900">
-                                        {% if message.sender == ticket.user %}
-                                            {{ message.sender.get_full_name|default:message.sender.username }}
-                                            <span class="text-sm text-gray-500 ml-2">(You)</span>
-                                        {% else %}
-                                            {{ message.sender.get_full_name|default:"Support Team" }}
-                                            <span class="text-sm text-gray-500 ml-2">(Support)</span>
-                                        {% endif %}
-                                    </span>
-                                </div>
-                                <time class="text-sm text-gray-500" datetime="{{ message.created_at|date:'c' }}">
-                                    {{ message.created_at|date:"M d, Y \a\t g:i A" }}
-                                </time>
-                            </div>
-                            
-                            <div class="prose prose-sm max-w-none text-gray-700">
-                                {{ message.message|linebreaks }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            
-            <!-- Reply Form -->
-            {% if ticket.status != 'closed' %}
-            <div class="p-6 bg-gray-50 border-t border-gray-200">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Add Response</h3>
-                
-                <form method="post" class="space-y-4">
-                    {% csrf_token %}
-                    <div>
-                        <label for="message" class="block text-sm font-medium text-gray-700 mb-2">
-                            Your Message
-                        </label>
-                        <textarea name="message" 
-                                  id="message" 
-                                  rows="5" 
-                                  required
-                                  placeholder="Type your response here..."
-                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-vertical"></textarea>
-                    </div>
-                    
-                    <div class="flex items-center justify-between">
-                        <div class="text-sm text-gray-500">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Our support team typically responds within 24 hours.
-                        </div>
-                        
-                        <button type="submit" 
-                                class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200 font-medium">
-                            <i class="fas fa-paper-plane mr-2"></i>Send Response
-                        </button>
-                    </div>
-                </form>
-            </div>
-            {% else %}
-            <div class="p-6 bg-gray-100 border-t border-gray-200 text-center">
-                <i class="fas fa-lock text-gray-400 text-2xl mb-2"></i>
-                <p class="text-gray-600">This ticket has been closed and cannot accept new responses.</p>
-                <p class="text-sm text-gray-500 mt-2">
-                    If you need further assistance, please 
-                    <a href="{% url 'core:create_support_ticket' %}" class="text-primary-600 hover:text-primary-700">create a new ticket</a>.
-                </p>
-            </div>
-            {% endif %}
+        <div>
+          <h2 class="text-lg font-medium text-gray-800">📞 Phone Support</h2>
+          <p class="text-gray-600">+254 700 123 456</p>
         </div>
-    </div>
-</section>
-
-<!-- Ticket Actions -->
-<section class="py-8 bg-white">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div class="text-sm text-gray-600">
-                <i class="fas fa-info-circle mr-1"></i>
-                Ticket created {{ ticket.created_at|timesince }} ago
-                {% if ticket.updated_at != ticket.created_at %}
-                    • Last updated {{ ticket.updated_at|timesince }} ago
-                {% endif %}
-            </div>
-            
-            <div class="flex items-center space-x-3">
-                <a href="{% url 'core:support_tickets' %}" 
-                   class="text-gray-600 hover:text-gray-700 font-medium text-sm">
-                    <i class="fas fa-arrow-left mr-1"></i>Back to All Tickets
-                </a>
-                
-                {% if ticket.status != 'closed' and ticket.status != 'resolved' %}
-                <button onclick="markAsResolved()" 
-                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm font-medium">
-                    <i class="fas fa-check mr-2"></i>Mark as Resolved
-                </button>
-                {% endif %}
-            </div>
+        <div>
+          <h2 class="text-lg font-medium text-gray-800">⏰ Working Hours</h2>
+          <p class="text-gray-600">Mon – Fri, 9:00 AM – 6:00 PM (EAT)</p>
         </div>
+      </div>
+
+      <!-- 🔹 Actions -->
+      <div class="flex flex-wrap gap-4">
+        <a href="{% url 'core:support_tickets' %}" 
+           class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">
+          Open Support Ticket
+        </a>
+        <a href="#" 
+           class="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-200 transition">
+          FAQs
+        </a>
+      </div>
     </div>
-</section>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-// Mark ticket as resolved
-function markAsResolved() {
-    if (confirm('Are you sure you want to mark this ticket as resolved?')) {
-        // This would make an AJAX call to update the ticket status
-        alert('This feature would mark the ticket as resolved via AJAX');
-        // In real implementation:
-        // fetch('/api/tickets/{{ ticket.pk }}/resolve/', { method: 'POST' })
-    }
-}
-
-// Auto-save draft messages
-let draftTimer;
-const messageTextarea = document.getElementById('message');
-
-if (messageTextarea) {
-    messageTextarea.addEventListener('input', function() {
-        clearTimeout(draftTimer);
-        draftTimer = setTimeout(saveDraft, 2000);
-    });
-    
-    // Load saved draft on page load
-    loadDraft();
-}
-
-function saveDraft() {
-    const message = messageTextarea.value;
-    if (message.trim()) {
-        localStorage.setItem('ticket_{{ ticket.pk }}_draft', message);
-        showDraftStatus('Draft saved');
-    }
-}
-
-function loadDraft() {
-    const draft = localStorage.getItem('ticket_{{ ticket.pk }}_draft');
-    if (draft && !messageTextarea.value) {
-        messageTextarea.value = draft;
-        showDraftStatus('Draft loaded');
-    }
-}
-
-function clearDraft() {
-    localStorage.removeItem('ticket_{{ ticket.pk }}_draft');
-}
-
-function showDraftStatus(message) {
-    // Create or update draft status indicator
-    let indicator = document.getElementById('draft-status');
-    if (!indicator) {
-        indicator = document.createElement('div');
-        indicator.id = 'draft-status';
-        indicator.className = 'text-xs text-gray-500 mt-1';
-        messageTextarea.parentElement.appendChild(indicator);
-    }
-    
-    indicator.textContent = message;
-    setTimeout(() => {
-        indicator.textContent = '';
-    }, 2000);
-}
-
-// Clear draft when form is submitted
-document.querySelector('form')?.addEventListener('submit', function() {
-    clearDraft();
-});
-
-// Character counter for message
-if (messageTextarea) {
-    const maxLength = 5000;
-    const counter = document.createElement('div');
-    counter.className = 'text-xs text-gray-500 mt-1 text-right';
-    messageTextarea.parentElement.appendChild(counter);
-    
-    function updateCounter() {
-        const remaining = maxLength - messageTextarea.value.length;
-        counter.textContent = `${remaining} characters remaining`;
-        
-        if (remaining < 100) {
-            counter.className = 'text-xs text-red-500 mt-1 text-right';
-        } else {
-            counter.className = 'text-xs text-gray-500 mt-1 text-right';
-        }
-    }
-    
-    messageTextarea.addEventListener('input', updateCounter);
-    updateCounter();
-}
-
-// Scroll to bottom of messages on load
-document.addEventListener('DOMContentLoaded', function() {
-    const messagesContainer = document.querySelector('.divide-y');
-    if (messagesContainer) {
-        const lastMessage = messagesContainer.lastElementChild;
-        if (lastMessage) {
-            lastMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-    }
-});
-
-// Real-time updates check (every 30 seconds)
-setInterval(function() {
-    // This would check for new messages via AJAX
-    console.log('Checking for new messages...');
-}, 30000);
-</script>
+  </div>
+</main>
 {% endblock %}

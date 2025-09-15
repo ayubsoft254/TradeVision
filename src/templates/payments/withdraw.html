@@ -8,12 +8,12 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header Section -->
         <div class="mb-8">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold font-heading text-gray-900">Withdraw Funds</h1>
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between">
+                <div class="mb-4 md:mb-0">
+                    <h1 class="text-3xl font-serif font-semibold text-gray-900">Withdraw Funds</h1>
                     <p class="mt-2 text-gray-600">Withdraw your profits to your preferred payment method</p>
                 </div>
-                <div class="text-right">
+                <div class="text-right bg-white p-4 rounded-lg shadow-sm border border-gray-200 min-w-[180px]">
                     <div class="text-sm text-gray-500">Available for Withdrawal</div>
                     <div class="text-2xl font-bold text-success-600">
                         {{ wallet.profit_balance|floatformat:2 }} {{ wallet.currency }}
@@ -24,7 +24,7 @@
 
         {% if wallet.profit_balance <= 0 %}
         <!-- No Withdrawable Balance -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+        <div class="elegant-card p-8 text-center">
             <div class="w-16 h-16 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-exclamation-triangle text-warning-600 text-2xl"></i>
             </div>
@@ -32,12 +32,12 @@
             <p class="text-gray-600 mb-6">You need to have profits in your account before you can make a withdrawal.</p>
             <div class="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
                 <a href="{% url 'trading:packages' %}" 
-                   class="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                   class="classic-btn classic-btn-primary">
                     <i class="fas fa-chart-line mr-2"></i>
                     Start Trading
                 </a>
                 <a href="{% url 'payments:deposit' %}" 
-                   class="inline-flex items-center px-6 py-3 bg-success-600 text-white rounded-lg hover:bg-success-700 transition-colors duration-200">
+                   class="classic-btn bg-success-600 hover:bg-success-700 text-white">
                     <i class="fas fa-plus-circle mr-2"></i>
                     Make Deposit
                 </a>
@@ -48,18 +48,18 @@
             <!-- Main Content -->
             <div class="lg:col-span-2">
                 <!-- Withdrawal Statistics -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                <div class="elegant-card p-6 mb-8">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">Withdrawal Overview</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="text-center p-4 bg-gradient-warning rounded-lg text-white">
+                        <div class="text-center p-4 bg-gradient-to-br from-warning-500 to-warning-600 rounded-lg text-white">
                             <div class="text-2xl font-bold">{{ withdrawal_stats.total_withdrawals|floatformat:2 }}</div>
                             <div class="text-sm opacity-90">Total Withdrawals</div>
                         </div>
-                        <div class="text-center p-4 bg-gradient-primary rounded-lg text-white">
+                        <div class="text-center p-4 bg-gradient-to-br from-accent-500 to-accent-600 rounded-lg text-white">
                             <div class="text-2xl font-bold">{{ withdrawal_stats.pending_withdrawals }}</div>
                             <div class="text-sm opacity-90">Pending</div>
                         </div>
-                        <div class="text-center p-4 bg-gradient-success rounded-lg text-white">
+                        <div class="text-center p-4 bg-gradient-to-br from-success-500 to-success-600 rounded-lg text-white">
                             <div class="text-2xl font-bold">{{ withdrawal_stats.available_balance|floatformat:2 }}</div>
                             <div class="text-sm opacity-90">Available</div>
                         </div>
@@ -67,10 +67,10 @@
                 </div>
 
                 <!-- Balance Breakdown -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+                <div class="elegant-card p-6 mb-8">
                     <h2 class="text-lg font-semibold text-gray-900 mb-4">Account Balance</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                             <div class="flex items-center justify-between">
                                 <div>
                                     <div class="text-sm text-gray-500">Total Balance</div>
@@ -81,18 +81,18 @@
                                 <i class="fas fa-wallet text-gray-400 text-2xl"></i>
                             </div>
                         </div>
-                        <div class="bg-primary-50 rounded-lg p-4">
+                        <div class="bg-accent-50 rounded-lg p-4 border border-accent-200">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <div class="text-sm text-primary-600">Trading Balance</div>
-                                    <div class="text-xl font-semibold text-primary-700">
+                                    <div class="text-sm text-accent-600">Trading Balance</div>
+                                    <div class="text-xl font-semibold text-accent-700">
                                         {{ wallet.balance|floatformat:2 }} {{ wallet.currency }}
                                     </div>
                                 </div>
-                                <i class="fas fa-chart-line text-primary-400 text-2xl"></i>
+                                <i class="fas fa-chart-line text-accent-400 text-2xl"></i>
                             </div>
                         </div>
-                        <div class="bg-success-50 rounded-lg p-4">
+                        <div class="bg-success-50 rounded-lg p-4 border border-success-200">
                             <div class="flex items-center justify-between">
                                 <div>
                                     <div class="text-sm text-success-600">Profit Balance</div>
@@ -103,7 +103,7 @@
                                 <i class="fas fa-arrow-up text-success-400 text-2xl"></i>
                             </div>
                         </div>
-                        <div class="bg-warning-50 rounded-lg p-4">
+                        <div class="bg-warning-50 rounded-lg p-4 border border-warning-200">
                             <div class="flex items-center justify-between">
                                 <div>
                                     <div class="text-sm text-warning-600">Locked Balance</div>
@@ -118,8 +118,13 @@
                 </div>
 
                 <!-- Payment Methods -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-6">Choose Withdrawal Method</h2>
+                <div class="elegant-card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900">Choose Withdrawal Method</h2>
+                        <button onclick="showWithdrawalCalculator()" class="text-sm text-accent-600 hover:text-accent-700 flex items-center">
+                            <i class="fas fa-calculator mr-1"></i> Fee Calculator
+                        </button>
+                    </div>
                     
                     {% if payment_methods %}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -128,7 +133,7 @@
                                class="block p-6 border border-gray-200 rounded-lg hover:border-success-300 hover:bg-success-50 transition-all duration-200 group">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center space-x-4">
-                                        <div class="w-12 h-12 bg-gradient-success rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-success-500 to-success-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
                                             {% if method.name == 'binance_pay' %}
                                                 <i class="fab fa-bitcoin text-white text-xl"></i>
                                             {% elif method.name == 'mobile_money' %}
@@ -163,7 +168,7 @@
                             <i class="fas fa-credit-card text-gray-400 text-4xl mb-4"></i>
                             <h3 class="text-lg font-medium text-gray-900 mb-2">No Withdrawal Methods Available</h3>
                             <p class="text-gray-500">Withdrawal methods for your region are currently being set up.</p>
-                            <a href="{% url 'core:support_tickets' %}" class="inline-flex items-center mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors duration-200">
+                            <a href="{% url 'core:support_tickets' %}" class="classic-btn classic-btn-primary mt-4 inline-flex items-center">
                                 <i class="fas fa-headset mr-2"></i>
                                 Contact Support
                             </a>
@@ -175,8 +180,8 @@
             <!-- Sidebar -->
             <div class="space-y-6">
                 <!-- Withdrawal Information -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <div class="elegant-card p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <i class="fas fa-info-circle text-success-500 mr-2"></i>
                         Withdrawal Information
                     </h3>
@@ -206,8 +211,8 @@
 
                 <!-- Recent Withdrawals -->
                 {% if recent_withdrawals %}
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <div class="elegant-card p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <i class="fas fa-history text-success-500 mr-2"></i>
                         Recent Withdrawals
                     </h3>
@@ -226,12 +231,12 @@
                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                                     {% if withdrawal.status == 'completed' %}bg-success-100 text-success-800
                                     {% elif withdrawal.status == 'pending' %}bg-warning-100 text-warning-800
-                                    {% elif withdrawal.status == 'processing' %}bg-primary-100 text-primary-800
+                                    {% elif withdrawal.status == 'processing' %}bg-accent-100 text-accent-800
                                     {% else %}bg-gray-100 text-gray-800{% endif %}">
                                     {{ withdrawal.status|title }}
                                 </span>
                                 <a href="{% url 'payments:transaction_detail' withdrawal.id %}" 
-                                   class="text-primary-600 hover:text-primary-700">
+                                   class="text-accent-600 hover:text-accent-700">
                                     <i class="fas fa-external-link-alt text-xs"></i>
                                 </a>
                             </div>
@@ -240,16 +245,16 @@
                     </div>
                     <div class="mt-4 pt-4 border-t border-gray-100">
                         <a href="{% url 'payments:transactions' %}?type=withdrawal" 
-                           class="text-primary-600 hover:text-primary-700 text-sm font-medium">
-                            View All Withdrawals <i class="fas fa-arrow-right ml-1"></i>
+                           class="text-accent-600 hover:text-accent-700 text-sm font-medium flex items-center">
+                            View All Withdrawals <i class="fas fa-arrow-right ml-1 text-xs"></i>
                         </a>
                     </div>
                 </div>
                 {% endif %}
 
                 <!-- Security Notice -->
-                <div class="bg-gradient-warning rounded-lg p-6 text-white">
-                    <h3 class="font-semibold mb-2">
+                <div class="bg-gradient-to-br from-warning-500 to-warning-600 rounded-lg p-6 text-white">
+                    <h3 class="font-semibold mb-2 flex items-center">
                         <i class="fas fa-shield-alt mr-2"></i>
                         Secure Withdrawals
                     </h3>
@@ -271,9 +276,9 @@
 <div x-data="{ showCalculator: false }" 
      x-show="showCalculator" 
      x-cloak
-     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
      @keydown.escape.window="showCalculator = false">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+    <div class="elegant-card p-6 max-w-md w-full">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold text-gray-900">Withdrawal Fee Calculator</h3>
             <button @click="showCalculator = false" class="text-gray-400 hover:text-gray-600">
@@ -285,7 +290,7 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Amount to Withdraw</label>
                 <input type="number" id="calc-amount" 
                        max="{{ wallet.profit_balance }}"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500" 
+                       class="elegant-input w-full" 
                        placeholder="Enter amount">
                 <div class="text-xs text-gray-500 mt-1">
                     Maximum: {{ wallet.profit_balance|floatformat:2 }} {{ wallet.currency }}
@@ -293,14 +298,14 @@
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
-                <select id="calc-method" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                <select id="calc-method" class="elegant-input w-full">
                     <option value="">Select method</option>
                     {% for method in payment_methods %}
                     <option value="{{ method.name }}" data-fee="{{ method.processing_fee }}">{{ method.display_name }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div id="calc-results" class="hidden bg-gray-50 rounded-lg p-4">
+            <div id="calc-results" class="hidden bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
                         <span>Withdrawal Amount:</span>
@@ -316,7 +321,7 @@
                     </div>
                 </div>
             </div>
-            <button onclick="calculateWithdrawalFees()" class="w-full bg-warning-600 text-white py-2 rounded-lg hover:bg-warning-700 transition-colors duration-200">
+            <button onclick="calculateWithdrawalFees()" class="classic-btn classic-btn-primary w-full">
                 Calculate Fees
             </button>
         </div>
@@ -332,17 +337,56 @@ function calculateWithdrawalFees() {
     const maxAmount = {{ wallet.profit_balance }};
     
     if (!amount || !fee) {
-        alert('Please enter amount and select payment method');
+        // Create a nice toast notification instead of alert
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-danger-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-up';
+        toast.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <span>Please enter amount and select payment method</span>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 5000);
         return;
     }
     
     if (amount > maxAmount) {
-        alert(`Amount cannot exceed your available balance of ${maxAmount} {{ wallet.currency }}`);
+        // Create a nice toast notification instead of alert
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-warning-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-up';
+        toast.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span>Amount cannot exceed your available balance of ${maxAmount} {{ wallet.currency }}</span>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 5000);
         return;
     }
     
     if (amount < 10) {
-        alert('Minimum withdrawal amount is 10 {{ wallet.currency }}');
+        // Create a nice toast notification instead of alert
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-warning-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-up';
+        toast.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span>Minimum withdrawal amount is 10 {{ wallet.currency }}</span>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 5000);
         return;
     }
     

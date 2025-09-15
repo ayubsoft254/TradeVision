@@ -3,83 +3,163 @@
 
 {% block title %}My Support Tickets - TradeVision{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ========================
+   CORPORATE CLEAN STYLING
+   ======================== */
+
+/* Section headers */
+.bg-gradient-bg {
+    background: linear-gradient(90deg, #2563eb 0%, #1e40af 100%);
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #2563eb;
+    color: #fff;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+.btn-primary:hover {
+    background-color: #1d4ed8;
+}
+
+/* Secondary buttons */
+.btn-outline {
+    border: 1px solid #2563eb;
+    color: #2563eb;
+    font-weight: 500;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+.btn-outline:hover {
+    background-color: #f1f5f9;
+}
+
+/* Ticket cards */
+.ticket-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+.ticket-card:hover {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+}
+
+/* Filter buttons */
+.filter-btn {
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: #374151;
+    transition: all 0.2s ease;
+}
+.filter-btn:hover {
+    background: #f3f4f6;
+}
+.filter-btn.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+/* Status badges */
+.status-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3rem 0.75rem;
+    border-radius: 9999px;
+}
+
+/* Pagination */
+.pagination a,
+.pagination span {
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+.pagination a {
+    border: 1px solid #d1d5db;
+    color: #374151;
+}
+.pagination a:hover {
+    background: #f3f4f6;
+}
+.pagination span {
+    background: #2563eb;
+    color: #fff;
+    font-weight: 600;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Header -->
 <section class="bg-gradient-bg text-white py-16">
-    <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-        <h1 class="text-4xl font-bold font-heading mb-4">Support Tickets</h1>
-        <p class="text-xl text-gray-200">Track and manage your support requests</p>
+    <div class="max-w-4xl mx-auto text-center px-6">
+        <h1 class="text-4xl font-bold mb-4">Support Tickets</h1>
+        <p class="text-lg text-gray-200">Track and manage your support requests efficiently</p>
     </div>
 </section>
 
 <!-- Tickets Overview -->
 <section class="py-8 bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <!-- Summary Stats -->
-            <div class="grid grid-cols-3 gap-4 lg:gap-6">
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-blue-600">{{ tickets|length }}</div>
-                    <div class="text-sm text-gray-600">Total Tickets</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-yellow-600">
-                        {% for ticket in tickets %}{% if ticket.status == 'open' or ticket.status == 'in_progress' %}{{ forloop.counter0|add:1 }}{% endif %}{% endfor %}
-                    </div>
-                    <div class="text-sm text-gray-600">Active</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-green-600">
-                        {% for ticket in tickets %}{% if ticket.status == 'resolved' %}{{ forloop.counter0|add:1 }}{% endif %}{% endfor %}
-                    </div>
-                    <div class="text-sm text-gray-600">Resolved</div>
-                </div>
+    <div class="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-3 gap-6">
+            <div class="text-center">
+                <div class="text-2xl font-bold text-blue-600">{{ tickets|length }}</div>
+                <div class="text-sm text-gray-600">Total Tickets</div>
             </div>
-            
-            <!-- Create New Ticket Button -->
-            <div>
-                <a href="{% url 'core:create_support_ticket' %}" 
-                   class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200 inline-flex items-center">
-                    <i class="fas fa-plus mr-2"></i>New Ticket
-                </a>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-yellow-600">
+                    {% for ticket in tickets %}{% if ticket.status == 'open' or ticket.status == 'in_progress' %}{{ forloop.counter0|add:1 }}{% endif %}{% endfor %}
+                </div>
+                <div class="text-sm text-gray-600">Active</div>
             </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-green-600">
+                    {% for ticket in tickets %}{% if ticket.status == 'resolved' %}{{ forloop.counter0|add:1 }}{% endif %}{% endfor %}
+                </div>
+                <div class="text-sm text-gray-600">Resolved</div>
+            </div>
+        </div>
+
+        <!-- Create New Ticket Button -->
+        <div>
+            <a href="{% url 'core:create_support_ticket' %}" class="btn-primary inline-flex items-center">
+                <i class="fas fa-plus mr-2"></i> New Ticket
+            </a>
         </div>
     </div>
 </section>
 
 <!-- Tickets List -->
 <section class="py-16 bg-gray-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto px-6">
         {% if tickets %}
             <!-- Filter and Sort -->
             <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div class="flex flex-wrap gap-2">
-                    <button onclick="filterTickets('all')" 
-                            class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium bg-primary-100 text-primary-800 hover:bg-primary-200 transition-colors duration-200">
-                        All Tickets
-                    </button>
-                    <button onclick="filterTickets('open')" 
-                            class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors duration-200">
-                        Open
-                    </button>
-                    <button onclick="filterTickets('in_progress')" 
-                            class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors duration-200">
-                        In Progress
-                    </button>
-                    <button onclick="filterTickets('waiting_customer')" 
-                            class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors duration-200">
-                        Waiting for Response
-                    </button>
-                    <button onclick="filterTickets('resolved')" 
-                            class="filter-btn px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors duration-200">
-                        Resolved
-                    </button>
+                    <button onclick="filterTickets('all')" class="filter-btn active">All Tickets</button>
+                    <button onclick="filterTickets('open')" class="filter-btn">Open</button>
+                    <button onclick="filterTickets('in_progress')" class="filter-btn">In Progress</button>
+                    <button onclick="filterTickets('waiting_customer')" class="filter-btn">Waiting for Response</button>
+                    <button onclick="filterTickets('resolved')" class="filter-btn">Resolved</button>
                 </div>
-                
+
                 <div class="flex items-center space-x-2">
                     <label for="sort-tickets" class="text-sm text-gray-600">Sort by:</label>
-                    <select id="sort-tickets" onchange="sortTickets()" 
-                            class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    <select id="sort-tickets" onchange="sortTickets()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm">
                         <option value="newest">Newest First</option>
                         <option value="oldest">Oldest First</option>
                         <option value="priority">Priority</option>
@@ -87,125 +167,61 @@
                     </select>
                 </div>
             </div>
-            
+
             <!-- Tickets Grid -->
             <div class="grid grid-cols-1 gap-6" id="tickets-container">
                 {% for ticket in tickets %}
-                <div class="ticket-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200" 
-                     data-status="{{ ticket.status }}" data-priority="{{ ticket.priority }}" data-date="{{ ticket.created_at|date:'c' }}">
-                    <div class="p-6">
-                        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                            <!-- Ticket Info -->
-                            <div class="flex-1">
-                                <div class="flex items-start justify-between mb-3">
-                                    <div>
-                                        <h3 class="text-lg font-semibold text-gray-900 mb-1">
-                                            <a href="{% url 'core:support_ticket_detail' ticket.pk %}" 
-                                               class="hover:text-primary-600 transition-colors duration-200">
-                                                {{ ticket.subject }}
-                                            </a>
-                                        </h3>
-                                        <p class="text-sm text-gray-500">
-                                            Ticket #{{ ticket.ticket_number }} • 
-                                            Created {{ ticket.created_at|timesince }} ago
-                                        </p>
-                                    </div>
-                                    
-                                    <!-- Status Badge -->
-                                    <span class="status-badge px-3 py-1 rounded-full text-xs font-medium
-                                        {% if ticket.status == 'open' %}bg-blue-100 text-blue-800
-                                        {% elif ticket.status == 'in_progress' %}bg-yellow-100 text-yellow-800
-                                        {% elif ticket.status == 'waiting_customer' %}bg-orange-100 text-orange-800
-                                        {% elif ticket.status == 'resolved' %}bg-green-100 text-green-800
-                                        {% elif ticket.status == 'closed' %}bg-gray-100 text-gray-800
-                                        {% endif %}">
-                                        {% if ticket.status == 'open' %}Open
-                                        {% elif ticket.status == 'in_progress' %}In Progress
-                                        {% elif ticket.status == 'waiting_customer' %}Waiting for You
-                                        {% elif ticket.status == 'resolved' %}Resolved
-                                        {% elif ticket.status == 'closed' %}Closed
-                                        {% endif %}
-                                    </span>
+                <div class="ticket-card p-6" data-status="{{ ticket.status }}" data-priority="{{ ticket.priority }}" data-date="{{ ticket.created_at|date:'c' }}">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-3">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                                        <a href="{% url 'core:support_ticket_detail' ticket.pk %}" class="hover:text-primary-600">
+                                            {{ ticket.subject }}
+                                        </a>
+                                    </h3>
+                                    <p class="text-sm text-gray-500">
+                                        Ticket #{{ ticket.ticket_number }} • Created {{ ticket.created_at|timesince }} ago
+                                    </p>
                                 </div>
-                                
-                                <!-- Description Preview -->
-                                <p class="text-gray-600 mb-4 line-clamp-2">
-                                    {{ ticket.description|truncatewords:25 }}
-                                </p>
-                                
-                                <!-- Ticket Meta -->
-                                <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                                    <span class="flex items-center">
-                                        <i class="fas fa-folder mr-1"></i>
-                                        {{ ticket.get_category_display }}
-                                    </span>
-                                    <span class="flex items-center priority-{{ ticket.priority }}">
-                                        <i class="fas fa-flag mr-1 
-                                            {% if ticket.priority == 'high' %}text-red-500
-                                            {% elif ticket.priority == 'medium' %}text-yellow-500
-                                            {% else %}text-green-500{% endif %}"></i>
-                                        {{ ticket.get_priority_display }} Priority
-                                    </span>
-                                    {% if ticket.last_response_at %}
-                                    <span class="flex items-center">
-                                        <i class="fas fa-clock mr-1"></i>
-                                        Last response {{ ticket.last_response_at|timesince }} ago
-                                    </span>
-                                    {% endif %}
-                                </div>
+
+                                <span class="status-badge 
+                                    {% if ticket.status == 'open' %}bg-blue-100 text-blue-800
+                                    {% elif ticket.status == 'in_progress' %}bg-yellow-100 text-yellow-800
+                                    {% elif ticket.status == 'waiting_customer' %}bg-orange-100 text-orange-800
+                                    {% elif ticket.status == 'resolved' %}bg-green-100 text-green-800
+                                    {% elif ticket.status == 'closed' %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ ticket.get_status_display }}
+                                </span>
                             </div>
-                            
-                            <!-- Actions -->
-                            <div class="flex items-center space-x-3">
-                                {% if ticket.status == 'waiting_customer' %}
-                                <div class="flex items-center text-orange-600 bg-orange-50 px-3 py-2 rounded-lg">
-                                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                                    <span class="text-sm font-medium">Response Needed</span>
-                                </div>
+
+                            <p class="text-gray-600 mb-4 line-clamp-2">
+                                {{ ticket.description|truncatewords:25 }}
+                            </p>
+
+                            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                                <span><i class="fas fa-folder mr-1"></i> {{ ticket.get_category_display }}</span>
+                                <span class="priority-{{ ticket.priority }}">
+                                    <i class="fas fa-flag mr-1 
+                                        {% if ticket.priority == 'high' %}text-red-500
+                                        {% elif ticket.priority == 'medium' %}text-yellow-500
+                                        {% else %}text-green-500{% endif %}"></i>
+                                    {{ ticket.get_priority_display }} Priority
+                                </span>
+                                {% if ticket.last_response_at %}
+                                <span><i class="fas fa-clock mr-1"></i> Last response {{ ticket.last_response_at|timesince }} ago</span>
                                 {% endif %}
-                                
-                                <a href="{% url 'core:support_ticket_detail' ticket.pk %}" 
-                                   class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors duration-200 text-sm font-medium">
-                                    View Details
-                                </a>
                             </div>
+                        </div>
+
+                        <div class="flex items-center space-x-3">
+                            <a href="{% url 'core:support_ticket_detail' ticket.pk %}" class="btn-outline">View Details</a>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
-            
-            <!-- Pagination -->
-            {% if is_paginated %}
-            <div class="mt-12 flex justify-center">
-                <nav class="flex items-center space-x-2">
-                    {% if page_obj.has_previous %}
-                        <a href="?page={{ page_obj.previous_page_number }}" 
-                           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
-                            <i class="fas fa-chevron-left mr-1"></i>Previous
-                        </a>
-                    {% endif %}
-                    
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                            <span class="px-4 py-2 bg-primary-600 text-white rounded-lg">{{ num }}</span>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <a href="?page={{ num }}" 
-                               class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
-                                {{ num }}
-                            </a>
-                        {% endif %}
-                    {% endfor %}
-                    
-                    {% if page_obj.has_next %}
-                        <a href="?page={{ page_obj.next_page_number }}" 
-                           class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
-                            Next<i class="fas fa-chevron-right ml-1"></i>
-                        </a>
-                    {% endif %}
-                </nav>
-            </div>
-            {% endif %}
         {% else %}
             <!-- No Tickets State -->
             <div class="text-center py-16">
@@ -216,165 +232,65 @@
                 <p class="text-gray-600 mb-8 max-w-md mx-auto">
                     You haven't created any support tickets. If you need help, don't hesitate to reach out to our support team.
                 </p>
-                
+
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="{% url 'core:create_support_ticket' %}" 
-                       class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors duration-200">
-                        <i class="fas fa-plus mr-2"></i>Create Ticket
-                    </a>
-                    <a href="{% url 'core:faq' %}" 
-                       class="border border-primary-600 text-primary-600 px-6 py-3 rounded-lg hover:bg-primary-50 transition-colors duration-200">
-                        <i class="fas fa-question-circle mr-2"></i>Browse FAQ
-                    </a>
-                    <a href="{% url 'core:contact' %}" 
-                       class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                        <i class="fas fa-envelope mr-2"></i>Contact Us
-                    </a>
+                    <a href="{% url 'core:create_support_ticket' %}" class="btn-primary"><i class="fas fa-plus mr-2"></i>Create Ticket</a>
+                    <a href="{% url 'core:faq' %}" class="btn-outline"><i class="fas fa-question-circle mr-2"></i>Browse FAQ</a>
+                    <a href="{% url 'core:contact' %}" class="btn-outline"><i class="fas fa-envelope mr-2"></i>Contact Us</a>
                 </div>
             </div>
         {% endif %}
-    </div>
-</section>
-
-<!-- Quick Help -->
-<section class="py-12 bg-white">
-    <div class="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-8">Need Quick Help?</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="text-center">
-                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-question-circle text-blue-600 text-2xl"></i>
-                </div>
-                <h3 class="font-semibold text-gray-900 mb-2">Browse FAQ</h3>
-                <p class="text-sm text-gray-600 mb-4">Find answers to commonly asked questions</p>
-                <a href="{% url 'core:faq' %}" 
-                   class="text-primary-600 hover:text-primary-700 font-medium text-sm">
-                    View FAQ <i class="fas fa-arrow-right ml-1"></i>
-                </a>
-            </div>
-            
-            <div class="text-center">
-                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-comments text-green-600 text-2xl"></i>
-                </div>
-                <h3 class="font-semibold text-gray-900 mb-2">Live Chat</h3>
-                <p class="text-sm text-gray-600 mb-4">Chat with our support team in real-time</p>
-                <button onclick="openLiveChat()" 
-                        class="text-primary-600 hover:text-primary-700 font-medium text-sm">
-                    Start Chat <i class="fas fa-arrow-right ml-1"></i>
-                </button>
-            </div>
-            
-            <div class="text-center">
-                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-envelope text-purple-600 text-2xl"></i>
-                </div>
-                <h3 class="font-semibold text-gray-900 mb-2">Email Support</h3>
-                <p class="text-sm text-gray-600 mb-4">Send us an email for detailed assistance</p>
-                <a href="mailto:support@tradevision.com" 
-                   class="text-primary-600 hover:text-primary-700 font-medium text-sm">
-                    Send Email <i class="fas fa-arrow-right ml-1"></i>
-                </a>
-            </div>
-        </div>
     </div>
 </section>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Filter tickets by status
+// ====== FILTER TICKETS ======
 function filterTickets(status) {
-    const tickets = document.querySelectorAll('.ticket-card');
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    
-    // Update active filter button
-    filterBtns.forEach(btn => {
-        btn.classList.remove('active', 'bg-primary-100', 'text-primary-800');
-        btn.classList.add('bg-gray-100', 'text-gray-700');
-    });
-    
-    event.target.classList.add('active', 'bg-primary-100', 'text-primary-800');
-    event.target.classList.remove('bg-gray-100', 'text-gray-700');
-    
-    // Filter tickets
-    tickets.forEach(ticket => {
-        if (status === 'all' || ticket.dataset.status === status) {
-            ticket.style.display = 'block';
-        } else {
-            ticket.style.display = 'none';
-        }
-    });
-    
-    // Update visible count
-    updateVisibleCount();
+  const buttons = document.querySelectorAll(".filter-btn");
+  const tickets = document.querySelectorAll(".ticket-card");
+
+  buttons.forEach(btn => btn.classList.remove("active"));
+  event.target.classList.add("active");
+
+  tickets.forEach(ticket => {
+    if (status === "all" || ticket.dataset.status === status) {
+      ticket.style.display = "block";
+    } else {
+      ticket.style.display = "none";
+    }
+  });
 }
 
-// Sort tickets
+// ====== SORT TICKETS ======
 function sortTickets() {
-    const container = document.getElementById('tickets-container');
-    const tickets = Array.from(container.querySelectorAll('.ticket-card'));
-    const sortBy = document.getElementById('sort-tickets').value;
-    
-    tickets.sort((a, b) => {
-        switch(sortBy) {
-            case 'newest':
-                return new Date(b.dataset.date) - new Date(a.dataset.date);
-            case 'oldest':
-                return new Date(a.dataset.date) - new Date(b.dataset.date);
-            case 'priority':
-                const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 };
-                return priorityOrder[b.dataset.priority] - priorityOrder[a.dataset.priority];
-            case 'status':
-                return a.dataset.status.localeCompare(b.dataset.status);
-            default:
-                return 0;
-        }
-    });
-    
-    // Re-append sorted tickets
-    tickets.forEach(ticket => container.appendChild(ticket));
+  const container = document.getElementById("tickets-container");
+  const tickets = Array.from(container.children);
+  const sortBy = document.getElementById("sort-tickets").value;
+
+  let sorted = tickets;
+
+  if (sortBy === "newest") {
+    sorted = tickets.sort((a, b) =>
+      new Date(b.dataset.date) - new Date(a.dataset.date)
+    );
+  } else if (sortBy === "oldest") {
+    sorted = tickets.sort((a, b) =>
+      new Date(a.dataset.date) - new Date(b.dataset.date)
+    );
+  } else if (sortBy === "priority") {
+    const priorityOrder = { high: 1, medium: 2, low: 3 };
+    sorted = tickets.sort((a, b) =>
+      priorityOrder[a.dataset.priority] - priorityOrder[b.dataset.priority]
+    );
+  } else if (sortBy === "status") {
+    sorted = tickets.sort((a, b) =>
+      a.dataset.status.localeCompare(b.dataset.status)
+    );
+  }
+
+  sorted.forEach(ticket => container.appendChild(ticket));
 }
-
-// Update visible ticket count
-function updateVisibleCount() {
-    const visibleTickets = document.querySelectorAll('.ticket-card[style="display: block"], .ticket-card:not([style*="display: none"])');
-    console.log(`Showing ${visibleTickets.length} tickets`);
-}
-
-// Open live chat (placeholder)
-function openLiveChat() {
-    alert('Live chat feature will be implemented soon. Please create a support ticket for now.');
-}
-
-// Auto-refresh ticket status (every 5 minutes)
-function autoRefreshTickets() {
-    // This would make an AJAX call to check for ticket updates
-    console.log('Checking for ticket updates...');
-    
-    // Simulate status updates (in real implementation, this would be an API call)
-    setTimeout(() => {
-        // You could update ticket statuses here
-        console.log('Ticket status check complete');
-    }, 1000);
-}
-
-// Initialize auto-refresh
-setInterval(autoRefreshTickets, 300000); // 5 minutes
-
-// Initialize page
-document.addEventListener('DOMContentLoaded', function() {
-    updateVisibleCount();
-    
-    // Add smooth transitions to filter buttons
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('mouseenter', function() {
-            if (!this.classList.contains('active')) {
-                this.classList.add('hover:scale-105');
-            }
-        });
-    });
-});
 </script>
 {% endblock %}
