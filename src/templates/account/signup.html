@@ -3,92 +3,407 @@
 
 {% block title %}Create Account - TradeVision{% endblock %}
 
+{% block extra_css %}
+<style>
+    :root {
+        --primary: #3b82f6;
+        --primary-dark: #2563eb;
+        --secondary: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --light-bg: #f8fafc;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+        --card-hover: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .auth-container {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    
+    .auth-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        padding: 2rem;
+        width: 100%;
+        max-width: 500px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .logo-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .logo {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .logo i {
+        color: white;
+        font-size: 1.5rem;
+    }
+    
+    .auth-title {
+        text-align: center;
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+    
+    .auth-subtitle {
+        text-align: center;
+        color: #6b7280;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+    
+    .auth-link {
+        color: #3b82f6;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .auth-link:hover {
+        color: #2563eb;
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .form-group {
+        margin-bottom: 0;
+    }
+    
+    .form-label {
+        display: block;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #f9fafb;
+        box-sizing: border-box;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        background: white;
+        transform: translateY(-1px);
+    }
+    
+    .form-input::placeholder {
+        color: #9ca3af;
+    }
+    
+    .error-message {
+        color: #ef4444;
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+        display: flex;
+        align-items: center;
+        padding: 0.25rem 0;
+    }
+    
+    .error-message i {
+        margin-right: 0.5rem;
+        font-size: 0.7rem;
+    }
+    
+    .form-help {
+        color: #6b7280;
+        font-size: 0.75rem;
+        margin-top: 0.25rem;
+        line-height: 1.3;
+    }
+    
+    .checkbox-container {
+        display: flex;
+        align-items: flex-start;
+        margin: 1.5rem 0;
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .checkbox {
+        width: 1.1rem;
+        height: 1.1rem;
+        border-radius: 4px;
+        border: 2px solid #d1d5db;
+        margin-right: 0.75rem;
+        margin-top: 0.15rem;
+        flex-shrink: 0;
+        accent-color: #3b82f6;
+    }
+    
+    .checkbox-label {
+        font-size: 0.85rem;
+        color: #374151;
+        line-height: 1.4;
+    }
+    
+    .btn {
+        width: 100%;
+        padding: 1.1rem;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        margin-top: 1rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+    }
+    
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+    
+    .security-note {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .security-content {
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .security-icon {
+        color: #16a34a;
+        margin-right: 0.75rem;
+        margin-top: 0.125rem;
+        flex-shrink: 0;
+        font-size: 0.9rem;
+    }
+    
+    .security-text {
+        color: #166534;
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+    
+    /* Mobile Optimizations */
+    @media (max-width: 640px) {
+        .auth-container {
+            padding: 0.5rem;
+            align-items: flex-start;
+            padding-top: 2rem;
+        }
+        
+        .auth-card {
+            padding: 1.5rem;
+            margin: 0;
+            border-radius: 16px;
+            max-width: 100%;
+        }
+        
+        .logo {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .logo i {
+            font-size: 1.25rem;
+        }
+        
+        .auth-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .auth-subtitle {
+            font-size: 0.9rem;
+            margin-bottom: 1.25rem;
+        }
+        
+        .form-input {
+            padding: 0.875rem;
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+        
+        .checkbox-container {
+            margin: 1.25rem 0;
+            padding: 0.625rem;
+        }
+        
+        .checkbox-label {
+            font-size: 0.8rem;
+        }
+        
+        .btn {
+            padding: 1rem;
+            font-size: 1rem;
+        }
+        
+        .security-note {
+            margin-top: 1.25rem;
+            padding: 0.875rem;
+        }
+        
+        .security-text {
+            font-size: 0.75rem;
+        }
+    }
+    
+    @media (max-width: 380px) {
+        .auth-card {
+            padding: 1.25rem;
+        }
+        
+        .auth-title {
+            font-size: 1.35rem;
+        }
+        
+        .form-input {
+            padding: 0.75rem;
+        }
+    }
+    
+    /* Landscape orientation support */
+    @media (max-height: 600px) and (orientation: landscape) {
+        .auth-container {
+            padding: 1rem;
+            align-items: flex-start;
+        }
+        
+        .auth-card {
+            margin: 1rem 0;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-    <div class="sm:mx-auto sm:w-full sm:max-w-md">
-        <div class="flex justify-center">
-            <div class="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-lg">
-                <i class="fas fa-chart-line text-white text-2xl"></i>
+<div class="auth-container">
+    <div class="auth-card">
+        <!-- Logo -->
+        <div class="logo-container">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
             </div>
         </div>
-        <h2 class="mt-6 text-center text-3xl font-bold font-heading text-gray-900">
-            👉 Create Your TradeVision Account
-        </h2>
-        <p class="mt-2 text-center text-sm text-gray-600">
-            Or
-            <a href="{% url 'account_login' %}" class="font-medium text-primary-600 hover:text-primary-500 transition-colors duration-200">
-                sign in to your existing account
-            </a>
+
+        <!-- Title -->
+        <h1 class="auth-title">
+            Create Your Account
+        </h1>
+        <p class="auth-subtitle">
+            Join TradeVision to start your investment journey
         </p>
-    </div>
 
-    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div class="bg-white py-8 px-4 shadow-xl sm:rounded-xl sm:px-10 border border-gray-200">
-            <form method="post" action="{% url 'account_signup' %}" class="space-y-6">
-                {% csrf_token %}
-                
-                <!-- Full Name -->
-                <div>
-                    <label for="{{ form.full_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Full Name
-                    </label>
-                    {{ form.full_name }}
-                    {% if form.full_name.errors %}
-                        <div class="mt-1 text-sm text-danger-600">
-                            {{ form.full_name.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
-
+        <!-- Registration Form -->
+        <form method="post" action="{% url 'account_signup' %}">
+            {% csrf_token %}
+            
+            <div class="form-grid">
                 <!-- Email -->
-                <div>
-                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">
                         Email Address
                     </label>
-                    {{ form.email }}
+                    <input type="email" 
+                           name="{{ form.email.name }}" 
+                           id="{{ form.email.id_for_label }}" 
+                           class="form-input" 
+                           placeholder="your.email@example.com"
+                           value="{{ form.email.value|default:'' }}"
+                           required
+                           autocapitalize="off"
+                           autocorrect="off">
                     {% if form.email.errors %}
-                        <div class="mt-1 text-sm text-danger-600">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
                             {{ form.email.errors.0 }}
                         </div>
                     {% endif %}
                 </div>
 
                 <!-- Phone Number -->
-                <div>
-                    <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                <div class="form-group">
+                    <label for="{{ form.phone_number.id_for_label }}" class="form-label">
                         Phone Number
                     </label>
-                    {{ form.phone_number }}
+                    <input type="tel" 
+                           name="{{ form.phone_number.name }}" 
+                           id="{{ form.phone_number.id_for_label }}" 
+                           class="form-input" 
+                           placeholder="+254700000000"
+                           value="{{ form.phone_number.value|default:'' }}"
+                           required
+                           inputmode="tel">
                     {% if form.phone_number.errors %}
-                        <div class="mt-1 text-sm text-danger-600">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
                             {{ form.phone_number.errors.0 }}
                         </div>
                     {% endif %}
-                    <p class="mt-1 text-xs text-gray-500">Include country code (e.g., +254700000000)</p>
-                </div>
-
-                <!-- Country -->
-                <div>
-                    <label for="{{ form.country.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Country
-                    </label>
-                    {{ form.country }}
-                    {% if form.country.errors %}
-                        <div class="mt-1 text-sm text-danger-600">
-                            {{ form.country.errors.0 }}
-                        </div>
-                    {% endif %}
+                    <p class="form-help">Include country code (e.g., +254700000000)</p>
                 </div>
 
                 <!-- Referral Code -->
                 {% if form.referral_code %}
-                <div>
-                    <label for="{{ form.referral_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                <div class="form-group">
+                    <label for="{{ form.referral_code.id_for_label }}" class="form-label">
                         Referral Code (Optional)
                     </label>
-                    {{ form.referral_code }}
+                    <input type="text" 
+                           name="{{ form.referral_code.name }}" 
+                           id="{{ form.referral_code.id_for_label }}" 
+                           class="form-input" 
+                           placeholder="Enter referral code"
+                           value="{{ form.referral_code.value|default:'' }}"
+                           autocapitalize="characters">
                     {% if form.referral_code.errors %}
-                        <div class="mt-1 text-sm text-danger-600">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
                             {{ form.referral_code.errors.0 }}
                         </div>
                     {% endif %}
@@ -96,61 +411,172 @@
                 {% endif %}
 
                 <!-- Password -->
-                <div>
-                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                <div class="form-group">
+                    <label for="{{ form.password1.id_for_label }}" class="form-label">
                         Password
                     </label>
-                    {{ form.password1 }}
+                    <input type="password" 
+                           name="{{ form.password1.name }}" 
+                           id="{{ form.password1.id_for_label }}" 
+                           class="form-input" 
+                           placeholder="Create a strong password"
+                           required
+                           minlength="8">
                     {% if form.password1.errors %}
-                        <div class="mt-1 text-sm text-danger-600">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
                             {{ form.password1.errors.0 }}
                         </div>
                     {% endif %}
                 </div>
 
                 <!-- Confirm Password -->
-                <div>
-                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                <div class="form-group">
+                    <label for="{{ form.password2.id_for_label }}" class="form-label">
                         Confirm Password
                     </label>
-                    {{ form.password2 }}
+                    <input type="password" 
+                           name="{{ form.password2.name }}" 
+                           id="{{ form.password2.id_for_label }}" 
+                           class="form-input" 
+                           placeholder="Confirm your password"
+                           required
+                           minlength="8">
                     {% if form.password2.errors %}
-                        <div class="mt-1 text-sm text-danger-600">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
                             {{ form.password2.errors.0 }}
                         </div>
                     {% endif %}
                 </div>
+            </div>
 
-                <!-- Terms and Conditions -->
-                <div class="flex items-center">
-                    <input id="terms" name="terms" type="checkbox" required class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
-                    <label for="terms" class="ml-2 block text-sm text-gray-900">
-                        ✅ I agree to the 
-                        <a href="{% url 'core:terms' %}" class="text-primary-600 hover:text-primary-500 transition-colors duration-200" target="_blank">Terms & Conditions</a> 
-                        and 
-                        <a href="{% url 'core:privacy' %}" class="text-primary-600 hover:text-primary-500 transition-colors duration-200" target="_blank">Privacy Policy</a>
-                    </label>
-                </div>
+            <!-- Terms and Conditions -->
+            <div class="checkbox-container">
+                <input type="checkbox" 
+                       id="terms" 
+                       name="terms" 
+                       required
+                       class="checkbox">
+                <label for="terms" class="checkbox-label">
+                    I agree to the 
+                    <a href="{% url 'core:terms' %}" class="auth-link" target="_blank">Terms & Conditions</a> 
+                    and 
+                    <a href="{% url 'core:privacy' %}" class="auth-link" target="_blank">Privacy Policy</a>
+                </label>
+            </div>
 
-                <!-- Submit Button -->
-                <div>
-                    <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-primary hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 transform hover:scale-105">
-                        <i class="fas fa-user-plus mr-2"></i>
-                        Register & Get Started
-                    </button>
-                </div>
-            </form>
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-user-plus mr-2"></i>
+                Create Account
+            </button>
+        </form>
 
-            <!-- Security Note -->
-            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-                <div class="flex items-center">
-                    <i class="fas fa-shield-alt text-success-600 mr-2"></i>
-                    <p class="text-sm text-gray-600">
-                        🔒 Your information is protected with secure encryption and two-factor authentication (2FA).
-                    </p>
-                </div>
+        <!-- Sign In Link -->
+        <div style="text-align: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+            <p style="color: #6b7280; font-size: 0.9rem;">
+                Already have an account? 
+                <a href="{% url 'account_login' %}" class="auth-link">Sign in here</a>
+            </p>
+        </div>
+
+        <!-- Security Note -->
+        <div class="security-note">
+            <div class="security-content">
+                <i class="fas fa-shield-alt security-icon"></i>
+                <p class="security-text">
+                    Your information is protected with bank-level security and encryption
+                </p>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Password strength indicator
+        const passwordInput = document.getElementById('{{ form.password1.id_for_label }}');
+        const passwordHelp = document.createElement('div');
+        passwordHelp.className = 'form-help';
+        passwordHelp.style.marginTop = '0.5rem';
+        passwordInput.parentNode.appendChild(passwordHelp);
+        
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 'Weak';
+            let color = '#ef4444';
+            let message = '';
+            
+            if (password.length === 0) {
+                message = '';
+            } else if (password.length < 8) {
+                message = 'Too short (min 8 characters)';
+            } else if (password.length >= 8 && !/[A-Z]/.test(password)) {
+                message = 'Add uppercase letters';
+                color = '#f59e0b';
+            } else if (password.length >= 8 && !/[0-9]/.test(password)) {
+                message = 'Add numbers';
+                color = '#f59e0b';
+            } else if (password.length >= 10 && /[A-Z]/.test(password) && /[0-9]/.test(password)) {
+                message = 'Strong password';
+                color = '#10b981';
+            } else {
+                message = 'Good start';
+                color = '#f59e0b';
+            }
+            
+            passwordHelp.innerHTML = message ? `<span style="color: ${color}; font-weight: 500;">${message}</span>` : '';
+        });
+        
+        // Confirm password validation
+        const confirmInput = document.getElementById('{{ form.password2.id_for_label }}');
+        const confirmHelp = document.createElement('div');
+        confirmHelp.className = 'form-help';
+        confirmHelp.style.marginTop = '0.5rem';
+        confirmInput.parentNode.appendChild(confirmHelp);
+        
+        confirmInput.addEventListener('input', function() {
+            const password = passwordInput.value;
+            const confirm = this.value;
+            
+            if (confirm && password !== confirm) {
+                confirmHelp.innerHTML = '<span style="color: #ef4444;">Passwords do not match</span>';
+            } else if (confirm && password === confirm) {
+                confirmHelp.innerHTML = '<span style="color: #10b981;">Passwords match ✓</span>';
+            } else {
+                confirmHelp.innerHTML = '';
+            }
+        });
+        
+        // Phone number formatting
+        const phoneInput = document.getElementById('{{ form.phone_number.id_for_label }}');
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.startsWith('0')) {
+                value = '+254' + value.substring(1);
+            } else if (!value.startsWith('+')) {
+                value = '+' + value;
+            }
+            
+            // Limit to 15 characters
+            if (value.length > 15) {
+                value = value.substring(0, 15);
+            }
+            
+            e.target.value = value;
+        });
+        
+        // Focus first empty field
+        const emptyField = document.querySelector('input:invalid');
+        if (emptyField) {
+            emptyField.focus();
+        } else {
+            document.querySelector('input').focus();
+        }
+    });
+</script>
 {% endblock %}

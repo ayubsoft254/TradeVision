@@ -378,114 +378,137 @@
             <div class="ticker-item"><i class="fas fa-chart-line text-green-400"></i> Silver: <span>25.74 ▲</span></div>
         </div>
     </div>
-
-    <!-- Navigation -->
-    <nav class="sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <a href="{% url 'core:home' %}" class="flex items-center space-x-3 group">
-                        <div class="w-10 h-10 bg-accent-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shadow-sm">
-                            <i class="fas fa-chart-line text-white text-lg"></i>
-                        </div>
-                        <span class="text-xl font-serif font-semibold text-gray-900 group-hover:text-accent-600 transition-colors duration-200">TradeVision</span>
-                    </a>
-                </div>
-
-                <!-- Desktop Navigation -->
-                <div class="hidden md:flex items-center space-x-1">
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'trading:dashboard' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">
-                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
-                        </a>
-                        <a href="{% url 'trading:packages' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">
-                            <i class="fas fa-box mr-2"></i>Packages
-                        </a>
-                        <a href="{% url 'payments:deposit' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-success-600">
-                            <i class="fas fa-plus-circle mr-2"></i>Deposit
-                        </a>
-                        <a href="{% url 'payments:withdraw' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-warning-600">
-                            <i class="fas fa-minus-circle mr-2"></i>Withdraw
-                        </a>
-
-                        <!-- Balance -->
-                        {% if user.wallet %}
-                        <div class="px-3 py-2 bg-gray-100 rounded-md ml-2 border border-gray-200">
-                            <div class="text-xs text-gray-500">Balance</div>
-                            <div class="text-sm font-semibold text-gray-900">
-                                {{ user.wallet.balance|floatformat:2 }} {{ user.wallet.currency }}
+        <!-- Navigation -->
+        <nav class="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    
+                    <!-- Logo -->
+                    <div class="flex items-center">
+                        <a href="{% url 'core:home' %}" class="flex items-center space-x-3 group">
+                            <div class="w-10 h-10 bg-accent-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shadow-sm">
+                                <i class="fas fa-chart-line text-white text-lg"></i>
                             </div>
-                        </div>
-                        {% endif %}
+                            <span class="text-xl font-serif font-semibold text-gray-900 group-hover:text-accent-600 transition-colors duration-200">TradeVision</span>
+                        </a>
+                    </div>
 
-                        <!-- User Dropdown -->
-                        <div class="relative ml-3" x-data="{ open: false }">
-                            <button @click="open = !open" class="flex items-center space-x-2 text-gray-700 hover:text-accent-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 border border-gray-200 hover:border-accent-200">
-                                {% if user.profile.avatar %}
-                                    <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="w-8 h-8 rounded-full">
-                                {% else %}
-                                    <div class="w-8 h-8 bg-accent-100 rounded-full flex items-center justify-center">
-                                        <i class="fas fa-user text-accent-600 text-sm"></i>
+                    <!-- Desktop Navigation -->
+                    <div class="hidden md:flex items-center space-x-1">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'trading:dashboard' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">
+                                <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                            </a>
+                            <a href="{% url 'trading:packages' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">
+                                <i class="fas fa-box mr-2"></i>Packages
+                            </a>
+                            <a href="{% url 'payments:deposit' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-success-600">
+                                <i class="fas fa-plus-circle mr-2"></i>Deposit
+                            </a>
+                            <a href="{% url 'payments:withdraw' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-warning-600">
+                                <i class="fas fa-minus-circle mr-2"></i>Withdraw
+                            </a>
+
+                            <!-- Balance -->
+                            {% if user.wallet %}
+                            <div class="px-3 py-2 bg-gray-100 rounded-md ml-2 border border-gray-200">
+                                <div class="text-xs text-gray-500">Balance</div>
+                                <div class="text-sm font-semibold text-gray-900">
+                                    {{ user.wallet.balance|floatformat:2 }} {{ user.wallet.currency }}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- User Dropdown -->
+                            <div class="relative ml-3" x-data="{ open: false }">
+                                <button @click="open = !open" class="flex items-center space-x-2 text-gray-700 hover:text-accent-600 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 border border-gray-200 hover:border-accent-200">
+                                    {% if user.profile.avatar %}
+                                        <img src="{{ user.profile.avatar.url }}" alt="Avatar" class="w-8 h-8 rounded-full">
+                                    {% else %}
+                                        <div class="w-8 h-8 bg-accent-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-accent-600 text-sm"></i>
+                                        </div>
+                                    {% endif %}
+                                    <span class="hidden lg:block">{{ user.full_name|default:user.email|truncatechars:15 }}</span>
+                                    <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+                                </button>
+
+                                <!-- Dropdown -->
+                                <div x-show="open"
+                                    @click.away="open = false"
+                                    x-transition
+                                    class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-2 z-50 border border-gray-200">
+                                    <div class="px-4 py-3 border-b border-gray-100">
+                                        <p class="text-sm font-medium text-gray-900">{{ user.full_name|default:"User" }}</p>
+                                        <p class="text-sm text-gray-500">{{ user.email }}</p>
                                     </div>
-                                {% endif %}
-                                <span class="hidden lg:block">{{ user.full_name|default:user.email|truncatechars:15 }}</span>
-                                <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
-                            </button>
-
-                            <!-- Dropdown -->
-                            <div x-show="open"
-                                @click.away="open = false"
-                                x-transition
-                                class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-2 z-50 border border-gray-200">
-                                <div class="px-4 py-3 border-b border-gray-100">
-                                    <p class="text-sm font-medium text-gray-900">{{ user.full_name|default:"User" }}</p>
-                                    <p class="text-sm text-gray-500">{{ user.email }}</p>
-                                </div>
-                                <a href="{% url 'accounts:profile' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
-                                    <i class="fas fa-user mr-3 text-gray-400"></i>Profile
-                                </a>
-                                <a href="{% url 'accounts:security' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
-                                    <i class="fas fa-shield-alt mr-3 text-gray-400"></i>Security
-                                </a>
-                                <a href="{% url 'accounts:referrals' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
-                                    <i class="fas fa-users mr-3 text-gray-400"></i>Referrals
-                                </a>
-                                <a href="{% url 'payments:transactions' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
-                                    <i class="fas fa-history mr-3 text-gray-400"></i>Transactions
-                                </a>
-                                <a href="{% url 'core:support_tickets' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
-                                    <i class="fas fa-life-ring mr-3 text-gray-400"></i>Support
-                                </a>
-                                <div class="border-t border-gray-100 mt-1 pt-1">
-                                    <a href="{% url 'account_logout' %}" class="flex items-center px-4 py-2 text-sm text-danger-600 hover:bg-danger-50 transition">
-                                        <i class="fas fa-sign-out-alt mr-3"></i>Logout
+                                    <a href="{% url 'accounts:profile' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
+                                        <i class="fas fa-user mr-3 text-gray-400"></i>Profile
                                     </a>
+                                    <a href="{% url 'accounts:security' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
+                                        <i class="fas fa-shield-alt mr-3 text-gray-400"></i>Security
+                                    </a>
+                                    <a href="{% url 'accounts:referrals' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
+                                        <i class="fas fa-users mr-3 text-gray-400"></i>Referrals
+                                    </a>
+                                    <a href="{% url 'payments:transactions' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
+                                        <i class="fas fa-history mr-3 text-gray-400"></i>Transactions
+                                    </a>
+                                    <a href="{% url 'core:support_tickets' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-accent-50 hover:text-accent-600 transition">
+                                        <i class="fas fa-life-ring mr-3 text-gray-400"></i>Support
+                                    </a>
+                                    <div class="border-t border-gray-100 mt-1 pt-1">
+                                        <a href="{% url 'account_logout' %}" class="flex items-center px-4 py-2 text-sm text-danger-600 hover:bg-danger-50 transition">
+                                            <i class="fas fa-sign-out-alt mr-3"></i>Logout
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    {% else %}
-                        <!-- Guest Navigation -->
-                        <a href="{% url 'core:about' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">About</a>
-                        <a href="{% url 'core:faq' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">FAQ</a>
-                        <a href="{% url 'account_login' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">Login</a>
-                        <a href="{% url 'account_signup' %}" class="classic-btn classic-btn-primary ml-2">
-                            Get Started
-                        </a>
-                    {% endif %}
-                </div>
+                        {% else %}
+                            <!-- Guest Navigation -->
+                            <a href="{% url 'core:about' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">About</a>
+                            <a href="{% url 'core:faq' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">FAQ</a>
+                            <a href="{% url 'account_login' %}" class="nav-link px-4 py-2 text-sm font-medium text-gray-700 hover:text-accent-600">Login</a>
+                            <a href="{% url 'account_signup' %}" class="classic-btn classic-btn-primary ml-2">
+                                Get Started
+                            </a>
+                        {% endif %}
+                    </div>
 
-                <!-- Mobile Button -->
-                <div class="md:hidden flex items-center">
-                    <button x-data @click="$dispatch('toggle-mobile-menu')" class="text-gray-700 hover:text-accent-600 p-2 rounded-md hover:bg-gray-100 transition-all duration-200 border border-gray-200">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
+                    <!-- Mobile Menu -->
+                    <div class="md:hidden flex items-center" x-data="{ open: false }">
+                        <button @click="open = !open"
+                                class="text-gray-700 hover:text-accent-600 p-2 rounded-md hover:bg-gray-100 transition-all duration-200 border border-gray-200">
+                            <i class="fas fa-bars text-xl" x-show="!open"></i>
+                            <i class="fas fa-times text-xl" x-show="open"></i>
+                        </button>
+
+                        <!-- Dropdown for mobile -->
+                        <div x-show="open" x-transition class="absolute top-16 left-0 w-full bg-white border-t border-gray-200 shadow-md z-50">
+                            <div class="px-4 pt-4 pb-6 space-y-2">
+                                {% if user.is_authenticated %}
+                                    <a href="{% url 'trading:dashboard' %}" class="block nav-link px-4 py-2">Dashboard</a>
+                                    <a href="{% url 'trading:packages' %}" class="block nav-link px-4 py-2">Packages</a>
+                                    <a href="{% url 'payments:deposit' %}" class="block nav-link px-4 py-2">Deposit</a>
+                                    <a href="{% url 'payments:withdraw' %}" class="block nav-link px-4 py-2">Withdraw</a>
+                                    <a href="{% url 'accounts:profile' %}" class="block nav-link px-4 py-2">Profile</a>
+                                    <a href="{% url 'payments:transactions' %}" class="block nav-link px-4 py-2">Transactions</a>
+                                    <a href="{% url 'core:support_tickets' %}" class="block nav-link px-4 py-2">Support</a>
+                                    <a href="{% url 'account_logout' %}" class="block nav-link px-4 py-2 text-danger-600">Logout</a>
+                                {% else %}
+                                    <a href="{% url 'core:about' %}" class="block nav-link px-4 py-2">About</a>
+                                    <a href="{% url 'core:faq' %}" class="block nav-link px-4 py-2">FAQ</a>
+                                    <a href="{% url 'account_login' %}" class="block nav-link px-4 py-2">Login</a>
+                                    <a href="{% url 'account_signup' %}" class="block classic-btn classic-btn-primary w-full text-center mt-2">Get Started</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-        </div>
-    </nav>
-    
+        </nav>
+
     <!-- Messages/Notifications -->
     {% if messages %}
         <div class="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
