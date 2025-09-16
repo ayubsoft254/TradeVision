@@ -3,29 +3,113 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django.conf import settings
+from django import forms
 from .models import (
     PaymentMethod, Wallet, Transaction, DepositRequest, 
     WithdrawalRequest, Agent, P2PMerchant
 )
 
+# Custom admin forms for enhanced currency selection
+class WalletAdminForm(forms.ModelForm):
+    """Custom form for Wallet admin with enhanced currency selection"""
+    
+    class Meta:
+        model = Wallet
+        fields = '__all__'
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add help text for currency field
+        self.fields['currency'].help_text = (
+            "💰 USDT is the primary platform currency. "
+            "Legacy currencies are for existing users only."
+        )
+        # Add CSS classes for better styling
+        self.fields['currency'].widget.attrs.update({
+            'class': 'currency-selector',
+            'style': 'font-weight: bold; font-size: 14px;'
+        })
+
+class TransactionAdminForm(forms.ModelForm):
+    """Custom form for Transaction admin with enhanced currency selection"""
+    
+    class Meta:
+        model = Transaction
+        fields = '__all__'
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add help text for currency field
+        self.fields['currency'].help_text = (
+            "💎 Select transaction currency. USDT is recommended for all new transactions."
+        )
+        # Add CSS classes for better styling
+        self.fields['currency'].widget.attrs.update({
+            'class': 'currency-selector',
+            'style': 'font-weight: bold; font-size: 14px;'
+        })
+
 @admin.register(PaymentMethod)
 class PaymentMethodAdmin(admin.ModelAdmin):
-    list_display = ['display_name', 'name', 'processing_fee', 'processing_time', 'is_active', 'countries_count']
+    list_display = ['display_name', 'name', 'usdt_friendly_display', 'processing_fee', 'processing_time', 'is_active', 'countries_count']
     list_filter = ['name', 'is_active']
     search_fields = ['display_name', 'name']
-    readonly_fields = ['countries_display']
+    readonly_fields = ['countries_display', 'usdt_compatibility']
     
     fieldsets = (
-        (None, {
-            'fields': ('name', 'display_name', 'is_active')
+        ('Payment Method Details', {
+            'fields': ('name', 'display_name', 'is_active', 'usdt_compatibility')
         }),
-        ('Transaction Limits', {
-            'fields': ('min_amount', 'max_amount', 'processing_fee', 'processing_time')
+        ('USDT & Cryptocurrency Settings', {
+            'fields': ('crypto_support_info',),
+            'classes': ('highlight-crypto',),
+            'description': 'USDT and cryptocurrency compatibility information'
+        }),
+        ('Transaction Limits (USDT)', {
+            'fields': ('min_amount', 'max_amount', 'processing_fee', 'processing_time'),
+            'description': 'All amounts are in USDT'
         }),
         ('Geographic Availability', {
             'fields': ('countries', 'countries_display')
         }),
     )
+    
+    def usdt_friendly_display(self, obj):
+        crypto_keywords = ['crypto', 'bitcoin', 'usdt', 'tether', 'binance', 'blockchain']
+        if any(keyword in obj.name.lower() for keyword in crypto_keywords):
+            return format_html('<span style="color: green; font-weight: bold;">✓ USDT Ready</span>')
+        return format_html('<span style="color: orange;">⚠ Traditional</span>')
+    usdt_friendly_display.short_description = 'USDT Support'
+    
+    def usdt_compatibility(self, obj):
+        crypto_keywords = ['crypto', 'bitcoin', 'usdt', 'tether', 'binance', 'blockchain']
+        if any(keyword in obj.name.lower() for keyword in crypto_keywords):
+            return format_html(
+                '<div style="background: #e8f5e8; padding: 10px; border-radius: 5px; color: green;">'
+                '<strong>✓ USDT Compatible</strong><br>'
+                'This payment method supports USDT transactions<br>'
+                'Optimized for cryptocurrency payments'
+                '</div>'
+            )
+        return format_html(
+            '<div style="background: #fff3cd; padding: 10px; border-radius: 5px; color: #856404;">'
+            '<strong>Traditional Payment Method</strong><br>'
+            'May require conversion from USDT<br>'
+            'Consider adding crypto-friendly alternatives'
+            '</div>'
+        )
+    usdt_compatibility.short_description = 'USDT Compatibility Analysis'
+    
+    def crypto_support_info(self, obj):
+        return format_html(
+            '<div style="background: #d1ecf1; padding: 10px; border-radius: 5px;">'
+            'Platform primary currency: <strong>USDT</strong><br>'
+            'Crypto-friendly methods provide better user experience<br>'
+            'Traditional methods may require additional conversion steps'
+            '</div>'
+        )
+    crypto_support_info.short_description = 'Platform Currency Info'
     
     def countries_count(self, obj):
         return len(obj.countries) if obj.countries else 0
@@ -39,20 +123,22 @@ class PaymentMethodAdmin(admin.ModelAdmin):
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
-    list_display = ['user', 'balance', 'profit_balance', 'locked_balance', 'total_balance', 'currency', 'updated_at']
-    list_filter = ['currency', 'created_at']
+    form = WalletAdminForm
+    list_display = ['user', 'currency_display', 'balance', 'profit_balance', 'locked_balance', 'total_balance', 'updated_at']
+    list_filter = ['currency', 'created_at', 'updated_at']
     search_fields = ['user__email', 'user__first_name', 'user__last_name']
-    readonly_fields = ['created_at', 'updated_at', 'total_balance']
+    readonly_fields = ['created_at', 'updated_at', 'total_balance', 'currency_info']
     
     fieldsets = (
         ('User', {
             'fields': ('user',)
         }),
-        ('Balances', {
-            'fields': ('balance', 'profit_balance', 'locked_balance', 'total_balance')
+        ('Currency Settings', {
+            'fields': ('currency', 'currency_info'),
+            'description': 'Select the wallet currency. USDT is the primary platform currency.'
         }),
-        ('Settings', {
-            'fields': ('currency',)
+        ('Balances (USDT)', {
+            'fields': ('balance', 'profit_balance', 'locked_balance', 'total_balance')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -60,14 +146,106 @@ class WalletAdmin(admin.ModelAdmin):
         }),
     )
     
+    def currency_display(self, obj):
+        currency_info = {
+            'USDT': {'color': 'green', 'icon': '💰', 'label': 'Primary'},
+            'BUSD': {'color': '#f0b90b', 'icon': '🟡', 'label': 'Binance'},
+            'BTC': {'color': '#f7931a', 'icon': '₿', 'label': 'Bitcoin'},
+            'ETH': {'color': '#627eea', 'icon': '⟠', 'label': 'Ethereum'},
+            'BNB': {'color': '#f0b90b', 'icon': '🔶', 'label': 'BNB'},
+            'USDC': {'color': '#2775ca', 'icon': '🔵', 'label': 'USD Coin'},
+            'DAI': {'color': '#f4b731', 'icon': '◈', 'label': 'Dai'},
+        }
+        
+        info = currency_info.get(obj.currency, {'color': '#666', 'icon': '💱', 'label': 'Legacy'})
+        
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{} {} ({})</span>',
+            info['color'], info['icon'], obj.currency, info['label']
+        )
+    currency_display.short_description = 'Currency'
+    currency_display.admin_order_field = 'currency'
+    
+    def currency_info(self, obj):
+        currency_details = {
+            'USDT': {
+                'bg': '#e8f5e8',
+                'color': '#2e7d32',
+                'title': 'USDT (Tether)',
+                'description': 'Primary platform currency<br>Stable value pegged to USD<br>Fast and low-cost transactions'
+            },
+            'BUSD': {
+                'bg': '#fff8e1',
+                'color': '#f57f17',
+                'title': 'BUSD (Binance USD)',
+                'description': 'Binance stablecoin<br>USD-pegged stable value<br>Binance ecosystem integration'
+            },
+            'BTC': {
+                'bg': '#fff3e0',
+                'color': '#e65100',
+                'title': 'Bitcoin',
+                'description': 'Digital gold standard<br>Decentralized cryptocurrency<br>High value store'
+            },
+            'ETH': {
+                'bg': '#e8eaf6',
+                'color': '#3949ab',
+                'title': 'Ethereum',
+                'description': 'Smart contract platform<br>DeFi ecosystem base<br>Programmable money'
+            },
+            'BNB': {
+                'bg': '#fff8e1',
+                'color': '#f57f17',
+                'title': 'Binance Coin',
+                'description': 'Binance exchange token<br>Reduced trading fees<br>Ecosystem utility token'
+            },
+            'USDC': {
+                'bg': '#e3f2fd',
+                'color': '#1976d2',
+                'title': 'USD Coin',
+                'description': 'Centre-issued stablecoin<br>USD-backed reserve<br>Regulated compliance'
+            },
+            'DAI': {
+                'bg': '#fffde7',
+                'color': '#f57f17',
+                'title': 'Dai Stablecoin',
+                'description': 'Decentralized stablecoin<br>MakerDAO protocol<br>Collateral-backed stability'
+            }
+        }
+        
+        details = currency_details.get(obj.currency)
+        if details:
+            return format_html(
+                '<div style="background: {}; padding: 10px; border-radius: 5px; color: {};">'
+                '<strong>{}</strong><br>'
+                '{}'
+                '</div>',
+                details['bg'], details['color'], details['title'], details['description']
+            )
+        
+        return format_html(
+            '<div style="background: #fff3cd; padding: 10px; border-radius: 5px; color: #856404;">'
+            '<strong>Legacy Currency: {}</strong><br>'
+            'Consider migrating to USDT<br>'
+            'Limited platform support'
+            '</div>',
+            obj.currency
+        )
+    currency_info.short_description = 'Currency Information'
+    
     def get_readonly_fields(self, request, obj=None):
         if obj:  # editing an existing object
             return self.readonly_fields + ['user']
         return self.readonly_fields
+    
+    class Media:
+        css = {
+            'all': ('admin/css/custom_admin.css',)
+        }
 
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'transaction_type', 'amount', 'currency', 'status', 'payment_method', 'created_at']
+    form = TransactionAdminForm
+    list_display = ['id', 'user', 'transaction_type', 'amount_display', 'status', 'payment_method', 'created_at']
     list_filter = ['transaction_type', 'status', 'currency', 'payment_method', 'created_at']
     search_fields = ['user__email', 'external_reference', 'description']
     readonly_fields = ['id', 'created_at', 'updated_at', 'completed_at']
@@ -75,7 +253,8 @@ class TransactionAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Transaction Details', {
-            'fields': ('id', 'user', 'transaction_type', 'amount', 'currency', 'status')
+            'fields': ('id', 'user', 'transaction_type', 'amount', 'currency', 'status'),
+            'description': 'Basic transaction information with currency selection'
         }),
         ('Payment Information', {
             'fields': ('payment_method', 'external_reference', 'description')
@@ -95,6 +274,26 @@ class TransactionAdmin(admin.ModelAdmin):
     
     actions = ['mark_as_completed', 'mark_as_failed']
     
+    def amount_display(self, obj):
+        currency_formats = {
+            'USDT': {'color': '#2563eb', 'currency_color': 'green', 'icon': '💰'},
+            'BUSD': {'color': '#f57f17', 'currency_color': '#f57f17', 'icon': '🟡'},
+            'BTC': {'color': '#f7931a', 'currency_color': '#f7931a', 'icon': '₿'},
+            'ETH': {'color': '#627eea', 'currency_color': '#627eea', 'icon': '⟠'},
+            'BNB': {'color': '#f0b90b', 'currency_color': '#f0b90b', 'icon': '🔶'},
+            'USDC': {'color': '#2775ca', 'currency_color': '#2775ca', 'icon': '🔵'},
+            'DAI': {'color': '#f4b731', 'currency_color': '#f4b731', 'icon': '◈'},
+        }
+        
+        format_info = currency_formats.get(obj.currency, {'color': '#666', 'currency_color': '#666', 'icon': '💱'})
+        
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{} <span style="color: {};">{} {}</span></span>',
+            format_info['color'], obj.amount, format_info['currency_color'], format_info['icon'], obj.currency
+        )
+    amount_display.short_description = 'Amount'
+    amount_display.admin_order_field = 'amount'
+    
     def mark_as_completed(self, request, queryset):
         from django.utils import timezone
         updated = queryset.update(status='completed', completed_at=timezone.now())
@@ -105,6 +304,11 @@ class TransactionAdmin(admin.ModelAdmin):
         updated = queryset.update(status='failed')
         self.message_user(request, f'{updated} transactions marked as failed.')
     mark_as_failed.short_description = 'Mark selected transactions as failed'
+    
+    class Media:
+        css = {
+            'all': ('admin/css/custom_admin.css',)
+        }
 
 @admin.register(DepositRequest)
 class DepositRequestAdmin(admin.ModelAdmin):
@@ -132,7 +336,22 @@ class DepositRequestAdmin(admin.ModelAdmin):
     get_user.admin_order_field = 'transaction__user'
     
     def get_amount(self, obj):
-        return f"{obj.transaction.amount} {obj.transaction.currency}"
+        currency_formats = {
+            'USDT': {'color': '#2563eb', 'currency_color': 'green', 'icon': '💰'},
+            'BUSD': {'color': '#f57f17', 'currency_color': '#f57f17', 'icon': '🟡'},
+            'BTC': {'color': '#f7931a', 'currency_color': '#f7931a', 'icon': '₿'},
+            'ETH': {'color': '#627eea', 'currency_color': '#627eea', 'icon': '⟠'},
+            'BNB': {'color': '#f0b90b', 'currency_color': '#f0b90b', 'icon': '🔶'},
+            'USDC': {'color': '#2775ca', 'currency_color': '#2775ca', 'icon': '🔵'},
+            'DAI': {'color': '#f4b731', 'currency_color': '#f4b731', 'icon': '◈'},
+        }
+        
+        format_info = currency_formats.get(obj.transaction.currency, {'color': '#666', 'currency_color': '#666', 'icon': '💱'})
+        
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{} <span style="color: {};">{} {}</span></span>',
+            format_info['color'], obj.transaction.amount, format_info['currency_color'], format_info['icon'], obj.transaction.currency
+        )
     get_amount.short_description = 'Amount'
     get_amount.admin_order_field = 'transaction__amount'
     
@@ -203,8 +422,23 @@ class WithdrawalRequestAdmin(admin.ModelAdmin):
     get_user.admin_order_field = 'transaction__user'
     
     def get_amount(self, obj):
-        return f"{obj.transaction.amount} {obj.transaction.currency}"
-    get_amount.short_description = 'Amount'
+        currency_formats = {
+            'USDT': {'color': '#2563eb', 'currency_color': 'green', 'icon': '💰'},
+            'BUSD': {'color': '#f57f17', 'currency_color': '#f57f17', 'icon': '🟡'},
+            'BTC': {'color': '#f7931a', 'currency_color': '#f7931a', 'icon': '₿'},
+            'ETH': {'color': '#627eea', 'currency_color': '#627eea', 'icon': '⟠'},
+            'BNB': {'color': '#f0b90b', 'currency_color': '#f0b90b', 'icon': '🔶'},
+            'USDC': {'color': '#2775ca', 'currency_color': '#2775ca', 'icon': '🔵'},
+            'DAI': {'color': '#f4b731', 'currency_color': '#f4b731', 'icon': '◈'},
+        }
+        
+        format_info = currency_formats.get(obj.transaction.currency, {'color': '#666', 'currency_color': '#666', 'icon': '💱'})
+        
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{} <span style="color: {};">{} {}</span></span>',
+            format_info['color'], obj.transaction.amount, format_info['currency_color'], format_info['icon'], obj.transaction.currency
+        )
+    get_amount.short_description = 'Amount (Withdrawal)'
     get_amount.admin_order_field = 'transaction__amount'
     
     def get_status(self, obj):

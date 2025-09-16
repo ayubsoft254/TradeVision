@@ -183,6 +183,22 @@ CELERY_TIMEZONE = TIME_ZONE
 
 # Currency settings
 DEFAULT_CURRENCY = 'USDT'
+
+# Available currencies for the platform
+CURRENCY_CHOICES = [
+    ('USDT', 'USDT (Tether) - Primary'),
+    ('BUSD', 'BUSD (Binance USD)'),
+    ('BTC', 'Bitcoin'),
+    ('ETH', 'Ethereum'),
+    ('BNB', 'Binance Coin'),
+    ('USDC', 'USD Coin'),
+    ('DAI', 'Dai Stablecoin'),
+    ('KSH', 'Kenyan Shilling (Legacy)'),
+    ('UGX', 'Ugandan Shilling (Legacy)'),
+    ('TZS', 'Tanzanian Shilling (Legacy)'),
+]
+
+# Country-specific currency mapping
 SUPPORTED_CURRENCIES = {
     'KE': 'USDT',
     'UG': 'USDT', 

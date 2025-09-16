@@ -98,4 +98,7 @@ GitHub.sublime-settings
 # Visual Studio Code
 .vscode/
 .history
-.dist
+.dist/
+
+#django static files
+staticfiles/

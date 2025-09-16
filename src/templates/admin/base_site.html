@@ -1,0 +1,99 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{% if title %}{{ title }} | {% endif %}TradeVision Admin{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        💰 TradeVision Admin
+        <small style="font-size: 12px; color: #666; font-weight: normal;">USDT Trading Platform</small>
+    </a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/custom_admin.css' %}">
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Enhance currency selectors
+    const currencySelectors = document.querySelectorAll('.currency-selector');
+    
+    currencySelectors.forEach(function(selector) {
+        // Add change event listener
+        selector.addEventListener('change', function() {
+            const selectedValue = this.value;
+            const warningDiv = this.parentNode.querySelector('.currency-warning');
+            
+            // Remove existing warnings
+            if (warningDiv) {
+                warningDiv.remove();
+            }
+            
+            // Add warning for legacy currencies
+            if (!['USDT', 'BUSD', 'BTC', 'ETH', 'BNB', 'USDC', 'DAI'].includes(selectedValue)) {
+                const warning = document.createElement('div');
+                warning.className = 'legacy-currency-warning';
+                warning.innerHTML = '⚠️ <strong>Legacy Currency Selected:</strong> Consider using USDT for better platform compatibility.';
+                this.parentNode.insertBefore(warning, this.nextSibling);
+            }
+            
+            // Highlight USDT selection
+            if (selectedValue === 'USDT') {
+                this.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
+                this.style.borderColor = '#28a745';
+            } else {
+                this.style.background = 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)';
+                this.style.borderColor = '#ddd';
+            }
+        });
+        
+        // Trigger change event on page load
+        selector.dispatchEvent(new Event('change'));
+    });
+    
+    // Add tooltips to currency options
+    const currencyTooltips = {
+        'USDT': 'Primary platform currency - Stable, fast, and low-cost',
+        'BUSD': 'Binance USD - Regulated stablecoin with Binance support',
+        'BTC': 'Bitcoin - Digital gold standard with high value store',
+        'ETH': 'Ethereum - Smart contract platform with DeFi integration',
+        'BNB': 'Binance Coin - Exchange token with reduced fees',
+        'USDC': 'USD Coin - Centre-issued stablecoin with regulatory compliance',
+        'DAI': 'Dai - Decentralized stablecoin from MakerDAO protocol'
+    };
+    
+    // Add currency info panels
+    currencySelectors.forEach(function(selector) {
+        const infoPanel = document.createElement('div');
+        infoPanel.className = 'currency-info-panel';
+        infoPanel.style.display = 'none';
+        infoPanel.style.marginTop = '10px';
+        infoPanel.style.padding = '10px';
+        infoPanel.style.background = '#f8f9fa';
+        infoPanel.style.border = '1px solid #dee2e6';
+        infoPanel.style.borderRadius = '5px';
+        infoPanel.style.fontSize = '12px';
+        
+        selector.parentNode.appendChild(infoPanel);
+        
+        selector.addEventListener('focus', function() {
+            const tooltip = currencyTooltips[this.value];
+            if (tooltip) {
+                infoPanel.innerHTML = '<strong>' + this.value + ':</strong> ' + tooltip;
+                infoPanel.style.display = 'block';
+            }
+        });
+        
+        selector.addEventListener('blur', function() {
+            setTimeout(function() {
+                infoPanel.style.display = 'none';
+            }, 300);
+        });
+    });
+});
+</script>
+{% endblock %}

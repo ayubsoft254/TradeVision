@@ -32,11 +32,25 @@ class PaymentMethod(models.Model):
 
 class Wallet(models.Model):
     """User wallet for managing funds"""
+    
+    CURRENCY_CHOICES = [
+        ('USDT', 'USDT (Tether) - Primary'),
+        ('BUSD', 'BUSD (Binance USD)'),
+        ('BTC', 'Bitcoin'),
+        ('ETH', 'Ethereum'),
+        ('BNB', 'Binance Coin'),
+        ('USDC', 'USD Coin'),
+        ('DAI', 'Dai Stablecoin'),
+        ('KSH', 'Kenyan Shilling (Legacy)'),
+        ('UGX', 'Ugandan Shilling (Legacy)'),
+        ('TZS', 'Tanzanian Shilling (Legacy)'),
+    ]
+    
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wallet')
     balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     profit_balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     locked_balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)  # Invested amounts
-    currency = models.CharField(max_length=3, default='USDT')
+    currency = models.CharField(max_length=10, choices=CURRENCY_CHOICES, default='USDT')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -71,11 +85,24 @@ class Transaction(models.Model):
         ('cancelled', 'Cancelled'),
     ]
     
+    CURRENCY_CHOICES = [
+        ('USDT', 'USDT (Tether) - Primary'),
+        ('BUSD', 'BUSD (Binance USD)'),
+        ('BTC', 'Bitcoin'),
+        ('ETH', 'Ethereum'),
+        ('BNB', 'Binance Coin'),
+        ('USDC', 'USD Coin'),
+        ('DAI', 'Dai Stablecoin'),
+        ('KSH', 'Kenyan Shilling (Legacy)'),
+        ('UGX', 'Ugandan Shilling (Legacy)'),
+        ('TZS', 'Tanzanian Shilling (Legacy)'),
+    ]
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='transactions')
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
     amount = models.DecimalField(max_digits=15, decimal_places=2)
-    currency = models.CharField(max_length=3, default='USDT')
+    currency = models.CharField(max_length=10, choices=CURRENCY_CHOICES, default='USDT')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     # Payment method details
