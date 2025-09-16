@@ -62,8 +62,8 @@ class HomeView(TemplateView):
         # Platform statistics
         stats = {
             'total_users': site_config.total_users if site_config else 500,
-            'total_invested': site_config.total_invested if site_config else 2500000,
-            'total_profits_paid': site_config.total_profits_paid if site_config else 150000,
+            'total_invested': site_config.total_invested if site_config else 250,
+            'total_profits_paid': site_config.total_profits_paid if site_config else 150,
             'platform_uptime': site_config.platform_uptime if site_config else 99.9,
         }
         
