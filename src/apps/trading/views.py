@@ -1,19 +1,17 @@
 # apps/trading/views.py
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 from django.contrib import messages
-from django.views.generic import TemplateView, DetailView, CreateView, ListView
-from django.urls import reverse_lazy
-from django.http import JsonResponse, Http404
-from django.db.models import Sum, Count, Q, Avg
+from django.views.generic import TemplateView, DetailView, ListView
+from django.http import JsonResponse
+from django.db.models import Sum, Count, Avg
 from django.utils import timezone
 from django.conf import settings
-from django.core.paginator import Paginator
 from decimal import Decimal
 import json
-from datetime import timedelta, datetime
-
+from datetime import timedelta
 from .models import TradingPackage, Investment, Trade, ProfitHistory
 from .forms import InvestmentForm, TradeInitiationForm
 from apps.payments.models import Wallet, Transaction
@@ -25,7 +23,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = self.request.user
+        user = get_user_model().objects.get(pk=self.request.user.pk)
         
         # Get or create user wallet
         wallet, created = Wallet.objects.get_or_create(
@@ -77,6 +75,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'investment_distribution': json.dumps(investment_distribution),
             'performance_metrics': performance_metrics,
             'trading_allowed': self.is_trading_allowed(),
+            'user': user,
         })
         
         return context
