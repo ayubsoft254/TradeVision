@@ -127,6 +127,15 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
             return P2PForm(transaction_type='deposit')
         elif method_name == 'agent':
             return AgentTransactionForm(transaction_type='deposit')
+        elif method_name == 'mobile_money':
+            from .forms import MobileMoneyForm
+            return MobileMoneyForm()
+        elif method_name == 'bank_transfer':
+            from .forms import BankTransferForm
+            return BankTransferForm()
+        elif method_name == 'crypto':
+            from .forms import CryptoForm
+            return CryptoForm()
         else:
             return DepositForm()
     
@@ -168,6 +177,15 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
             form = P2PForm(request.POST, request.FILES, transaction_type='deposit')
         elif method_name == 'agent':
             form = AgentTransactionForm(request.POST, request.FILES, transaction_type='deposit')
+        elif method_name == 'mobile_money':
+            from .forms import MobileMoneyForm
+            form = MobileMoneyForm(request.POST, request.FILES)
+        elif method_name == 'bank_transfer':
+            from .forms import BankTransferForm
+            form = BankTransferForm(request.POST, request.FILES)
+        elif method_name == 'crypto':
+            from .forms import CryptoForm
+            form = CryptoForm(request.POST, request.FILES)
         else:
             form = DepositForm(request.POST, request.FILES)
         

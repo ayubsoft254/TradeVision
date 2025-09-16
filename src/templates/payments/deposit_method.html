@@ -241,7 +241,7 @@ form input:focus, form select:focus, form textarea:focus {
             {% if form.payment_proof %}
             <div>
               <label for="{{ form.payment_proof.id_for_label }}" class="block text-sm font-medium mb-2">
-                {{ form.payment_proof.label }}
+                {{ form.payment_proof.label }} <span class="text-red-500">*</span>
               </label>
               {{ form.payment_proof }}
               {% if form.payment_proof.errors %}
@@ -289,7 +289,7 @@ form input:focus, form select:focus, form textarea:focus {
             {% if form.transaction_reference %}
             <div>
               <label for="{{ form.transaction_reference.id_for_label }}" class="block text-sm font-medium mb-2">
-                {{ form.transaction_reference.label }}
+                {{ form.transaction_reference.label }} <span class="text-red-500">*</span>
               </label>
               {{ form.transaction_reference }}
               {% if form.transaction_reference.errors %}

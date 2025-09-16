@@ -46,13 +46,13 @@ class DepositForm(BasePaymentForm):
     """Generic deposit form"""
     
     payment_proof = forms.ImageField(
-        required=False,
+        required=True,
         widget=forms.FileInput(attrs={
             'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
             'accept': 'image/*'
         }),
-        label='Payment Proof (Optional)',
-        help_text='Upload a screenshot or photo of your payment confirmation'
+        label='Payment Proof',
+        help_text='Upload a screenshot or photo of your payment confirmation (Required)'
     )
     
     notes = forms.CharField(
@@ -69,15 +69,17 @@ class DepositForm(BasePaymentForm):
     def clean_payment_proof(self):
         payment_proof = self.cleaned_data.get('payment_proof')
         
-        if payment_proof:
-            # Check file size (max 5MB)
-            if payment_proof.size > 5 * 1024 * 1024:
-                raise ValidationError('File size must be less than 5MB.')
-            
-            # Check file type
-            allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
-            if payment_proof.content_type not in allowed_types:
-                raise ValidationError('Only JPEG, PNG, and GIF images are allowed.')
+        if not payment_proof:
+            raise ValidationError('Payment proof is required for deposit verification.')
+        
+        # Check file size (max 5MB)
+        if payment_proof.size > 5 * 1024 * 1024:
+            raise ValidationError('File size must be less than 5MB.')
+        
+        # Check file type
+        allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
+        if payment_proof.content_type not in allowed_types:
+            raise ValidationError('Only JPEG, PNG, and GIF images are allowed.')
         
         return payment_proof
 
@@ -137,14 +139,14 @@ class BinancePayForm(BasePaymentForm):
     )
     
     transaction_reference = forms.CharField(
-        required=False,
+        required=True,
         max_length=100,
         widget=forms.TextInput(attrs={
             'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
-            'placeholder': 'Transaction reference (optional)'
+            'placeholder': 'Enter transaction reference'
         }),
         label='Transaction Reference',
-        help_text='Binance transaction ID or reference number if available'
+        help_text='Binance transaction ID or reference number (Required)'
     )
     
     def __init__(self, *args, **kwargs):
@@ -421,6 +423,16 @@ class BankTransferForm(BasePaymentForm):
         help_text='Required for international transfers'
     )
     
+    payment_proof = forms.ImageField(
+        required=True,
+        widget=forms.FileInput(attrs={
+            'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
+            'accept': 'image/*'
+        }),
+        label='Payment Proof',
+        help_text='Upload a screenshot of your bank transfer receipt (Required)'
+    )
+    
     def clean_account_number(self):
         account_number = self.cleaned_data['account_number']
         
@@ -446,6 +458,23 @@ class BankTransferForm(BasePaymentForm):
             return swift_code.upper()
         
         return swift_code
+    
+    def clean_payment_proof(self):
+        payment_proof = self.cleaned_data.get('payment_proof')
+        
+        if not payment_proof:
+            raise ValidationError('Payment proof is required for deposit verification.')
+        
+        # Check file size (max 5MB)
+        if payment_proof.size > 5 * 1024 * 1024:
+            raise ValidationError('File size must be less than 5MB.')
+        
+        # Check file type
+        allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
+        if payment_proof.content_type not in allowed_types:
+            raise ValidationError('Only JPEG, PNG, and GIF images are allowed.')
+        
+        return payment_proof
 
 class MobileMoneyForm(BasePaymentForm):
     """Mobile money specific form"""
@@ -485,6 +514,16 @@ class MobileMoneyForm(BasePaymentForm):
         label='Account Holder Name'
     )
     
+    payment_proof = forms.ImageField(
+        required=True,
+        widget=forms.FileInput(attrs={
+            'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
+            'accept': 'image/*'
+        }),
+        label='Payment Proof',
+        help_text='Upload a screenshot of your mobile money transaction (Required)'
+    )
+    
     def clean_phone_number(self):
         phone_number = self.cleaned_data['phone_number']
         
@@ -498,6 +537,23 @@ class MobileMoneyForm(BasePaymentForm):
             phone_number = '+' + phone_number
         
         return phone_number
+    
+    def clean_payment_proof(self):
+        payment_proof = self.cleaned_data.get('payment_proof')
+        
+        if not payment_proof:
+            raise ValidationError('Payment proof is required for deposit verification.')
+        
+        # Check file size (max 5MB)
+        if payment_proof.size > 5 * 1024 * 1024:
+            raise ValidationError('File size must be less than 5MB.')
+        
+        # Check file type
+        allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
+        if payment_proof.content_type not in allowed_types:
+            raise ValidationError('Only JPEG, PNG, and GIF images are allowed.')
+        
+        return payment_proof
 
 class CryptoForm(BasePaymentForm):
     """Cryptocurrency specific form"""
@@ -537,6 +593,16 @@ class CryptoForm(BasePaymentForm):
         help_text='Specify the blockchain network'
     )
     
+    payment_proof = forms.ImageField(
+        required=True,
+        widget=forms.FileInput(attrs={
+            'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
+            'accept': 'image/*'
+        }),
+        label='Payment Proof',
+        help_text='Upload a screenshot of your cryptocurrency transaction (Required)'
+    )
+    
     def clean_wallet_address(self):
         wallet_address = self.cleaned_data['wallet_address']
         currency = self.cleaned_data.get('currency')
@@ -553,4 +619,22 @@ class CryptoForm(BasePaymentForm):
             raise ValidationError('Invalid Bitcoin wallet address.')
         elif currency == 'ETH' and not re.match(r'^0x[a-fA-F0-9]{40}$', wallet_address):
             raise ValidationError('Invalid Ethereum wallet address.')
+        
         return wallet_address
+    
+    def clean_payment_proof(self):
+        payment_proof = self.cleaned_data.get('payment_proof')
+        
+        if not payment_proof:
+            raise ValidationError('Payment proof is required for deposit verification.')
+        
+        # Check file size (max 5MB)
+        if payment_proof.size > 5 * 1024 * 1024:
+            raise ValidationError('File size must be less than 5MB.')
+        
+        # Check file type
+        allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
+        if payment_proof.content_type not in allowed_types:
+            raise ValidationError('Only JPEG, PNG, and GIF images are allowed.')
+        
+        return payment_proof
