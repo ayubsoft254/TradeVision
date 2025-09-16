@@ -3,6 +3,7 @@ import os
 from celery import Celery
 from django.conf import settings
 from django.utils import timezone
+from celery.schedules import crontab
 
 # Set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tradevision.settings')
@@ -132,9 +133,24 @@ app.conf.beat_schedule = {
     },
 
     'check-binance-payments': {
-            'task': 'apps.payments.tasks.check_binance_payments_task',
-            'schedule': 300.0,  # Run every 5 minutes
-        },
+        'task': 'apps.payments.tasks.check_binance_payments_task',
+        'schedule': 300.0,  # 5 minutes
+        'options': {'queue': 'payments'}
+    },
+    
+    # Clean up old pending payments daily at 2 AM
+    'cleanup-old-payments': {
+        'task': 'apps.payments.tasks.cleanup_old_pending_payments',
+        'schedule': crontab(hour=2, minute=0),
+        'options': {'queue': 'maintenance'}
+    },
+    
+    # Generate daily report at 11:59 PM
+    'daily-payment-report': {
+        'task': 'apps.payments.tasks.generate_payment_report',
+        'schedule': crontab(hour=23, minute=59),
+        'options': {'queue': 'reports'}
+    },
     
     'detect-suspicious-activity': {
         'task': 'apps.payments.tasks.detect_suspicious_activity',
