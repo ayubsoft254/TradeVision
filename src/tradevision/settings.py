@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security settings
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = False
+DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Application definition
@@ -189,29 +189,4 @@ SUPPORTED_CURRENCIES = {
     'TZ': 'TZS',
     'CD': 'CDF',
     'ZM': 'ZMW',
-}
-
-# Package configurations
-TRADING_PACKAGES = {
-    'basic': {
-        'name': 'Basic Package',
-        'min_stake': 1000,
-        'profit_range': (3, 5),
-        'welcome_bonus': 5,
-        'duration_days': 365,
-    },
-    'standard': {
-        'name': 'Standard Package',
-        'min_stake': 5000,
-        'profit_range': (3, 5),
-        'welcome_bonus': 10,
-        'duration_days': 365,
-    },
-    'premium': {
-        'name': 'Premium Package',
-        'min_stake': 10000,
-        'profit_range': (5, 7),
-        'welcome_bonus': 15,
-        'duration_days': 365,
-    },
 }

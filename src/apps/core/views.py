@@ -17,8 +17,7 @@ from .models import (
     SupportMessage, NewsUpdate, SystemLog
 )
 from apps.accounts.forms import ContactForm
-from apps.trading.models import Investment, ProfitHistory
-from apps.payments.models import Transaction
+from apps.trading.models import  TradingPackage
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +34,9 @@ class HomeView(TemplateView):
         except SiteConfiguration.DoesNotExist:
             site_config = None
         
-        # Get trading packages from settings
-        context['packages'] = settings.TRADING_PACKAGES
+        # Get trading packages from database
+        packages = TradingPackage.objects.filter(is_active=True).order_by('min_stake')
+        context['packages'] = packages
         
         # Get active announcements for homepage
         announcements = Announcement.objects.filter(
@@ -96,8 +96,9 @@ class AboutView(TemplateView):
         except SiteConfiguration.DoesNotExist:
             site_config = None
         
-        # Get trading packages
-        context['packages'] = settings.TRADING_PACKAGES
+        # Get trading packages from database
+        trading_packages = TradingPackage.objects.filter(is_active=True).order_by('min_stake')
+        context['packages'] = trading_packages
         
         # Get platform statistics
         stats = {
