@@ -16,7 +16,20 @@
 
 {% block extrahead %}
 {{ block.super }}
-<link rel="stylesheet" type="text/css" href="{% static 'admin/css/custom_admin.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/custom_admin.css' %}?v=2025091701">
+<style>
+/* Inline CSS for immediate visibility testing */
+select {
+    border: 3px solid purple !important;
+    background: yellow !important;
+}
+.form-row {
+    background: lightblue !important;
+    padding: 15px !important;
+    margin: 10px !important;
+    border: 2px solid orange !important;
+}
+</style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Enhance currency selectors

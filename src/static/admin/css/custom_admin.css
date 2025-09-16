@@ -1,56 +1,81 @@
-/* Custom Admin Currency Selector Styles */
+/* Professional Currency Selector Styles */
 
-.currency-selector {
-    padding: 8px 12px !important;
-    border: 2px solid #ddd !important;
+/* Enhanced currency selector styling */
+.currency-selector,
+select[name*="currency"],
+#id_currency {
+    padding: 10px 14px !important;
+    border: 2px solid #0066cc !important;
     border-radius: 6px !important;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
-    font-weight: bold !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
+    font-weight: 600 !important;
     font-size: 14px !important;
     transition: all 0.3s ease !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+    color: #495057 !important;
 }
 
-.currency-selector:focus {
+.currency-selector:focus,
+select[name*="currency"]:focus,
+#id_currency:focus {
     border-color: #28a745 !important;
-    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
-    background: #fff !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.15) !important;
+    background: #ffffff !important;
+    outline: none !important;
 }
 
 .currency-selector option[value="USDT"] {
-    background-color: #d4edda !important;
+    background-color: #e8f5e8 !important;
     color: #155724 !important;
-    font-weight: bold !important;
+    font-weight: 600 !important;
 }
 
 .currency-selector option[value="BUSD"] {
-    background-color: #fff3cd !important;
+    background-color: #fff8e6 !important;
     color: #856404 !important;
 }
 
 .currency-selector option[value="BTC"] {
-    background-color: #fff0e6 !important;
+    background-color: #fdf2e6 !important;
     color: #cc4f0a !important;
 }
 
 .currency-selector option[value="ETH"] {
-    background-color: #e7ecf9 !important;
+    background-color: #f0f4f8 !important;
     color: #2c3e94 !important;
 }
 
-/* Highlight crypto-friendly sections */
-.highlight-crypto {
-    background-color: #f0f8ff !important;
+/* Professional crypto-friendly sections */
+.highlight-crypto,
+fieldset.highlight-crypto,
+.fieldset.highlight-crypto {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
+    border: 1px solid #28a745 !important;
     border-left: 4px solid #28a745 !important;
-    padding-left: 15px !important;
+    border-radius: 4px !important;
+    padding: 16px !important;
+    margin: 10px 0 !important;
 }
 
-/* Enhanced field styling for currency info panels */
+/* Professional field styling for currency info panels */
 .field-currency_info .readonly,
-.field-usdt_compatibility .readonly {
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 0;
-    overflow: hidden;
+.field-usdt_compatibility .readonly,
+.field-crypto_support_info .readonly {
+    border: 1px solid #dee2e6 !important;
+    border-radius: 4px !important;
+    padding: 12px !important;
+    margin: 8px 0 !important;
+    background: #f8f9fa !important;
+    overflow: visible !important;
+}
+
+/* Make readonly field content more visible */
+.readonly {
+    background: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    padding: 10px !important;
+    border-radius: 5px !important;
+    margin: 5px 0 !important;
 }
 
 /* Currency display enhancements */
@@ -105,8 +130,88 @@
     color: #856404;
 }
 
+/* Professional admin styling */
+body.admin {
+    background: #ffffff !important;
+}
+
+/* Professional form styling */
+.form-row {
+    background: #ffffff !important;
+    padding: 8px !important;
+    margin: 4px 0 !important;
+    border-radius: 4px !important;
+    border: 1px solid #e9ecef !important;
+}
+
+/* Professional label styling */
+.form-row label {
+    font-weight: 600 !important;
+    color: #495057 !important;
+    font-size: 14px !important;
+}
+
+/* Professional amount styling */
 .amount-legacy {
     background-color: #f8d7da;
     border-color: #f5c6cb;
     color: #721c24;
+}
+
+/* Country selector styling */
+.country-selector {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    padding: 16px !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 8px !important;
+    margin: 8px 0 !important;
+}
+
+.country-selector input[type="checkbox"] {
+    margin-right: 8px !important;
+    transform: scale(1.2) !important;
+}
+
+.country-selector label {
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 12px !important;
+    background: #ffffff !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    font-weight: 500 !important;
+    min-width: 140px !important;
+}
+
+.country-selector label:hover {
+    background: #e9ecef !important;
+    border-color: #28a745 !important;
+}
+
+.country-selector input[type="checkbox"]:checked + label,
+.country-selector label:has(input[type="checkbox"]:checked) {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%) !important;
+    border-color: #28a745 !important;
+    color: #155724 !important;
+    font-weight: 600 !important;
+}
+
+/* Payment method selector styling */
+.payment-method-selector {
+    padding: 10px 14px !important;
+    border: 2px solid #0066cc !important;
+    border-radius: 6px !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+}
+
+.payment-method-selector:focus {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.15) !important;
 }

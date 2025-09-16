@@ -15,9 +15,18 @@ class PaymentMethod(models.Model):
         ('crypto', 'Cryptocurrency'),
     ]
     
+    COUNTRY_CHOICES = [
+        ('ZM', 'Zambia'),
+        ('CD', 'Democratic Republic of Congo (DRC)'),
+        ('TZ', 'Tanzania'),
+        ('KE', 'Kenya'),
+        ('UG', 'Uganda'),
+        # Additional countries can be added here
+    ]
+    
     name = models.CharField(max_length=50, choices=METHOD_TYPES)
     display_name = models.CharField(max_length=100)
-    countries = models.JSONField(default=list)  # List of country codes
+    countries = models.JSONField(default=list, help_text="List of country codes (e.g., ['ZM', 'KE', 'UG'])")  # List of country codes
     is_active = models.BooleanField(default=True)
     min_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     max_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
@@ -172,11 +181,20 @@ class WithdrawalRequest(models.Model):
 
 class Agent(models.Model):
     """Local agents for cash transactions"""
+    
+    COUNTRY_CHOICES = [
+        ('ZM', 'Zambia'),
+        ('CD', 'Democratic Republic of Congo (DRC)'),
+        ('TZ', 'Tanzania'),
+        ('KE', 'Kenya'),
+        ('UG', 'Uganda'),
+    ]
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20)
     email = models.EmailField()
-    country = models.CharField(max_length=2)
+    country = models.CharField(max_length=2, choices=COUNTRY_CHOICES)
     city = models.CharField(max_length=100)
     address = models.TextField()
     is_verified = models.BooleanField(default=False)
@@ -193,12 +211,21 @@ class Agent(models.Model):
 
 class P2PMerchant(models.Model):
     """P2P trading merchants"""
+    
+    COUNTRY_CHOICES = [
+        ('ZM', 'Zambia'),
+        ('CD', 'Democratic Republic of Congo (DRC)'),
+        ('TZ', 'Tanzania'),
+        ('KE', 'Kenya'),
+        ('UG', 'Uganda'),
+    ]
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     username = models.CharField(max_length=50, unique=True)
     phone_number = models.CharField(max_length=20)
     email = models.EmailField()
-    country = models.CharField(max_length=2)
+    country = models.CharField(max_length=2, choices=COUNTRY_CHOICES)
     supported_methods = models.JSONField(default=list)  # e.g., ['mobile_money', 'bank_transfer']
     is_verified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)

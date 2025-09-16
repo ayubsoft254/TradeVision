@@ -11,6 +11,65 @@ from .models import (
 )
 
 # Custom admin forms for enhanced currency selection
+class PaymentMethodAdminForm(forms.ModelForm):
+    """Custom form for PaymentMethod admin with enhanced country selection"""
+    
+    # Available countries for payment methods
+    COUNTRY_CHOICES = [
+        ('ZM', 'Zambia'),
+        ('CD', 'Democratic Republic of Congo (DRC)'),
+        ('TZ', 'Tanzania'),
+        ('KE', 'Kenya'),
+        ('UG', 'Uganda'),
+    ]
+    
+    # Create a multiple choice field for countries
+    available_countries = forms.MultipleChoiceField(
+        choices=COUNTRY_CHOICES,
+        widget=forms.CheckboxSelectMultiple(attrs={
+            'class': 'country-selector',
+            'style': 'display: flex; flex-wrap: wrap; gap: 10px;'
+        }),
+        required=False,
+        help_text="Select all countries where this payment method is available"
+    )
+    
+    class Meta:
+        model = PaymentMethod
+        fields = '__all__'
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pre-populate available_countries from the countries JSON field
+        if self.instance and self.instance.pk and self.instance.countries:
+            self.initial['available_countries'] = self.instance.countries
+            
+        # Style the form fields
+        self.fields['name'].widget.attrs.update({
+            'class': 'payment-method-selector',
+            'style': 'font-weight: bold;'
+        })
+        
+        self.fields['display_name'].help_text = (
+            "User-friendly name shown to customers (e.g., 'MTN Mobile Money', 'Airtel Money')"
+        )
+        
+        # Hide the raw countries JSON field and make it readonly
+        self.fields['countries'].widget = forms.HiddenInput()
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        # Convert the available_countries selection to the countries JSON field
+        selected_countries = cleaned_data.get('available_countries', [])
+        cleaned_data['countries'] = selected_countries
+        return cleaned_data
+    
+    def save(self, commit=True):
+        # Make sure the countries field is properly set from available_countries
+        selected_countries = self.cleaned_data.get('available_countries', [])
+        self.instance.countries = selected_countries
+        return super().save(commit=commit)
+
 class WalletAdminForm(forms.ModelForm):
     """Custom form for Wallet admin with enhanced currency selection"""
     
@@ -52,14 +111,19 @@ class TransactionAdminForm(forms.ModelForm):
 
 @admin.register(PaymentMethod)
 class PaymentMethodAdmin(admin.ModelAdmin):
-    list_display = ['display_name', 'name', 'usdt_friendly_display', 'processing_fee', 'processing_time', 'is_active', 'countries_count']
+    form = PaymentMethodAdminForm
+    list_display = ['display_name', 'name', 'usdt_friendly_display', 'processing_fee', 'processing_time', 'is_active', 'countries_count', 'countries_list']
     list_filter = ['name', 'is_active']
     search_fields = ['display_name', 'name']
-    readonly_fields = ['countries_display', 'usdt_compatibility']
+    readonly_fields = ['countries_display', 'usdt_compatibility', 'crypto_support_info']
     
     fieldsets = (
         ('Payment Method Details', {
             'fields': ('name', 'display_name', 'is_active', 'usdt_compatibility')
+        }),
+        ('Country Availability', {
+            'fields': ('available_countries', 'countries_display'),
+            'description': 'Select the countries where this payment method is available'
         }),
         ('USDT & Cryptocurrency Settings', {
             'fields': ('crypto_support_info',),
@@ -70,8 +134,10 @@ class PaymentMethodAdmin(admin.ModelAdmin):
             'fields': ('min_amount', 'max_amount', 'processing_fee', 'processing_time'),
             'description': 'All amounts are in USDT'
         }),
-        ('Geographic Availability', {
-            'fields': ('countries', 'countries_display')
+        ('Advanced Settings', {
+            'fields': ('countries',),
+            'classes': ('collapse',),
+            'description': 'Raw JSON data (automatically managed)'
         }),
     )
     
@@ -115,11 +181,50 @@ class PaymentMethodAdmin(admin.ModelAdmin):
         return len(obj.countries) if obj.countries else 0
     countries_count.short_description = 'Countries'
     
-    def countries_display(self, obj):
+    def countries_list(self, obj):
+        """Show country names instead of codes in the list view"""
         if obj.countries:
-            return ', '.join(obj.countries)
-        return 'None'
+            country_mapping = {
+                'ZM': '🇿🇲 Zambia',
+                'CD': '🇨🇩 DRC',
+                'TZ': '🇹🇿 Tanzania', 
+                'KE': '🇰🇪 Kenya',
+                'UG': '🇺🇬 Uganda'
+            }
+            country_names = [country_mapping.get(code, code) for code in obj.countries]
+            return format_html('<span style="font-size: 12px;">{}</span>', ', '.join(country_names))
+        return format_html('<span style="color: #999;">No countries</span>')
+    countries_list.short_description = 'Available In'
+    
+    def countries_display(self, obj):
+        """Enhanced display of countries in the detail view"""
+        if obj.countries:
+            country_mapping = {
+                'ZM': {'name': 'Zambia', 'flag': '🇿🇲', 'color': '#1e7e34'},
+                'CD': {'name': 'Democratic Republic of Congo', 'flag': '🇨🇩', 'color': '#155724'},
+                'TZ': {'name': 'Tanzania', 'flag': '🇹🇿', 'color': '#0c5460'},
+                'KE': {'name': 'Kenya', 'flag': '🇰🇪', 'color': '#721c24'},
+                'UG': {'name': 'Uganda', 'flag': '🇺🇬', 'color': '#856404'}
+            }
+            
+            country_html = []
+            for code in obj.countries:
+                country_info = country_mapping.get(code, {'name': code, 'flag': '🌍', 'color': '#6c757d'})
+                country_html.append(
+                    f'<span style="display: inline-block; margin: 4px; padding: 6px 12px; '
+                    f'background-color: {country_info["color"]}20; color: {country_info["color"]}; '
+                    f'border: 1px solid {country_info["color"]}40; border-radius: 16px; font-size: 13px;">'
+                    f'{country_info["flag"]} {country_info["name"]}</span>'
+                )
+            
+            return format_html('<div style="line-height: 2;">{}</div>', ''.join(country_html))
+        return format_html('<span style="color: #dc3545; font-style: italic;">No countries selected</span>')
     countries_display.short_description = 'Available Countries'
+    
+    class Media:
+        css = {
+            'all': ('admin/css/custom_admin.css',)
+        }
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
