@@ -163,13 +163,13 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
         
         # Get appropriate form
         if method_name == 'binance_pay':
-            form = BinancePayForm(request.POST)
+            form = BinancePayForm(request.POST, request.FILES)
         elif method_name == 'p2p':
-            form = P2PForm(request.POST, transaction_type='deposit')
+            form = P2PForm(request.POST, request.FILES, transaction_type='deposit')
         elif method_name == 'agent':
-            form = AgentTransactionForm(request.POST, transaction_type='deposit')
+            form = AgentTransactionForm(request.POST, request.FILES, transaction_type='deposit')
         else:
-            form = DepositForm(request.POST)
+            form = DepositForm(request.POST, request.FILES)
         
         if form.is_valid():
             return self.process_deposit(request, form, payment_method)
@@ -200,10 +200,13 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
         )
         
         # Create deposit request
-        # Convert Decimal values to strings for JSON serialization
+        # Convert Decimal values to strings and exclude file fields for JSON serialization
         payment_details = {}
         for key, value in form.cleaned_data.items():
-            if isinstance(value, Decimal):
+            # Skip file fields as they're handled separately
+            if key == 'payment_proof':
+                continue
+            elif isinstance(value, Decimal):
                 payment_details[key] = str(value)
             else:
                 payment_details[key] = value
@@ -213,9 +216,9 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
             payment_details=payment_details
         )
         
-        # Handle file upload if present
-        if 'payment_proof' in request.FILES:
-            deposit_request.payment_proof = request.FILES['payment_proof']
+        # Handle file upload if present in form
+        if 'payment_proof' in form.cleaned_data and form.cleaned_data['payment_proof']:
+            deposit_request.payment_proof = form.cleaned_data['payment_proof']
             deposit_request.save()
         
         # Log the deposit request
@@ -372,13 +375,13 @@ class WithdrawMethodView(LoginRequiredMixin, TemplateView):
         
         # Get appropriate form
         if method_name == 'binance_pay':
-            form = BinancePayForm(request.POST, transaction_type='withdrawal')
+            form = BinancePayForm(request.POST, request.FILES, transaction_type='withdrawal')
         elif method_name == 'p2p':
-            form = P2PForm(request.POST, transaction_type='withdrawal')
+            form = P2PForm(request.POST, request.FILES, transaction_type='withdrawal')
         elif method_name == 'agent':
-            form = AgentTransactionForm(request.POST, transaction_type='withdrawal')
+            form = AgentTransactionForm(request.POST, request.FILES, transaction_type='withdrawal')
         else:
-            form = WithdrawalForm(request.POST)
+            form = WithdrawalForm(request.POST, request.FILES)
         
         if form.is_valid():
             return self.process_withdrawal(request, form, payment_method)
@@ -415,10 +418,13 @@ class WithdrawMethodView(LoginRequiredMixin, TemplateView):
         )
         
         # Create withdrawal request
-        # Convert Decimal values to strings for JSON serialization
+        # Convert Decimal values to strings and exclude file fields for JSON serialization
         withdrawal_address = {}
         for key, value in form.cleaned_data.items():
-            if isinstance(value, Decimal):
+            # Skip file fields as they're handled separately
+            if key in ['payment_proof', 'confirm_withdrawal']:
+                continue
+            elif isinstance(value, Decimal):
                 withdrawal_address[key] = str(value)
             else:
                 withdrawal_address[key] = value
