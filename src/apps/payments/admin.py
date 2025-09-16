@@ -40,9 +40,50 @@ class PaymentMethodAdminForm(forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
         # Pre-populate available_countries from the countries JSON field
-        if self.instance and self.instance.pk and self.instance.countries:
-            self.initial['available_countries'] = self.instance.countries
+        if self.instance and self.instance.pk:
+            # Handle different formats of country data
+            countries_data = self.instance.countries or []
+            selected_countries = []
+            
+            if isinstance(countries_data, list):
+                # New format: ['ZM', 'UG', 'TZ']
+                selected_countries = [code for code in countries_data if len(code) == 2]
+            elif isinstance(countries_data, dict):
+                # Old format: {'Kenya': ['Kenya', 'Uganda', 'Tanzania']}
+                # Try to map country names to codes
+                country_name_to_code = {
+                    'Kenya': 'KE',
+                    'Uganda': 'UG', 
+                    'Tanzania': 'TZ',
+                    'Zambia': 'ZM',
+                    'Democratic Republic of Congo': 'CD',
+                    'DRC': 'CD'
+                }
+                
+                for key, values in countries_data.items():
+                    if isinstance(values, list):
+                        for country in values:
+                            if country in country_name_to_code:
+                                code = country_name_to_code[country]
+                                if code not in selected_countries:
+                                    selected_countries.append(code)
+                    elif key in country_name_to_code:
+                        code = country_name_to_code[key]
+                        if code not in selected_countries:
+                            selected_countries.append(code)
+            elif isinstance(countries_data, str):
+                # Handle string format - try to parse as JSON
+                try:
+                    import json
+                    parsed_data = json.loads(countries_data)
+                    if isinstance(parsed_data, list):
+                        selected_countries = [code for code in parsed_data if len(code) == 2]
+                except (json.JSONDecodeError, TypeError):
+                    selected_countries = []
+            
+            self.initial['available_countries'] = selected_countries
             
         # Style the form fields
         self.fields['name'].widget.attrs.update({
@@ -54,20 +95,45 @@ class PaymentMethodAdminForm(forms.ModelForm):
             "User-friendly name shown to customers (e.g., 'MTN Mobile Money', 'Airtel Money')"
         )
         
-        # Hide the raw countries JSON field and make it readonly
+        # Add help text for countries field
+        self.fields['available_countries'].help_text = (
+            "Select all countries where this payment method is available. "
+            "This will replace any existing country data."
+        )
+        
+        # Hide the raw countries JSON field and make it not required
         self.fields['countries'].widget = forms.HiddenInput()
+        self.fields['countries'].required = False
     
     def clean(self):
         cleaned_data = super().clean()
         # Convert the available_countries selection to the countries JSON field
         selected_countries = cleaned_data.get('available_countries', [])
-        cleaned_data['countries'] = selected_countries
+        
+        # Ensure we have a proper list of valid country codes
+        if selected_countries:
+            # Filter to ensure we only have valid 2-letter country codes
+            valid_countries = []
+            for country in selected_countries:
+                if isinstance(country, str) and len(country) == 2:
+                    valid_countries.append(country)
+            cleaned_data['countries'] = valid_countries
+        else:
+            cleaned_data['countries'] = []
+            
         return cleaned_data
     
     def save(self, commit=True):
         # Make sure the countries field is properly set from available_countries
         selected_countries = self.cleaned_data.get('available_countries', [])
-        self.instance.countries = selected_countries
+        
+        # Ensure it's stored as a proper list in the JSON field
+        if selected_countries:
+            valid_countries = [country for country in selected_countries if isinstance(country, str) and len(country) == 2]
+            self.instance.countries = valid_countries
+        else:
+            self.instance.countries = []
+            
         return super().save(commit=commit)
 
 class WalletAdminForm(forms.ModelForm):
@@ -178,37 +244,120 @@ class PaymentMethodAdmin(admin.ModelAdmin):
     crypto_support_info.short_description = 'Platform Currency Info'
     
     def countries_count(self, obj):
-        return len(obj.countries) if obj.countries else 0
+        countries_data = obj.countries or []
+        
+        if isinstance(countries_data, list):
+            return len([code for code in countries_data if isinstance(code, str) and len(code) == 2])
+        elif isinstance(countries_data, dict):
+            # Count unique countries from old format
+            country_name_to_code = {
+                'Kenya': 'KE', 'Uganda': 'UG', 'Tanzania': 'TZ',
+                'Zambia': 'ZM', 'Democratic Republic of Congo': 'CD', 'DRC': 'CD'
+            }
+            unique_codes = set()
+            
+            for key, values in countries_data.items():
+                if isinstance(values, list):
+                    for country in values:
+                        if country in country_name_to_code:
+                            unique_codes.add(country_name_to_code[country])
+                elif key in country_name_to_code:
+                    unique_codes.add(country_name_to_code[key])
+            
+            return len(unique_codes)
+        
+        return 0
     countries_count.short_description = 'Countries'
     
     def countries_list(self, obj):
         """Show country names instead of codes in the list view"""
-        if obj.countries:
-            country_mapping = {
-                'ZM': '🇿🇲 Zambia',
-                'CD': '🇨🇩 DRC',
-                'TZ': '🇹🇿 Tanzania', 
-                'KE': '🇰🇪 Kenya',
-                'UG': '🇺🇬 Uganda'
+        countries_data = obj.countries or []
+        
+        # Country mapping
+        country_mapping = {
+            'ZM': '🇿🇲 Zambia',
+            'CD': '🇨🇩 DRC',
+            'TZ': '🇹🇿 Tanzania', 
+            'KE': '🇰🇪 Kenya',
+            'UG': '🇺🇬 Uganda'
+        }
+        
+        # Handle different data formats
+        country_codes = []
+        
+        if isinstance(countries_data, list):
+            # New format: ['ZM', 'UG', 'TZ']
+            country_codes = [code for code in countries_data if isinstance(code, str) and len(code) == 2]
+        elif isinstance(countries_data, dict):
+            # Old format: {'Kenya': ['Kenya', 'Uganda', 'Tanzania']}
+            country_name_to_code = {
+                'Kenya': 'KE', 'Uganda': 'UG', 'Tanzania': 'TZ',
+                'Zambia': 'ZM', 'Democratic Republic of Congo': 'CD', 'DRC': 'CD'
             }
-            country_names = [country_mapping.get(code, code) for code in obj.countries]
-            return format_html('<span style="font-size: 12px;">{}</span>', ', '.join(country_names))
+            
+            for key, values in countries_data.items():
+                if isinstance(values, list):
+                    for country in values:
+                        if country in country_name_to_code:
+                            code = country_name_to_code[country]
+                            if code not in country_codes:
+                                country_codes.append(code)
+                elif key in country_name_to_code:
+                    code = country_name_to_code[key]
+                    if code not in country_codes:
+                        country_codes.append(code)
+        
+        if country_codes:
+            country_names = [country_mapping.get(code, code) for code in country_codes]
+            result = ', '.join(country_names)
+            # Add indicator for old format
+            if isinstance(countries_data, dict):
+                result += ' <small style="color: orange;">⚠️</small>'
+            return format_html('<span style="font-size: 12px;">{}</span>', result)
         return format_html('<span style="color: #999;">No countries</span>')
     countries_list.short_description = 'Available In'
     
     def countries_display(self, obj):
         """Enhanced display of countries in the detail view"""
-        if obj.countries:
-            country_mapping = {
-                'ZM': {'name': 'Zambia', 'flag': '🇿🇲', 'color': '#1e7e34'},
-                'CD': {'name': 'Democratic Republic of Congo', 'flag': '🇨🇩', 'color': '#155724'},
-                'TZ': {'name': 'Tanzania', 'flag': '🇹🇿', 'color': '#0c5460'},
-                'KE': {'name': 'Kenya', 'flag': '🇰🇪', 'color': '#721c24'},
-                'UG': {'name': 'Uganda', 'flag': '🇺🇬', 'color': '#856404'}
+        countries_data = obj.countries or []
+        
+        # Country mapping for display
+        country_mapping = {
+            'ZM': {'name': 'Zambia', 'flag': '🇿🇲', 'color': '#1e7e34'},
+            'CD': {'name': 'Democratic Republic of Congo', 'flag': '🇨🇩', 'color': '#155724'},
+            'TZ': {'name': 'Tanzania', 'flag': '🇹🇿', 'color': '#0c5460'},
+            'KE': {'name': 'Kenya', 'flag': '🇰🇪', 'color': '#721c24'},
+            'UG': {'name': 'Uganda', 'flag': '🇺🇬', 'color': '#856404'}
+        }
+        
+        # Handle different data formats
+        country_codes = []
+        
+        if isinstance(countries_data, list):
+            # New format: ['ZM', 'UG', 'TZ']
+            country_codes = [code for code in countries_data if isinstance(code, str) and len(code) == 2]
+        elif isinstance(countries_data, dict):
+            # Old format: {'Kenya': ['Kenya', 'Uganda', 'Tanzania']}
+            country_name_to_code = {
+                'Kenya': 'KE', 'Uganda': 'UG', 'Tanzania': 'TZ',
+                'Zambia': 'ZM', 'Democratic Republic of Congo': 'CD', 'DRC': 'CD'
             }
             
+            for key, values in countries_data.items():
+                if isinstance(values, list):
+                    for country in values:
+                        if country in country_name_to_code:
+                            code = country_name_to_code[country]
+                            if code not in country_codes:
+                                country_codes.append(code)
+                elif key in country_name_to_code:
+                    code = country_name_to_code[key]
+                    if code not in country_codes:
+                        country_codes.append(code)
+        
+        if country_codes:
             country_html = []
-            for code in obj.countries:
+            for code in country_codes:
                 country_info = country_mapping.get(code, {'name': code, 'flag': '🌍', 'color': '#6c757d'})
                 country_html.append(
                     f'<span style="display: inline-block; margin: 4px; padding: 6px 12px; '
@@ -217,8 +366,16 @@ class PaymentMethodAdmin(admin.ModelAdmin):
                     f'{country_info["flag"]} {country_info["name"]}</span>'
                 )
             
+            # Add a note if data format needs updating
+            if isinstance(countries_data, dict):
+                country_html.append(
+                    '<br><small style="color: #856404; font-style: italic;">⚠️ Old data format detected. '
+                    'Save this record to update to new format.</small>'
+                )
+            
             return format_html('<div style="line-height: 2;">{}</div>', ''.join(country_html))
-        return format_html('<span style="color: #dc3545; font-style: italic;">No countries selected</span>')
+        else:
+            return format_html('<span style="color: #dc3545; font-style: italic;">No countries selected</span>')
     countries_display.short_description = 'Available Countries'
     
     class Media:
