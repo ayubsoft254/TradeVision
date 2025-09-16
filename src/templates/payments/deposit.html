@@ -27,6 +27,42 @@
             </div>
         </div>
 
+        <!-- Binance Pay Information Banner -->
+        <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 rounded-lg p-6 mb-8">
+            <div class="flex items-center mb-4">
+                <div class="flex-shrink-0">
+                    <i class="fab fa-bitcoin text-yellow-500 text-2xl mr-3"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">New to Binance Pay?</h3>
+                    <p class="text-gray-700">Learn how to make instant, secure crypto deposits</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div class="bg-white rounded-lg p-4">
+                    <h4 class="font-semibold text-gray-900 mb-2">
+                        <i class="fas fa-bolt text-yellow-500 mr-2"></i>Instant Processing
+                    </h4>
+                    <p class="text-sm text-gray-600">Deposits are automatically verified and credited to your account within minutes.</p>
+                </div>
+                <div class="bg-white rounded-lg p-4">
+                    <h4 class="font-semibold text-gray-900 mb-2">
+                        <i class="fas fa-shield-alt text-green-500 mr-2"></i>Secure & Reliable
+                    </h4>
+                    <p class="text-sm text-gray-600">Powered by Binance's secure payment infrastructure with end-to-end encryption.</p>
+                </div>
+            </div>
+            <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                <div class="flex items-start">
+                    <i class="fas fa-info-circle text-blue-500 mt-1 mr-3"></i>
+                    <div class="text-sm text-blue-800">
+                        <strong>Prerequisites:</strong> You need a Binance account with sufficient balance in supported cryptocurrencies (USDT, BTC, ETH, BNB, BUSD).
+                        <a href="#binance-setup" class="underline hover:no-underline ml-1">Learn how to set up →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Payment Method Selection -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
             <h2 class="text-xl font-semibold mb-6">Select Payment Method</h2>
@@ -190,6 +226,680 @@
             </div>
         </div>
         {% endif %}
+
+        <!-- Binance Pay Setup Guide -->
+        <div id="binance-setup" class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex items-center mb-6">
+                <div class="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center mr-4">
+                    <i class="fab fa-bitcoin text-white text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">How to Use Binance Pay</h2>
+                    <p class="text-gray-600">Complete step-by-step guide for making deposits</p>
+                </div>
+            </div>
+
+            <!-- Step-by-Step Process -->
+            <div class="space-y-6">
+                <!-- Step 1: Prerequisites -->
+                <div class="border border-gray-200 rounded-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">1</div>
+                        <h3 class="text-lg font-semibold text-gray-900">Before You Start</h3>
+                    </div>
+                    <div class="ml-11 space-y-3">
+                        <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+                            <h4 class="font-semibold text-blue-900 mb-2">Required Setup:</h4>
+                            <ul class="text-blue-800 space-y-2">
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                    Active Binance account (sign up at <a href="https://www.binance.com" target="_blank" class="underline">binance.com</a>)
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                    Completed KYC verification on Binance
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                    Sufficient balance in supported cryptocurrencies
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                            <h4 class="font-semibold text-yellow-900 mb-2">Supported Cryptocurrencies:</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm">USDT</span>
+                                <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm">BTC</span>
+                                <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm">ETH</span>
+                                <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm">BNB</span>
+                                <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-sm">BUSD</span>
+                            </div>
+                            <p class="text-yellow-800 text-sm mt-2">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                USDT is recommended for faster processing and lower fees
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Initiate Deposit -->
+                <div class="border border-gray-200 rounded-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">2</div>
+                        <h3 class="text-lg font-semibold text-gray-900">Start Your Deposit</h3>
+                    </div>
+                    <div class="ml-11 space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-gray-900 mb-2">
+                                    <i class="fas fa-mouse-pointer text-blue-500 mr-2"></i>
+                                    On TradeVision
+                                </h4>
+                                <ol class="text-gray-700 text-sm space-y-1 list-decimal list-inside">
+                                    <li>Click "Select Binance Pay" above</li>
+                                    <li>Enter your desired deposit amount</li>
+                                    <li>Review the transaction details</li>
+                                    <li>Click "Submit Deposit Request"</li>
+                                </ol>
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-gray-900 mb-2">
+                                    <i class="fas fa-external-link-alt text-orange-500 mr-2"></i>
+                                    Redirection
+                                </h4>
+                                <ol class="text-gray-700 text-sm space-y-1 list-decimal list-inside">
+                                    <li>You'll be redirected to Binance Pay</li>
+                                    <li>Log in to your Binance account</li>
+                                    <li>Authorize the payment</li>
+                                    <li>Confirm the transaction</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div class="bg-green-50 border border-green-200 p-4 rounded-lg">
+                            <p class="text-green-800 text-sm">
+                                <i class="fas fa-shield-alt mr-2"></i>
+                                <strong>Security Note:</strong> You'll always be redirected to the official Binance domain (binance.com) for payment processing.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Complete Payment -->
+                <div class="border border-gray-200 rounded-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">3</div>
+                        <h3 class="text-lg font-semibold text-gray-900">Complete Payment on Binance</h3>
+                    </div>
+                    <div class="ml-11 space-y-3">
+                        <div class="bg-purple-50 border-l-4 border-purple-400 p-4">
+                            <h4 class="font-semibold text-purple-900 mb-2">What happens on Binance Pay:</h4>
+                            <ul class="text-purple-800 space-y-2">
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-purple-600 mr-2 mt-1"></i>
+                                    Review payment details and amount
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-purple-600 mr-2 mt-1"></i>
+                                    Select cryptocurrency to use for payment
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-purple-600 mr-2 mt-1"></i>
+                                    Confirm payment using your Binance wallet
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-purple-600 mr-2 mt-1"></i>
+                                    Wait for payment confirmation
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="bg-orange-50 border border-orange-200 p-4 rounded-lg">
+                            <p class="text-orange-800 text-sm">
+                                <i class="fas fa-clock mr-2"></i>
+                                <strong>Processing Time:</strong> Most payments are confirmed within 1-5 minutes. Network congestion may cause delays.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4: Confirmation -->
+                <div class="border border-gray-200 rounded-lg p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">4</div>
+                        <h3 class="text-lg font-semibold text-gray-900">Deposit Confirmation</h3>
+                    </div>
+                    <div class="ml-11 space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <h4 class="font-semibold text-green-900 mb-2">
+                                    <i class="fas fa-check-circle text-green-600 mr-2"></i>
+                                    Successful Payment
+                                </h4>
+                                <ul class="text-green-800 text-sm space-y-1">
+                                    <li>• Instant balance update</li>
+                                    <li>• Email confirmation sent</li>
+                                    <li>• Transaction appears in history</li>
+                                    <li>• Ready for trading immediately</li>
+                                </ul>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                                <h4 class="font-semibold text-blue-900 mb-2">
+                                    <i class="fas fa-hourglass-half text-blue-600 mr-2"></i>
+                                    Processing Status
+                                </h4>
+                                <ul class="text-blue-800 text-sm space-y-1">
+                                    <li>• Check transaction history</li>
+                                    <li>• Monitor status updates</li>
+                                    <li>• Automatic verification</li>
+                                    <li>• No manual approval needed</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Common Issues & Solutions -->
+            <div class="mt-8 bg-red-50 border border-red-200 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-red-900 mb-4">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Troubleshooting Common Issues
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="font-semibold text-red-800 mb-2">Payment Failed?</h4>
+                        <ul class="text-red-700 text-sm space-y-1">
+                            <li>• Check your Binance account balance</li>
+                            <li>• Ensure KYC verification is complete</li>
+                            <li>• Try using a different cryptocurrency</li>
+                            <li>• Contact our support team</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-red-800 mb-2">Payment Stuck?</h4>
+                        <ul class="text-red-700 text-sm space-y-1">
+                            <li>• Wait 10-15 minutes for processing</li>
+                            <li>• Check Binance transaction history</li>
+                            <li>• Refresh your TradeVision account</li>
+                            <li>• Use the "Check Status" button</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-white rounded border">
+                    <p class="text-sm text-gray-700">
+                        <i class="fas fa-headset mr-2 text-blue-500"></i>
+                        <strong>Need Help?</strong> Our support team is available 24/7 to assist with any deposit issues.
+                        <a href="#" class="text-blue-600 underline hover:no-underline ml-1">Contact Support</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Tips -->
+            <div class="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-blue-900 mb-4">
+                    <i class="fas fa-lightbulb mr-2"></i>
+                    Pro Tips for Smooth Deposits
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <h4 class="font-semibold text-blue-900 mb-1">Use USDT</h4>
+                        <p class="text-blue-800 text-sm">Fastest processing and lowest fees for deposits</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h4 class="font-semibold text-blue-900 mb-1">Peak Hours</h4>
+                        <p class="text-blue-800 text-sm">Deposits during off-peak hours process faster</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-purple-500 text-white rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h4 class="font-semibold text-blue-900 mb-1">Keep Records</h4>
+                        <p class="text-blue-800 text-sm">Save transaction IDs for future reference</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual Payment Flow Diagram -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Binance Pay Flow Visualization</h2>
+                <p class="text-gray-600">See exactly how the payment process works</p>
+            </div>
+
+            <!-- Flow Diagram -->
+            <div class="relative">
+                <!-- Desktop Flow -->
+                <div class="hidden md:block">
+                    <div class="flex items-center justify-between relative">
+                        <!-- Step 1 -->
+                        <div class="flex-1 text-center">
+                            <div class="relative">
+                                <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <i class="fas fa-edit text-white text-2xl"></i>
+                                </div>
+                                <div class="absolute -top-2 -right-2 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                            </div>
+                            <h3 class="font-bold text-gray-900 mb-2">Enter Details</h3>
+                            <p class="text-sm text-gray-600">Fill in deposit amount and submit form</p>
+                        </div>
+
+                        <!-- Arrow 1 -->
+                        <div class="flex-none mx-4">
+                            <i class="fas fa-arrow-right text-2xl text-gray-400"></i>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="flex-1 text-center">
+                            <div class="relative">
+                                <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <i class="fas fa-external-link-alt text-white text-2xl"></i>
+                                </div>
+                                <div class="absolute -top-2 -right-2 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                            </div>
+                            <h3 class="font-bold text-gray-900 mb-2">Redirect</h3>
+                            <p class="text-sm text-gray-600">Automatic redirect to Binance Pay platform</p>
+                        </div>
+
+                        <!-- Arrow 2 -->
+                        <div class="flex-none mx-4">
+                            <i class="fas fa-arrow-right text-2xl text-gray-400"></i>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="flex-1 text-center">
+                            <div class="relative">
+                                <div class="w-20 h-20 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <i class="fab fa-bitcoin text-white text-2xl"></i>
+                                </div>
+                                <div class="absolute -top-2 -right-2 w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                            </div>
+                            <h3 class="font-bold text-gray-900 mb-2">Pay with Binance</h3>
+                            <p class="text-sm text-gray-600">Login and authorize payment from your Binance wallet</p>
+                        </div>
+
+                        <!-- Arrow 3 -->
+                        <div class="flex-none mx-4">
+                            <i class="fas fa-arrow-right text-2xl text-gray-400"></i>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="flex-1 text-center">
+                            <div class="relative">
+                                <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <i class="fas fa-check text-white text-2xl"></i>
+                                </div>
+                                <div class="absolute -top-2 -right-2 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</div>
+                            </div>
+                            <h3 class="font-bold text-gray-900 mb-2">Instant Credit</h3>
+                            <p class="text-sm text-gray-600">Balance updated automatically, ready to trade</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Flow -->
+                <div class="md:hidden space-y-6">
+                    <!-- Step 1 -->
+                    <div class="flex items-center">
+                        <div class="relative mr-4">
+                            <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                                <i class="fas fa-edit text-white text-xl"></i>
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900">Enter Details</h3>
+                            <p class="text-sm text-gray-600">Fill in deposit amount and submit form</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center">
+                        <i class="fas fa-arrow-down text-2xl text-gray-400"></i>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="flex items-center">
+                        <div class="relative mr-4">
+                            <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg">
+                                <i class="fas fa-external-link-alt text-white text-xl"></i>
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900">Redirect</h3>
+                            <p class="text-sm text-gray-600">Automatic redirect to Binance Pay platform</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center">
+                        <i class="fas fa-arrow-down text-2xl text-gray-400"></i>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="flex items-center">
+                        <div class="relative mr-4">
+                            <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                                <i class="fab fa-bitcoin text-white text-xl"></i>
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900">Pay with Binance</h3>
+                            <p class="text-sm text-gray-600">Login and authorize payment from your Binance wallet</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center">
+                        <i class="fas fa-arrow-down text-2xl text-gray-400"></i>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="flex items-center">
+                        <div class="relative mr-4">
+                            <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-700 rounded-full flex items-center justify-center shadow-lg">
+                                <i class="fas fa-check text-white text-xl"></i>
+                            </div>
+                            <div class="absolute -top-2 -right-2 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">4</div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900">Instant Credit</h3>
+                            <p class="text-sm text-gray-600">Balance updated automatically, ready to trade</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timing Information -->
+            <div class="mt-8 bg-gray-50 rounded-lg p-4">
+                <div class="text-center">
+                    <h4 class="font-bold text-gray-900 mb-4">Typical Processing Times</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600">~30s</div>
+                            <div class="text-sm text-gray-600">Form Submission</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600">~10s</div>
+                            <div class="text-sm text-gray-600">Redirect</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-purple-600">~2-5min</div>
+                            <div class="text-sm text-gray-600">Payment Authorization</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-700">~1-3min</div>
+                            <div class="text-sm text-gray-600">Balance Update</div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-4">
+                        <i class="fas fa-clock mr-1"></i>
+                        Total time: 3-8 minutes | Network conditions may affect processing times
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Binance Pay FAQ Section -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Frequently Asked Questions</h2>
+                <p class="text-gray-600">Everything you need to know about Binance Pay deposits</p>
+            </div>
+
+            <div class="space-y-4">
+                <!-- FAQ Item 1 -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <button class="faq-toggle w-full text-left p-4 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition-colors flex items-center justify-between">
+                        <span class="font-semibold text-gray-900">What is Binance Pay and how does it work?</span>
+                        <i class="fas fa-chevron-down text-gray-500 transform transition-transform duration-200"></i>
+                    </button>
+                    <div class="faq-content hidden p-4 bg-white">
+                        <p class="text-gray-700 mb-3">
+                            Binance Pay is a secure payment method that allows you to deposit funds using cryptocurrencies from your Binance wallet. When you select Binance Pay:
+                        </p>
+                        <ul class="text-gray-700 space-y-1 ml-4 list-disc">
+                            <li>You're redirected to Binance's secure payment gateway</li>
+                            <li>You authorize the payment using your Binance account credentials</li>
+                            <li>The payment is processed instantly using your available crypto balance</li>
+                            <li>Your TradeVision account is credited automatically</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <button class="faq-toggle w-full text-left p-4 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition-colors flex items-center justify-between">
+                        <span class="font-semibold text-gray-900">Do I need a Binance account to use Binance Pay?</span>
+                        <i class="fas fa-chevron-down text-gray-500 transform transition-transform duration-200"></i>
+                    </button>
+                    <div class="faq-content hidden p-4 bg-white">
+                        <p class="text-gray-700 mb-3">
+                            Yes, you need an active Binance account with completed KYC verification to use Binance Pay. Here's what you need:
+                        </p>
+                        <ul class="text-gray-700 space-y-1 ml-4 list-disc">
+                            <li><strong>Active Binance account:</strong> Sign up at <a href="https://www.binance.com" target="_blank" class="text-blue-600 underline">binance.com</a></li>
+                            <li><strong>Completed KYC:</strong> Identity verification must be completed</li>
+                            <li><strong>Sufficient balance:</strong> Have funds in supported cryptocurrencies</li>
+                            <li><strong>Binance Pay enabled:</strong> This feature is enabled by default for verified accounts</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <button class="faq-toggle w-full text-left p-4 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition-colors flex items-center justify-between">
+                        <span class="font-semibold text-gray-900">Which cryptocurrencies are supported?</span>
+                        <i class="fas fa-chevron-down text-gray-500 transform transition-transform duration-200"></i>
+                    </button>
+                    <div class="faq-content hidden p-4 bg-white">
+                        <p class="text-gray-700 mb-3">
+                            TradeVision supports the following cryptocurrencies through Binance Pay:
+                        </p>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
+                            <div class="bg-yellow-100 text-yellow-800 px-3 py-2 rounded text-center font-medium">USDT</div>
+                            <div class="bg-orange-100 text-orange-800 px-3 py-2 rounded text-center font-medium">BTC</div>
+                            <div class="bg-blue-100 text-blue-800 px-3 py-2 rounded text-center font-medium">ETH</div>
+                            <div class="bg-purple-100 text-purple-800 px-3 py-2 rounded text-center font-medium">BNB</div>
+                            <div class="bg-green-100 text-green-800 px-3 py-2 rounded text-center font-medium">BUSD</div>
+                        </div>
+                        <p class="text-gray-700">
+                            <strong>Recommendation:</strong> USDT is recommended for faster processing and lower network fees.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 4 -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <button class="faq-toggle w-full text-left p-4 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition-colors flex items-center justify-between">
+                        <span class="font-semibold text-gray-900">How long does it take for deposits to appear in my account?</span>
+                        <i class="fas fa-chevron-down text-gray-500 transform transition-transform duration-200"></i>
+                    </button>
+                    <div class="faq-content hidden p-4 bg-white">
+                        <p class="text-gray-700 mb-3">
+                            Binance Pay deposits are processed very quickly:
+                        </p>
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-3">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-green-800"><strong>Typical time:</strong></span>
+                                <span class="text-green-900 font-bold">1-5 minutes</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-green-800"><strong>Maximum time:</strong></span>
+                                <span class="text-green-900 font-bold">15 minutes</span>
+                            </div>
+                        </div>
+                        <p class="text-gray-700">
+                            Processing time depends on network conditions and the chosen cryptocurrency. USDT typically processes fastest.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 5 -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <button class="faq-toggle w-full text-left p-4 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition-colors flex items-center justify-between">
+                        <span class="font-semibold text-gray-900">Are there any fees for using Binance Pay?</span>
+                        <i class="fas fa-chevron-down text-gray-500 transform transition-transform duration-200"></i>
+                    </button>
+                    <div class="faq-content hidden p-4 bg-white">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-green-900 mb-2">✅ No TradeVision Fees</h4>
+                                <ul class="text-green-800 text-sm space-y-1">
+                                    <li>• No processing fees</li>
+                                    <li>• No service charges</li>
+                                    <li>• No hidden costs</li>
+                                </ul>
+                            </div>
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-yellow-900 mb-2">ℹ️ Network Fees</h4>
+                                <ul class="text-yellow-800 text-sm space-y-1">
+                                    <li>• Small blockchain network fees</li>
+                                    <li>• Handled automatically by Binance</li>
+                                    <li>• Usually $0.10 - $2.00</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 6 -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <button class="faq-toggle w-full text-left p-4 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition-colors flex items-center justify-between">
+                        <span class="font-semibold text-gray-900">What should I do if my payment fails or gets stuck?</span>
+                        <i class="fas fa-chevron-down text-gray-500 transform transition-transform duration-200"></i>
+                    </button>
+                    <div class="faq-content hidden p-4 bg-white">
+                        <p class="text-gray-700 mb-3">If you encounter issues with your Binance Pay deposit:</p>
+                        
+                        <div class="space-y-4">
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-blue-900 mb-2">🔄 First Steps:</h4>
+                                <ol class="text-blue-800 text-sm space-y-1 list-decimal list-inside">
+                                    <li>Wait 10-15 minutes for processing</li>
+                                    <li>Check your Binance transaction history</li>
+                                    <li>Refresh your TradeVision account page</li>
+                                    <li>Use the "Check Status" button in transaction history</li>
+                                </ol>
+                            </div>
+                            
+                            <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-orange-900 mb-2">🚨 Common Issues:</h4>
+                                <ul class="text-orange-800 text-sm space-y-1">
+                                    <li><strong>Insufficient Balance:</strong> Ensure you have enough crypto in your Binance account</li>
+                                    <li><strong>KYC Issues:</strong> Complete identity verification on Binance</li>
+                                    <li><strong>Network Congestion:</strong> Try again during off-peak hours</li>
+                                    <li><strong>Browser Issues:</strong> Try a different browser or clear cache</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-red-900 mb-2">📞 Need Help?</h4>
+                                <p class="text-red-800 text-sm">
+                                    If the issue persists, contact our 24/7 support team with your transaction ID and details of the problem.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ Item 7 -->
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <button class="faq-toggle w-full text-left p-4 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition-colors flex items-center justify-between">
+                        <span class="font-semibold text-gray-900">Is Binance Pay safe and secure?</span>
+                        <i class="fas fa-chevron-down text-gray-500 transform transition-transform duration-200"></i>
+                    </button>
+                    <div class="faq-content hidden p-4 bg-white">
+                        <div class="space-y-4">
+                            <p class="text-gray-700">
+                                Yes, Binance Pay is extremely secure. Here's how your funds are protected:
+                            </p>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                    <h4 class="font-semibold text-green-900 mb-2">🛡️ Security Features</h4>
+                                    <ul class="text-green-800 text-sm space-y-1">
+                                        <li>• End-to-end encryption</li>
+                                        <li>• Multi-signature security</li>
+                                        <li>• Real-time fraud monitoring</li>
+                                        <li>• Secure API communications</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <h4 class="font-semibold text-blue-900 mb-2">✅ Trust Indicators</h4>
+                                    <ul class="text-blue-800 text-sm space-y-1">
+                                        <li>• Powered by Binance infrastructure</li>
+                                        <li>• Regulated and compliant</li>
+                                        <li>• Used by millions worldwide</li>
+                                        <li>• 24/7 security monitoring</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <p class="text-yellow-800 text-sm">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    <strong>Important:</strong> Always ensure you're redirected to the official Binance domain (binance.com) when making payments. Never enter your Binance credentials on any other website.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Support -->
+            <div class="mt-8 text-center bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-blue-900 mb-2">Still have questions?</h3>
+                <p class="text-blue-800 text-sm mb-4">Our support team is here to help you 24/7</p>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition inline-flex items-center text-sm">
+                        <i class="fas fa-comments mr-2"></i>
+                        Live Chat
+                    </a>
+                    <a href="#" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition inline-flex items-center text-sm">
+                        <i class="fas fa-envelope mr-2"></i>
+                        Email Support
+                    </a>
+                    <a href="#" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition inline-flex items-center text-sm">
+                        <i class="fas fa-book mr-2"></i>
+                        Help Center
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+// FAQ Toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const faqToggles = document.querySelectorAll('.faq-toggle');
+    
+    faqToggles.forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const content = this.nextElementSibling;
+            const icon = this.querySelector('i.fa-chevron-down');
+            
+            // Close all other FAQs
+            faqToggles.forEach(otherToggle => {
+                if (otherToggle !== this) {
+                    const otherContent = otherToggle.nextElementSibling;
+                    const otherIcon = otherToggle.querySelector('i.fa-chevron-down');
+                    
+                    otherContent.classList.add('hidden');
+                    otherIcon.classList.remove('rotate-180');
+                }
+            });
+            
+            // Toggle current FAQ
+            content.classList.toggle('hidden');
+            icon.classList.toggle('rotate-180');
+        });
+    });
+});
+</script>
 {% endblock %}

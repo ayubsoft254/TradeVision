@@ -199,6 +199,97 @@ form input:focus, form select:focus, form textarea:focus {
       </div>
     </div>
 
+    <!-- BINANCE PAY SPECIFIC INFORMATION -->
+    {% if payment_method.name == 'binance_pay' %}
+    <div class="bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 border border-yellow-200 rounded-lg p-6 mb-8">
+      <div class="flex items-center mb-6">
+        <div class="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center mr-4">
+          <i class="fab fa-bitcoin text-white text-2xl"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">Binance Pay - Instant Crypto Deposits</h2>
+          <p class="text-gray-700 mt-1">Secure, fast, and automated cryptocurrency deposits</p>
+        </div>
+      </div>
+
+      <!-- Important Notice -->
+      <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+        <div class="flex items-center">
+          <i class="fas fa-info-circle text-blue-500 text-xl mr-3"></i>
+          <div>
+            <h3 class="font-semibold text-blue-900">Important: Payment Process</h3>
+            <p class="text-blue-800 text-sm mt-1">
+              After submitting this form, you will be redirected to Binance Pay to complete the payment using your Binance wallet. 
+              <strong>Make sure you have sufficient balance in your Binance account before proceeding.</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Process Overview -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+          <div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">1</div>
+          <h4 class="font-semibold text-gray-900 text-sm">Fill Form</h4>
+          <p class="text-gray-600 text-xs">Enter deposit amount</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+          <div class="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">2</div>
+          <h4 class="font-semibold text-gray-900 text-sm">Redirect</h4>
+          <p class="text-gray-600 text-xs">Go to Binance Pay</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+          <div class="w-10 h-10 bg-purple-500 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">3</div>
+          <h4 class="font-semibold text-gray-900 text-sm">Pay</h4>
+          <p class="text-gray-600 text-xs">Complete payment</p>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+          <div class="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">4</div>
+          <h4 class="font-semibold text-gray-900 text-sm">Complete</h4>
+          <p class="text-gray-600 text-xs">Instant credit</p>
+        </div>
+      </div>
+
+      <!-- Requirements Checklist -->
+      <div class="bg-white border border-gray-200 rounded-lg p-5">
+        <h3 class="font-semibold text-gray-900 mb-4">
+          <i class="fas fa-clipboard-check text-green-500 mr-2"></i>
+          Pre-Deposit Checklist
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h4 class="font-medium text-gray-800 mb-2">✅ Account Requirements</h4>
+            <ul class="space-y-1 text-sm text-gray-600">
+              <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>Active Binance account</li>
+              <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>Completed KYC verification</li>
+              <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>Binance Pay enabled</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-medium text-gray-800 mb-2">💰 Supported Currencies</h4>
+            <div class="flex flex-wrap gap-2">
+              <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded">USDT</span>
+              <span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded">BTC</span>
+              <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">ETH</span>
+              <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">BNB</span>
+              <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">BUSD</span>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Ensure sufficient balance in any supported currency</p>
+          </div>
+        </div>
+        
+        <!-- Security Notice -->
+        <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded">
+          <p class="text-sm text-red-800">
+            <i class="fas fa-shield-alt mr-2"></i>
+            <strong>Security:</strong> Only proceed with payment on the official Binance website (binance.com). 
+            Never enter your Binance credentials on any other site.
+          </p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- GRID -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
@@ -412,6 +503,62 @@ form input:focus, form select:focus, form textarea:focus {
 
       <!-- Sidebar -->
       <div class="space-y-6 sidebar">
+        <!-- Binance Pay Specific Info -->
+        {% if payment_method.name == 'binance_pay' %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h3 class="text-lg font-semibold mb-4">
+            <i class="fab fa-bitcoin mr-2 text-yellow-500"></i>
+            Binance Pay Details
+          </h3>
+          <div class="space-y-4">
+            <!-- Processing Info -->
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h4 class="font-semibold text-green-900 mb-2">⚡ Instant Processing</h4>
+              <p class="text-sm text-green-800">Deposits are typically processed within 1-5 minutes and automatically credited to your account.</p>
+            </div>
+            
+            <!-- Fees Info -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 class="font-semibold text-blue-900 mb-2">💸 Zero Fees</h4>
+              <p class="text-sm text-blue-800">No processing fees charged by TradeVision. Only network fees apply (handled by Binance).</p>
+            </div>
+            
+            <!-- Limits -->
+            <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <h4 class="font-semibold text-orange-900 mb-2">📊 Limits</h4>
+              <div class="text-sm text-orange-800 space-y-1">
+                <div class="flex justify-between">
+                  <span>Minimum:</span>
+                  <span class="font-medium">{{ payment_method.min_amount }} {{ wallet.currency }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Maximum:</span>
+                  <span class="font-medium">{{ payment_method.max_amount|default:"No limit" }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>Daily Limit:</span>
+                  <span class="font-medium">50,000 {{ wallet.currency }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Support -->
+            <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <h4 class="font-semibold text-purple-900 mb-2">🆘 Need Help?</h4>
+              <p class="text-sm text-purple-800 mb-2">Having issues with Binance Pay?</p>
+              <div class="space-y-2">
+                <a href="#" class="block text-xs bg-purple-100 text-purple-800 px-3 py-2 rounded hover:bg-purple-200 transition">
+                  <i class="fas fa-book mr-1"></i> View Binance Pay Guide
+                </a>
+                <a href="#" class="block text-xs bg-purple-100 text-purple-800 px-3 py-2 rounded hover:bg-purple-200 transition">
+                  <i class="fas fa-headset mr-1"></i> Contact Support
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
         <!-- Payment Networks -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 class="text-lg font-semibold mb-4">
@@ -503,5 +650,111 @@ function validateForm() {
 document.querySelector('form').addEventListener('submit', function(e) {
   if (!validateForm()) e.preventDefault();
 });
+
+// ===== Binance Pay Specific Functions =====
+{% if payment_method.name == 'binance_pay' %}
+// Show Binance Pay specific guidance
+function showBinancePayGuidance() {
+  const amount = parseFloat(document.querySelector('input[name="amount"]').value) || 0;
+  
+  if (amount > 0) {
+    // Create guidance modal or tooltip
+    const guidance = document.createElement('div');
+    guidance.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    guidance.innerHTML = `
+      <div class="bg-white rounded-lg p-6 max-w-md mx-4">
+        <div class="flex items-center mb-4">
+          <i class="fab fa-bitcoin text-yellow-500 text-2xl mr-3"></i>
+          <h3 class="text-lg font-bold">Ready for Binance Pay?</h3>
+        </div>
+        <div class="space-y-3 text-sm">
+          <div class="bg-blue-50 p-3 rounded">
+            <strong>Amount:</strong> ${amount.toFixed(2)} {{ wallet.currency }}
+          </div>
+          <div class="bg-yellow-50 p-3 rounded">
+            <strong>Next Steps:</strong>
+            <ol class="list-decimal list-inside mt-2 space-y-1">
+              <li>You'll be redirected to Binance Pay</li>
+              <li>Log in to your Binance account</li>
+              <li>Confirm payment using your crypto balance</li>
+              <li>Return here for confirmation</li>
+            </ol>
+          </div>
+          <div class="bg-red-50 p-3 rounded">
+            <strong>⚠️ Important:</strong> Ensure you have at least ${(amount * 1.1).toFixed(2)} {{ wallet.currency }} in your Binance account to cover the deposit and potential fees.
+          </div>
+        </div>
+        <div class="flex space-x-3 mt-6">
+          <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                  class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded">
+            Cancel
+          </button>
+          <button onclick="this.parentElement.parentElement.parentElement.remove(); document.querySelector('form').submit();" 
+                  class="flex-1 bg-yellow-500 text-white py-2 px-4 rounded font-medium">
+            Continue to Binance Pay
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(guidance);
+    return false; // Prevent form submission initially
+  }
+  return true;
+}
+
+// Override form submission for Binance Pay
+document.querySelector('form').addEventListener('submit', function(e) {
+  if (!validateForm()) {
+    e.preventDefault();
+    return;
+  }
+  
+  // Show guidance modal before proceeding
+  e.preventDefault();
+  showBinancePayGuidance();
+});
+
+// Add real-time balance checker for Binance Pay
+document.addEventListener('DOMContentLoaded', function() {
+  const amountInput = document.querySelector('input[name="amount"]');
+  if (amountInput) {
+    amountInput.addEventListener('input', function() {
+      const amount = parseFloat(this.value) || 0;
+      const minAmount = parseFloat({{ payment_method.min_amount|floatformat:"2" }});
+      const maxAmount = parseFloat({{ payment_method.max_amount|default:"999999999"|floatformat:"2" }});
+      
+      // Remove existing warnings
+      const existingWarning = document.querySelector('.binance-amount-warning');
+      if (existingWarning) existingWarning.remove();
+      
+      if (amount > 0) {
+        let warningMessage = '';
+        let warningClass = '';
+        
+        if (amount < minAmount) {
+          warningMessage = `Minimum deposit amount is ${minAmount} {{ wallet.currency }}`;
+          warningClass = 'bg-red-50 border-red-200 text-red-800';
+        } else if (amount > maxAmount) {
+          warningMessage = `Maximum deposit amount is ${maxAmount} {{ wallet.currency }}`;
+          warningClass = 'bg-red-50 border-red-200 text-red-800';
+        } else if (amount > 10000) {
+          warningMessage = `Large amount detected. Ensure your Binance account has sufficient balance (recommended: ${(amount * 1.1).toFixed(2)} {{ wallet.currency }})`;
+          warningClass = 'bg-yellow-50 border-yellow-200 text-yellow-800';
+        } else if (amount > 1000) {
+          warningMessage = `Make sure your Binance account has at least ${(amount * 1.05).toFixed(2)} {{ wallet.currency }} to cover fees`;
+          warningClass = 'bg-blue-50 border-blue-200 text-blue-800';
+        }
+        
+        if (warningMessage) {
+          const warning = document.createElement('div');
+          warning.className = `binance-amount-warning mt-2 p-3 rounded border ${warningClass} text-sm`;
+          warning.innerHTML = `<i class="fas fa-info-circle mr-2"></i>${warningMessage}`;
+          this.parentElement.appendChild(warning);
+        }
+      }
+    });
+  }
+});
+{% endif %}
 </script>
 {% endblock %}
