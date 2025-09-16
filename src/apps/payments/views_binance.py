@@ -5,8 +5,7 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.utils.decorators import method_decorator
-from django.utils import timezone
+from .tasks import verify_single_binance_payment
 from django.conf import settings
 from decimal import Decimal
 from .models import Transaction, Wallet
@@ -316,3 +315,68 @@ def deposit_view(request):
     }
     
     return render(request, 'payments/deposit.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def force_check_binance_payment(request):
+    """
+    Force check a specific Binance Pay transaction using Celery
+    """
+    try:
+        transaction_id = request.POST.get('transaction_id')
+        
+        if not transaction_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Transaction ID required'
+            })
+        
+        # Verify user owns this transaction
+        transaction = get_object_or_404(
+            Transaction,
+            id=transaction_id,
+            user=request.user,
+            payment_method='binance_pay'
+        )
+        
+        # Queue the verification task
+        task = verify_single_binance_payment.delay(transaction_id)
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Payment verification queued',
+            'task_id': task.id,
+            'transaction_id': transaction_id
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@login_required
+def check_task_status(request, task_id):
+    """
+    Check the status of a Celery task
+    """
+    from celery.result import AsyncResult
+    
+    try:
+        task = AsyncResult(task_id)
+        
+        response_data = {
+            'task_id': task_id,
+            'status': task.status,
+            'ready': task.ready()
+        }
+        
+        if task.ready():
+            response_data['result'] = task.result
+        
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e)
+        }, status=500)
