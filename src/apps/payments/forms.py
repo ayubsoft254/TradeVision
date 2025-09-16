@@ -559,15 +559,16 @@ class CryptoForm(BasePaymentForm):
     """Cryptocurrency specific form"""
     
     CURRENCIES = [
+        ('USDT', 'Tether (USDT) - Recommended'),
         ('BTC', 'Bitcoin (BTC)'),
         ('ETH', 'Ethereum (ETH)'),
-        ('USDT', 'Tether (USDT)'),
         ('BNB', 'Binance Coin (BNB)'),
         ('USDC', 'USD Coin (USDC)'),
     ]
     
     currency = forms.ChoiceField(
         choices=CURRENCIES,
+        initial='USDT',
         widget=forms.Select(attrs={
             'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500'
         }),

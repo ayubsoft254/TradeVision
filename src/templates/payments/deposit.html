@@ -1,290 +1,195 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Deposit Funds - TradeVision{% endblock %}
+{% block title %}Deposit Funds{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header Section -->
-        <div class="mb-8">
-            <div class="flex flex-col md:flex-row items-start md:items-center justify-between">
-                <div class="mb-4 md:mb-0">
-                    <h1 class="text-3xl font-serif font-semibold text-gray-900">Deposit Funds</h1>
-                    <p class="mt-2 text-gray-600">Add funds to your trading account to start investing</p>
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Deposit Funds</h1>
+        
+        <!-- Wallet Info -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Current Wallet Balance</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-600">Available Balance</p>
+                    <p class="text-2xl font-bold text-blue-600">{{ wallet.balance }} {{ wallet.currency }}</p>
                 </div>
-                <div class="text-right bg-white p-4 rounded-lg shadow-sm border border-gray-200 min-w-[180px]">
-                    <div class="text-sm text-gray-500">Current Balance</div>
-                    <div class="text-2xl font-bold text-accent-600">
-                        {{ wallet.balance|floatformat:2 }} {{ wallet.currency }}
-                    </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-600">Locked Balance</p>
+                    <p class="text-2xl font-bold text-green-600">{{ wallet.locked_balance }} {{ wallet.currency }}</p>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <p class="text-sm text-gray-600">Profit Balance</p>
+                    <p class="text-2xl font-bold text-yellow-600">{{ wallet.profit_balance }} {{ wallet.currency }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Main Content -->
-            <div class="lg:col-span-2">
-                <!-- Deposit Statistics -->
-                <div class="elegant-card p-6 mb-8">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Deposit Overview</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="text-center p-4 bg-gradient-to-br from-success-500 to-success-600 rounded-lg text-white">
-                            <div class="text-2xl font-bold">{{ deposit_stats.total_deposits|floatformat:2 }}</div>
-                            <div class="text-sm opacity-90">Total Deposits</div>
+        <!-- Payment Method Selection -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-6">Select Payment Method</h2>
+            
+            <!-- Dynamic Payment Methods -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for method in payment_methods %}
+                <div class="border border-gray-300 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            {% if method.name == 'binance_pay' %}
+                                <i class="fab fa-bitcoin text-yellow-500 text-2xl mr-3"></i>
+                            {% elif method.name == 'mobile_money' %}
+                                <i class="fas fa-mobile-alt text-green-500 text-2xl mr-3"></i>
+                            {% elif method.name == 'bank_transfer' %}
+                                <i class="fas fa-university text-blue-500 text-2xl mr-3"></i>
+                            {% elif method.name == 'p2p' %}
+                                <i class="fas fa-users text-purple-500 text-2xl mr-3"></i>
+                            {% elif method.name == 'agent' %}
+                                <i class="fas fa-user-tie text-indigo-500 text-2xl mr-3"></i>
+                            {% elif method.name == 'crypto' %}
+                                <i class="fab fa-bitcoin text-orange-500 text-2xl mr-3"></i>
+                            {% else %}
+                                <i class="fas fa-credit-card text-gray-500 text-2xl mr-3"></i>
+                            {% endif %}
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">{{ method.display_name }}</h3>
+                                <p class="text-sm text-gray-600">Processing Time: {{ method.processing_time }}</p>
+                            </div>
                         </div>
-                        <div class="text-center p-4 bg-gradient-to-br from-warning-500 to-warning-600 rounded-lg text-white">
-                            <div class="text-2xl font-bold">{{ deposit_stats.pending_deposits }}</div>
-                            <div class="text-sm opacity-90">Pending</div>
+                        <div class="text-right">
+                            <span class="text-sm text-gray-500">Fee: {{ method.processing_fee }}%</span>
+                            {% if method.name == 'binance_pay' %}
+                                <div class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium mt-1">
+                                    Automated
+                                </div>
+                            {% else %}
+                                <div class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium mt-1">
+                                    Manual
+                                </div>
+                            {% endif %}
                         </div>
-                        <div class="text-center p-4 bg-gradient-to-br from-accent-500 to-accent-600 rounded-lg text-white">
-                            <div class="text-2xl font-bold">{{ deposit_stats.this_month_deposits|floatformat:2 }}</div>
-                            <div class="text-sm opacity-90">This Month</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Payment Methods -->
-                <div class="elegant-card p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-lg font-semibold text-gray-900">Choose Payment Method</h2>
-                        <button onclick="showFeeCalculator()" class="text-sm text-accent-600 hover:text-accent-700 flex items-center">
-                            <i class="fas fa-calculator mr-1"></i> Fee Calculator
-                        </button>
                     </div>
                     
-                    {% if payment_methods %}
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {% for method in payment_methods %}
-                            <a href="{% url 'payments:deposit_method' method.name %}" 
-                               class="block p-6 border border-gray-200 rounded-lg hover:border-accent-300 hover:bg-accent-50 transition-all duration-200 group">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center space-x-4">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-accent-500 to-accent-600 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-                                            {% if method.name == 'binance_pay' %}
-                                                <i class="fab fa-bitcoin text-white text-xl"></i>
-                                            {% elif method.name == 'mobile_money' %}
-                                                <i class="fas fa-mobile-alt text-white text-xl"></i>
-                                            {% elif method.name == 'bank_transfer' %}
-                                                <i class="fas fa-university text-white text-xl"></i>
-                                            {% elif method.name == 'p2p' %}
-                                                <i class="fas fa-users text-white text-xl"></i>
-                                            {% elif method.name == 'agent' %}
-                                                <i class="fas fa-user-tie text-white text-xl"></i>
-                                            {% else %}
-                                                <i class="fas fa-credit-card text-white text-xl"></i>
-                                            {% endif %}
-                                        </div>
-                                        <div>
-                                            <h3 class="font-semibold text-gray-900 group-hover:text-accent-600 transition-colors duration-200">
-                                                {{ method.display_name }}
-                                            </h3>
-                                            <p class="text-sm text-gray-500">
-                                                Fee: {{ method.processing_fee }}% | 
-                                                Time: {{ method.processing_time }}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <i class="fas fa-arrow-right text-gray-400 group-hover:text-accent-600 transition-colors duration-200"></i>
-                                </div>
-                            </a>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-12">
-                            <i class="fas fa-credit-card text-gray-400 text-4xl mb-4"></i>
-                            <h3 class="text-lg font-medium text-gray-900 mb-2">No Payment Methods Available</h3>
-                            <p class="text-gray-500">Payment methods for your region are currently being set up.</p>
-                            <a href="{% url 'core:support_tickets' %}" class="classic-btn classic-btn-primary mt-4 inline-flex items-center">
-                                <i class="fas fa-headset mr-2"></i>
-                                Contact Support
-                            </a>
-                        </div>
-                    {% endif %}
+                    <div class="mb-4">
+                        {% if method.min_amount %}
+                        <p class="text-sm text-gray-600">
+                            Min: {{ method.min_amount }} {{ wallet.currency }}
+                            {% if method.max_amount %} | Max: {{ method.max_amount }} {{ wallet.currency }}{% endif %}
+                        </p>
+                        {% endif %}
+                    </div>
+                    
+                    <a href="{% url 'payments:deposit_method' method.name %}" 
+                       class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 inline-block text-center">
+                        Select {{ method.display_name }}
+                    </a>
+                </div>
+                {% empty %}
+                <div class="col-span-2 text-center py-8">
+                    <p class="text-gray-500">No payment methods available for your region.</p>
+                    <p class="text-sm text-gray-400 mt-2">Please contact support for assistance.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Deposit Statistics -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Deposit Statistics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-blue-600">{{ deposit_stats.total_deposits }}</p>
+                    <p class="text-sm text-gray-600">Total Deposits</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-orange-600">{{ deposit_stats.pending_deposits }}</p>
+                    <p class="text-sm text-gray-600">Pending Deposits</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-green-600">{{ deposit_stats.this_month_deposits }}</p>
+                    <p class="text-sm text-gray-600">This Month</p>
                 </div>
             </div>
+        </div>
 
-            <!-- Sidebar -->
-            <div class="space-y-6">
-                <!-- Quick Deposit Info -->
-                <div class="elegant-card p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <i class="fas fa-info-circle text-accent-500 mr-2"></i>
-                        Deposit Information
-                    </h3>
-                    <div class="space-y-4 text-sm">
-                        <div class="flex items-start space-x-2">
-                            <i class="fas fa-check text-success-500 mt-1"></i>
-                            <span class="text-gray-600">Minimum deposit: 10 {{ wallet.currency }}</span>
-                        </div>
-                        <div class="flex items-start space-x-2">
-                            <i class="fas fa-check text-success-500 mt-1"></i>
-                            <span class="text-gray-600">Maximum deposit: 100,000 {{ wallet.currency }}</span>
-                        </div>
-                        <div class="flex items-start space-x-2">
-                            <i class="fas fa-check text-success-500 mt-1"></i>
-                            <span class="text-gray-600">Instant processing for most methods</span>
-                        </div>
-                        <div class="flex items-start space-x-2">
-                            <i class="fas fa-check text-success-500 mt-1"></i>
-                            <span class="text-gray-600">24/7 customer support</span>
-                        </div>
-                        <div class="flex items-start space-x-2">
-                            <i class="fas fa-shield-alt text-success-500 mt-1"></i>
-                            <span class="text-gray-600">Bank-level security encryption</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Deposits -->
-                {% if recent_deposits %}
-                <div class="elegant-card p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <i class="fas fa-history text-accent-500 mr-2"></i>
-                        Recent Deposits
-                    </h3>
-                    <div class="space-y-3">
-                        {% for deposit in recent_deposits %}
-                        <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                            <div>
-                                <div class="font-medium text-gray-900">
-                                    {{ deposit.amount|floatformat:2 }} {{ deposit.currency }}
-                                </div>
-                                <div class="text-sm text-gray-500">
-                                    {{ deposit.created_at|date:"M d, Y" }}
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                                    {% if deposit.status == 'completed' %}bg-success-100 text-success-800
-                                    {% elif deposit.status == 'pending' %}bg-warning-100 text-warning-800
-                                    {% elif deposit.status == 'processing' %}bg-accent-100 text-accent-800
-                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                    {{ deposit.status|title }}
-                                </span>
-                                <a href="{% url 'payments:transaction_detail' deposit.id %}" 
-                                   class="text-accent-600 hover:text-accent-700">
-                                    <i class="fas fa-external-link-alt text-xs"></i>
-                                </a>
-                            </div>
-                        </div>
+        <!-- Recent Deposits -->
+        {% if recent_deposits %}
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Recent Deposits</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Method
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Amount
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for transaction in recent_deposits %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ transaction.created_at|date:"M d, Y" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if transaction.payment_method %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        {{ transaction.payment_method.display_name }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-sm text-gray-500">Unknown</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ transaction.amount }} {{ transaction.currency }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if transaction.status == 'completed' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Completed
+                                    </span>
+                                {% elif transaction.status == 'pending' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Pending
+                                    </span>
+                                {% elif transaction.status == 'processing' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        Processing
+                                    </span>
+                                {% elif transaction.status == 'failed' %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        Failed
+                                    </span>
+                                {% else %}
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                        {{ transaction.status|title }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <a href="{% url 'payments:transaction_detail' transaction.id %}" 
+                                   class="text-blue-600 hover:text-blue-900">View Details</a>
+                            </td>
+                        </tr>
                         {% endfor %}
-                    </div>
-                    <div class="mt-4 pt-4 border-t border-gray-100">
-                        <a href="{% url 'payments:transactions' %}?type=deposit" 
-                           class="text-accent-600 hover:text-accent-700 text-sm font-medium flex items-center">
-                            View All Deposits <i class="fas fa-arrow-right ml-1 text-xs"></i>
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Security Notice -->
-                <div class="bg-gradient-to-br from-accent-600 to-accent-700 rounded-lg p-6 text-white">
-                    <h3 class="font-semibold mb-2 flex items-center">
-                        <i class="fas fa-shield-alt mr-2"></i>
-                        Secure Deposits
-                    </h3>
-                    <p class="text-sm opacity-90 mb-4">
-                        Your deposits are protected by bank-level encryption and secure payment processing.
-                    </p>
-                    <div class="flex items-center text-sm">
-                        <i class="fas fa-lock mr-2"></i>
-                        <span>SSL Encrypted • PCI Compliant</span>
-                    </div>
-                </div>
+                    </tbody>
+                </table>
             </div>
         </div>
+        {% endif %}
     </div>
 </div>
-
-<!-- Fee Calculator Modal -->
-<div x-data="{ showCalculator: false }" 
-     x-show="showCalculator" 
-     x-cloak
-     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-     @keydown.escape.window="showCalculator = false">
-    <div class="elegant-card p-6 max-w-md w-full">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-900">Fee Calculator</h3>
-            <button @click="showCalculator = false" class="text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Amount</label>
-                <input type="number" id="calc-amount" class="elegant-input w-full" placeholder="Enter amount">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
-                <select id="calc-method" class="elegant-input w-full">
-                    <option value="">Select method</option>
-                    {% for method in payment_methods %}
-                    <option value="{{ method.name }}" data-fee="{{ method.processing_fee }}">{{ method.display_name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div id="calc-results" class="hidden bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <div class="space-y-2 text-sm">
-                    <div class="flex justify-between">
-                        <span>Amount:</span>
-                        <span id="calc-amount-display">0.00 {{ wallet.currency }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Processing Fee:</span>
-                        <span id="calc-fee-display">0.00 {{ wallet.currency }}</span>
-                    </div>
-                    <div class="flex justify-between font-semibold border-t pt-2">
-                        <span>You will receive:</span>
-                        <span id="calc-net-display">0.00 {{ wallet.currency }}</span>
-                    </div>
-                </div>
-            </div>
-            <button onclick="calculateFees()" class="classic-btn classic-btn-primary w-full">
-                Calculate Fees
-            </button>
-        </div>
-    </div>
-</div>
-
-<script>
-function calculateFees() {
-    const amount = parseFloat(document.getElementById('calc-amount').value);
-    const methodSelect = document.getElementById('calc-method');
-    const selectedOption = methodSelect.options[methodSelect.selectedIndex];
-    const fee = parseFloat(selectedOption.dataset.fee) || 0;
-    
-    if (!amount || !fee) {
-        // Create a nice toast notification instead of alert
-        const toast = document.createElement('div');
-        toast.className = 'fixed top-4 right-4 bg-danger-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-up';
-        toast.innerHTML = `
-            <div class="flex items-center">
-                <i class="fas fa-exclamation-circle mr-2"></i>
-                <span>Please enter amount and select payment method</span>
-            </div>
-        `;
-        document.body.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.remove();
-        }, 5000);
-        return;
-    }
-    
-    const processingFee = amount * (fee / 100);
-    const netAmount = amount - processingFee;
-    
-    document.getElementById('calc-amount-display').textContent = `${amount.toFixed(2)} {{ wallet.currency }}`;
-    document.getElementById('calc-fee-display').textContent = `${processingFee.toFixed(2)} {{ wallet.currency }}`;
-    document.getElementById('calc-net-display').textContent = `${netAmount.toFixed(2)} {{ wallet.currency }}`;
-    document.getElementById('calc-results').classList.remove('hidden');
-}
-
-// Show fee calculator from anywhere
-function showFeeCalculator() {
-    document.querySelector('[x-data*="showCalculator"]').__x.$data.showCalculator = true;
-}
-</script>
 {% endblock %}

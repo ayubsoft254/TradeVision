@@ -130,6 +130,11 @@ app.conf.beat_schedule = {
             'expires': 600,  # 10 minutes to complete
         }
     },
+
+    'check-binance-payments': {
+            'task': 'apps.payments.tasks.check_binance_payments_task',
+            'schedule': 300.0,  # Run every 5 minutes
+        },
     
     'detect-suspicious-activity': {
         'task': 'apps.payments.tasks.detect_suspicious_activity',

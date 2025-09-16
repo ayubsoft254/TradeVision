@@ -1,6 +1,7 @@
 # apps/payments/urls.py
 from django.urls import path
 from . import views
+from . import views_binance
 
 app_name = 'payments'
 
@@ -27,4 +28,13 @@ urlpatterns = [
     path('api/calculate-fees/', views.calculate_fees, name='calculate_fees'),
     path('api/wallet-balance/', views.wallet_balance, name='wallet_balance'),
     path('api/transaction-status/<uuid:transaction_id>/', views.transaction_status, name='transaction_status'),
+
+    # Binance Pay URLs
+    path('binance/initiate/', views_binance.initiate_binance_payment, name='binance_initiate'),
+    path('binance/return/', views_binance.binance_payment_return, name='binance_return'),
+    path('binance/cancel/', views_binance.binance_payment_cancel, name='binance_cancel'),
+    path('binance/webhook/', views_binance.binance_webhook, name='binance_webhook'),
+    
+    # AJAX endpoints
+    path('api/binance/status/', views_binance.check_binance_payment_status, name='binance_status'),
 ]

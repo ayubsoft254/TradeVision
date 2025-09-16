@@ -43,7 +43,7 @@ class InvestmentForm(forms.ModelForm):
             
             self.fields['principal_amount'].help_text = (
                 f'Minimum investment: {self.package.min_stake} '
-                f'{self.user.wallet.currency if self.user and hasattr(self.user, "wallet") else "KSH"}'
+                f'{self.user.wallet.currency if self.user and hasattr(self.user, "wallet") else "USDT"}'
             )
     
     def clean_principal_amount(self):

@@ -28,7 +28,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         # Get or create user wallet
         wallet, created = Wallet.objects.get_or_create(
             user=user,
-            defaults={'currency': settings.SUPPORTED_CURRENCIES.get(user.country.code, 'KSH')}
+            defaults={'currency': settings.SUPPORTED_CURRENCIES.get(user.country.code, settings.DEFAULT_CURRENCY)}
         )
         
         # User investments statistics
@@ -212,7 +212,7 @@ class PackagesView(LoginRequiredMixin, TemplateView):
         # Get user wallet
         wallet, created = Wallet.objects.get_or_create(
             user=self.request.user,
-            defaults={'currency': settings.SUPPORTED_CURRENCIES.get(self.request.user.country.code, 'KSH')}
+            defaults={'currency': settings.SUPPORTED_CURRENCIES.get(self.request.user.country.code, settings.DEFAULT_CURRENCY)}
         )
         
         # Get user's existing investments
@@ -283,7 +283,7 @@ class InvestView(LoginRequiredMixin, TemplateView):
         # Get user wallet
         wallet, created = Wallet.objects.get_or_create(
             user=self.request.user,
-            defaults={'currency': settings.SUPPORTED_CURRENCIES.get(self.request.user.country.code, 'KSH')}
+            defaults={'currency': settings.SUPPORTED_CURRENCIES.get(self.request.user.country.code, settings.DEFAULT_CURRENCY)}
         )
         
         # Get investment form

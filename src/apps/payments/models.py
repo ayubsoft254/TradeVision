@@ -36,7 +36,7 @@ class Wallet(models.Model):
     balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     profit_balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     locked_balance = models.DecimalField(max_digits=15, decimal_places=2, default=0)  # Invested amounts
-    currency = models.CharField(max_length=3, default='KSH')
+    currency = models.CharField(max_length=3, default='USDT')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -75,7 +75,7 @@ class Transaction(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='transactions')
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
     amount = models.DecimalField(max_digits=15, decimal_places=2)
-    currency = models.CharField(max_length=3, default='KSH')
+    currency = models.CharField(max_length=3, default='USDT')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     # Payment method details

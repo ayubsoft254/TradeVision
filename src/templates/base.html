@@ -366,16 +366,16 @@
     <!-- Currency Ticker -->
     <div class="ticker-wrap">
         <div class="ticker">
-            <div class="ticker-item"><i class="fas fa-dollar-sign text-green-500"></i> EUR/USD: <span>1.0765 ▲</span></div>
-            <div class="ticker-item"><i class="fas fa-bitcoin text-yellow-500"></i> BTC/USD: <span>45230 ▲</span></div>
-            <div class="ticker-item"><i class="fas fa-coins text-blue-400"></i> ETH/USD: <span>3120 ▼</span></div>
-            <div class="ticker-item"><i class="fas fa-yen-sign text-red-400"></i> USD/JPY: <span>147.88 ▼</span></div>
-            <div class="ticker-item"><i class="fas fa-chart-line text-green-400"></i> Gold: <span>2150 ▲</span></div>
-            <div class="ticker-item"><i class="fas fa-euro-sign text-green-300"></i> GBP/USD: <span>1.2589 ▲</span></div>
-            <div class="ticker-item"><i class="fas fa-dollar-sign text-green-400"></i> AUD/USD: <span>0.6765 ▼</span></div>
-            <div class="ticker-item"><i class="fas fa-dollar-sign text-green-400"></i> USD/CAD: <span>1.3452 ▲</span></div>
-            <div class="ticker-item"><i class="fas fa-bitcoin text-yellow-400"></i> LTC/USD: <span>180.32 ▼</span></div>
-            <div class="ticker-item"><i class="fas fa-chart-line text-green-400"></i> Silver: <span>25.74 ▲</span></div>
+            <div class="ticker-item"><i class="fas fa-coins text-blue-500"></i> BTC/USDT: <span>67,235 ▲</span></div>
+            <div class="ticker-item"><i class="fas fa-ethereum text-purple-400"></i> ETH/USDT: <span>2,685 ▲</span></div>
+            <div class="ticker-item"><i class="fas fa-coins text-green-500"></i> USDT/USD: <span>1.0001 ▲</span></div>
+            <div class="ticker-item"><i class="fas fa-dollar-sign text-yellow-500"></i> BNB/USDT: <span>602.45 ▼</span></div>
+            <div class="ticker-item"><i class="fas fa-coins text-blue-400"></i> ADA/USDT: <span>0.435 ▲</span></div>
+            <div class="ticker-item"><i class="fas fa-coins text-orange-400"></i> SOL/USDT: <span>142.86 ▼</span></div>
+            <div class="ticker-item"><i class="fas fa-coins text-red-400"></i> DOT/USDT: <span>6.48 ▲</span></div>
+            <div class="ticker-item"><i class="fas fa-coins text-green-400"></i> AVAX/USDT: <span>27.91 ▼</span></div>
+            <div class="ticker-item"><i class="fas fa-coins text-blue-300"></i> LINK/USDT: <span>14.22 ▲</span></div>
+            <div class="ticker-item"><i class="fas fa-chart-line text-green-400"></i> Market Cap: <span>2.43T ▲</span></div>
         </div>
     </div>
         <!-- Navigation -->
@@ -746,8 +746,8 @@
         }
         
         // Currency formatter
-        function formatCurrency(amount, currency = 'KSH') {
-            return new Intl.NumberFormat('en-KE', {
+        function formatCurrency(amount, currency = 'USDT') {
+            return new Intl.NumberFormat('en-US', {
                 style: 'currency',
                 currency: currency,
                 minimumFractionDigits: 2

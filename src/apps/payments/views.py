@@ -39,7 +39,7 @@ class DepositView(LoginRequiredMixin, TemplateView):
         # Get user wallet
         wallet, created = Wallet.objects.get_or_create(
             user=user,
-            defaults={'currency': settings.SUPPORTED_CURRENCIES.get(user.country.code, 'KSH')}
+            defaults={'currency': settings.SUPPORTED_CURRENCIES.get(user.country.code, settings.DEFAULT_CURRENCY)}
         )
         
         # Get available payment methods for user's country

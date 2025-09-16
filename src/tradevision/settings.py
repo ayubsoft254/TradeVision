@@ -184,9 +184,20 @@ CELERY_TIMEZONE = TIME_ZONE
 # Currency settings
 DEFAULT_CURRENCY = 'USDT'
 SUPPORTED_CURRENCIES = {
-    'KE': 'KSH',
-    'UG': 'UGX', 
-    'TZ': 'TZS',
-    'CD': 'CDF',
-    'ZM': 'ZMW',
+    'KE': 'USDT',
+    'UG': 'USDT', 
+    'TZ': 'USDT',
+    'CD': 'USDT',
+    'ZM': 'USDT',
 }
+
+# Binance Pay Configuration
+BINANCE_PAY_API_KEY = os.getenv('BINANCE_PAY_API_KEY', '')
+BINANCE_PAY_SECRET_KEY = os.getenv('BINANCE_PAY_SECRET_KEY', '')
+BINANCE_PAY_BASE_URL = os.getenv('BINANCE_PAY_BASE_URL', 'https://bpay.binanceapi.com')
+
+# Site URL for return/cancel URLs
+SITE_URL = os.getenv('SITE_URL', 'https://yoursite.com')
+
+# Supported currencies for Binance Pay
+BINANCE_PAY_CURRENCIES = ['USDT', 'BUSD', 'BTC', 'ETH', 'BNB']
