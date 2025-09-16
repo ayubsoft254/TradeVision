@@ -240,35 +240,7 @@
                     </a>
                 </div>
             </div>
-        </div>
-
-        <!-- Trading Status Card -->
-        <div class="mb-8">
-            <div class="metric-card">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-2">
-                            {% if trading_allowed %}
-                                <i class="fas fa-chart-line mr-2 text-green-600"></i>Markets Open
-                            {% else %}
-                                <i class="fas fa-pause-circle mr-2 text-gray-500"></i>Markets Closed
-                            {% endif %}
-                        </h3>
-                        <p class="text-gray-600">
-                            {% if trading_allowed %}
-                                Perfect time to start your trading sessions and maximize profits
-                            {% else %}
-                                Trading resumes Monday-Friday from 8:00 AM to 6:00 PM
-                            {% endif %}
-                        </p>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-2xl font-bold text-gray-900" id="current-time"></div>
-                        <div class="text-sm text-gray-500">Local Time</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </div>       
 
         <!-- Key Metrics Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
