@@ -200,9 +200,17 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
         )
         
         # Create deposit request
+        # Convert Decimal values to strings for JSON serialization
+        payment_details = {}
+        for key, value in form.cleaned_data.items():
+            if isinstance(value, Decimal):
+                payment_details[key] = str(value)
+            else:
+                payment_details[key] = value
+        
         deposit_request = DepositRequest.objects.create(
             transaction=transaction,
-            payment_details=form.cleaned_data
+            payment_details=payment_details
         )
         
         # Handle file upload if present
@@ -407,9 +415,17 @@ class WithdrawMethodView(LoginRequiredMixin, TemplateView):
         )
         
         # Create withdrawal request
+        # Convert Decimal values to strings for JSON serialization
+        withdrawal_address = {}
+        for key, value in form.cleaned_data.items():
+            if isinstance(value, Decimal):
+                withdrawal_address[key] = str(value)
+            else:
+                withdrawal_address[key] = value
+        
         withdrawal_request = WithdrawalRequest.objects.create(
             transaction=transaction,
-            withdrawal_address=form.cleaned_data
+            withdrawal_address=withdrawal_address
         )
         
         # Update wallet balance (reserve the amount)

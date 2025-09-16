@@ -298,7 +298,7 @@ form input:focus, form select:focus, form textarea:focus {
 function updateFeeCalculation() {
   const amountInput = document.querySelector('input[name="amount"]');
   const amount = parseFloat(amountInput.value) || 0;
-  const feePercentage = {{ payment_method.processing_fee }};
+  const feePercentage = parseFloat({{ payment_method.processing_fee|floatformat:"10" }});
 
   if (amount > 0) {
     const fee = amount * (feePercentage / 100);
@@ -326,8 +326,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function validateForm() {
   const amountInput = document.querySelector('input[name="amount"]');
   const amount = parseFloat(amountInput.value) || 0;
-  const minAmount = {{ payment_method.min_amount }};
-  const maxAmount = {{ payment_method.max_amount|default:"999999999" }};
+  const minAmount = parseFloat({{ payment_method.min_amount|floatformat:"2" }});
+  const maxAmount = parseFloat({{ payment_method.max_amount|default:"999999999"|floatformat:"2" }});
 
   if (amount < minAmount) {
     alert(`Minimum deposit amount is ${minAmount} {{ wallet.currency }}`);
