@@ -803,12 +803,16 @@ class P2PMerchantAdminForm(forms.ModelForm):
         # Filter payment methods based on merchant's country
         if self.instance and self.instance.pk and self.instance.country:
             # Show only payment methods available in the merchant's country
-            available_methods = PaymentMethod.objects.filter(
-                is_active=True,
-                countries__icontains=f'"{self.instance.country}"'
+            # Fix: Use Python filtering instead of JSONField query for SQLite compatibility
+            available_methods = []
+            for method in PaymentMethod.objects.filter(is_active=True):
+                if method.is_available_for_country(self.instance.country):
+                    available_methods.append(method)
+            
+            self.fields['payment_methods'].queryset = PaymentMethod.objects.filter(
+                id__in=[m.id for m in available_methods]
             ).order_by('display_name')
             
-            self.fields['payment_methods'].queryset = available_methods
             self.fields['payment_methods'].help_text = (
                 f"Select payment methods available in {dict(P2PMerchant.COUNTRY_CHOICES)[self.instance.country]}. "
                 "Only active payment methods supported in this country are shown."
@@ -969,12 +973,13 @@ class P2PMerchantAdmin(admin.ModelAdmin):
     def available_methods_info(self, obj):
         """Show available payment methods for the merchant's country"""
         if obj.country:
-            available_methods = PaymentMethod.objects.filter(
-                is_active=True,
-                countries__icontains=f'"{obj.country}"'
-            ).order_by('display_name')
+            # Fix: Use Python filtering instead of JSONField query for SQLite compatibility
+            available_methods = []
+            for method in PaymentMethod.objects.filter(is_active=True):
+                if method.is_available_for_country(obj.country):
+                    available_methods.append(method)
             
-            if available_methods.exists():
+            if available_methods:
                 method_names = []
                 for method in available_methods:
                     icons = {
