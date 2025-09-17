@@ -395,77 +395,115 @@
 
 {% block extra_js %}
 <script>
-    let selectedInvestment = null;
-    let selectedData = {};
+// Global variables
+let selectedInvestment = null;
+let selectedData = {};
+
+// Global functions (so onclick can access them)
+function selectInvestment(id, packageName, amount, profitMin, profitMax, duration) {
+    console.log('selectInvestment called with:', { id, packageName, amount, profitMin, profitMax, duration });
     
-    function selectInvestment(id, packageName, amount, profitMin, profitMax, duration) {
-        // Remove previous selection
-        document.querySelectorAll('.investment-card').forEach(card => {
-            card.classList.remove('selected');
-        });
-        
-        // Select new investment
-        const selectedCard = document.querySelector(`#investment-${id}`).closest('.investment-card');
+    // Remove previous selection
+    document.querySelectorAll('.investment-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Select new investment
+    const selectedCard = document.querySelector(`#investment-${id}`).closest('.investment-card');
+    if (selectedCard) {
         selectedCard.classList.add('selected');
-        
-        // Check the radio button
-        document.getElementById(`investment-${id}`).checked = true;
-        
-        // Store selection data
-        selectedInvestment = id;
-        selectedData = {
-            packageName,
-            amount,
-            profitMin,
-            profitMax,
-            duration
-        };
-        
-        // Update preview
-        updateTradePreview();
-        
-        // Enable submit button if form is valid
-        updateSubmitButton();
     }
     
-    function updateTradePreview() {
-        if (!selectedInvestment) {
-            document.getElementById('trade-preview').classList.add('hidden');
-            return;
-        }
-        
-        const minProfit = (selectedData.amount * selectedData.profitMin / 100);
-        const maxProfit = (selectedData.amount * selectedData.profitMax / 100);
-        const completionTime = new Date();
-        completionTime.setHours(completionTime.getHours() + selectedData.duration);
-        
-        document.getElementById('preview-package').textContent = selectedData.packageName;
-        document.getElementById('preview-amount').textContent = 
-            `${selectedData.amount.toFixed(2)} {{ user.wallet.currency }}`;
-        document.getElementById('preview-profit').textContent = 
-            `${minProfit.toFixed(2)} - ${maxProfit.toFixed(2)} {{ user.wallet.currency }}`;
-        document.getElementById('preview-duration').textContent = `${selectedData.duration} Hours`;
-        document.getElementById('preview-completion').textContent = 
-            completionTime.toLocaleString('en-US', { 
-                month: 'short', 
-                day: 'numeric', 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-        
-        document.getElementById('trade-preview').classList.remove('hidden');
+    // Check the radio button
+    const radioInput = document.getElementById(`investment-${id}`);
+    if (radioInput) {
+        radioInput.checked = true;
     }
     
-    function updateSubmitButton() {
-        const submitBtn = document.getElementById('submit-btn');
-        const confirmCheckbox = document.querySelector('input[name="confirm_trade"]');
-        
-        if (selectedInvestment && confirmCheckbox && confirmCheckbox.checked) {
-            submitBtn.disabled = false;
-        } else {
-            submitBtn.disabled = true;
+    // Store selection data
+    selectedInvestment = id;
+    selectedData = {
+        packageName,
+        amount,
+        profitMin,
+        profitMax,
+        duration
+    };
+    
+    console.log('Investment selected:', id, selectedData); // Debug log
+    
+    // Update preview
+    updateTradePreview();
+    
+    // Enable submit button if form is valid
+    updateSubmitButton();
+}
+
+function updateTradePreview() {
+    const previewElement = document.getElementById('trade-preview');
+    if (!selectedInvestment || !previewElement) {
+        if (previewElement) {
+            previewElement.classList.add('hidden');
         }
+        return;
     }
+    
+    const minProfit = (selectedData.amount * selectedData.profitMin / 100);
+    const maxProfit = (selectedData.amount * selectedData.profitMax / 100);
+    const completionTime = new Date();
+    completionTime.setHours(completionTime.getHours() + selectedData.duration);
+    
+    // Safely update preview elements
+    const elements = {
+        'preview-package': selectedData.packageName,
+        'preview-amount': `${selectedData.amount.toFixed(2)} {{ user.wallet.currency }}`,
+        'preview-profit': `${minProfit.toFixed(2)} - ${maxProfit.toFixed(2)} {{ user.wallet.currency }}`,
+        'preview-duration': `${selectedData.duration} Hours`,
+        'preview-completion': completionTime.toLocaleString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        })
+    };
+    
+    Object.entries(elements).forEach(([id, text]) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = text;
+        }
+    });
+    
+    previewElement.classList.remove('hidden');
+}
+
+function updateSubmitButton() {
+    const submitBtn = document.getElementById('submit-btn');
+    const confirmCheckbox = document.querySelector('input[name="confirm_trade"]');
+    
+    console.log('Updating submit button:', { // Debug log
+        selectedInvestment, 
+        checkboxExists: !!confirmCheckbox,
+        checkboxChecked: confirmCheckbox ? confirmCheckbox.checked : false
+    });
+    
+    if (selectedInvestment && confirmCheckbox && confirmCheckbox.checked) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        console.log('Submit button enabled');
+    } else {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        console.log('Submit button disabled - reasons:', {
+            noInvestment: !selectedInvestment,
+            noCheckbox: !confirmCheckbox,
+            checkboxNotChecked: confirmCheckbox ? !confirmCheckbox.checked : 'no checkbox'
+        });
+    }
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
     
     // Form submission handling
     document.getElementById('trade-form').addEventListener('submit', function(e) {
@@ -542,7 +580,41 @@
     }
     
     // Listen for confirmation checkbox changes
-    document.querySelector('input[name="confirm_trade"]').addEventListener('change', updateSubmitButton);
+    const confirmCheckbox = document.querySelector('input[name="confirm_trade"]');
+    if (confirmCheckbox) {
+        confirmCheckbox.addEventListener('change', updateSubmitButton);
+    }
+    
+    // Initialize button state on page load
+    updateSubmitButton();
+    
+    // Add event delegation for investment cards as backup
+    document.addEventListener('click', function(e) {
+        const investmentCard = e.target.closest('.investment-card');
+        if (investmentCard) {
+            const radioInput = investmentCard.querySelector('input[type="radio"]');
+            if (radioInput) {
+                const investmentId = radioInput.value;
+                // Try to get the onclick attribute data or parse from the radio input ID
+                radioInput.click();
+                console.log('Investment card clicked via delegation:', investmentId);
+            }
+        }
+    });
+    
+    // Also listen for radio button changes directly
+    document.querySelectorAll('input[name="investment"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked) {
+                console.log('Radio button changed to:', this.value);
+                // Update selectedInvestment from radio value if selectInvestment wasn't called
+                if (!selectedInvestment || selectedInvestment != this.value) {
+                    selectedInvestment = this.value;
+                    updateSubmitButton();
+                }
+            }
+        });
+    });
     
     // Close modal when clicking outside
     document.getElementById('confirmation-modal').addEventListener('click', function(e) {
@@ -557,5 +629,7 @@
             closeModal();
         }
     });
+
+}); // End DOMContentLoaded
 </script>
 {% endblock %}
