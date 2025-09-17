@@ -16,6 +16,10 @@ from .models import TradingPackage, Investment, Trade, ProfitHistory
 from .forms import InvestmentForm, TradeInitiationForm
 from apps.payments.models import Wallet, Transaction
 from apps.core.models import SystemLog
+from django.db import transaction as db_transaction
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     """Main trading dashboard"""
@@ -487,50 +491,79 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
             messages.error(request, 'Trading is only allowed Monday to Friday, 8 AM to 6 PM.')
             return redirect('trading:initiate_trade')
         
-        form = TradeInitiationForm(request.POST, user=request.user)
+        # Get investment ID from form data
+        investment_id = request.POST.get('investment')
+        confirm_trade = request.POST.get('confirm_trade')
         
-        if form.is_valid():
-            investment = form.cleaned_data['investment']
-            
-            # Check if there's already a pending/running trade
-            existing_trade = Trade.objects.filter(
-                investment=investment,
-                status__in=['pending', 'running']
-            ).first()
-            
-            if existing_trade:
-                messages.warning(request, 'There is already an active trade for this investment.')
-                return redirect('trading:trades')
-            
-            # Create new trade
-            profit_rate = investment.package.get_random_profit_rate()
-            
-            trade = Trade.objects.create(
-                investment=investment,
-                trade_amount=investment.total_investment,
-                profit_rate=profit_rate,
-                status='running',
-                start_time=timezone.now()
-            )
-            
-            # Log the trade initiation
-            SystemLog.objects.create(
+        # Validate inputs
+        if not investment_id:
+            messages.error(request, 'Please select an investment.')
+            return self.render_to_response(self.get_context_data())
+        
+        if not confirm_trade:
+            messages.error(request, 'Please confirm the trade initiation.')
+            return self.render_to_response(self.get_context_data())
+        
+        try:
+            # Get the investment and validate ownership
+            investment = Investment.objects.get(
+                id=investment_id,
                 user=request.user,
-                action_type='trade',
-                level='INFO',
-                message=f'User initiated trade for {investment.package.display_name}',
-                ip_address=request.META.get('REMOTE_ADDR'),
-                metadata={'trade_id': str(trade.id), 'profit_rate': str(profit_rate)}
+                status='active'
             )
-            
-            messages.success(
-                request,
-                f'Trade initiated successfully! Expected profit: {trade.profit_amount} {request.user.wallet.currency}'
-            )
-            
-            return redirect('trading:trade_detail', trade_id=trade.id)
+        except Investment.DoesNotExist:
+            messages.error(request, 'Invalid investment selected.')
+            return self.render_to_response(self.get_context_data())
         
-        return self.render_to_response(self.get_context_data(form=form))
+        # Check if there's already a pending/running trade
+        existing_trade = Trade.objects.filter(
+            investment=investment,
+            status__in=['pending', 'running']
+        ).first()
+        
+        if existing_trade:
+            messages.warning(request, 'There is already an active trade for this investment.')
+            return redirect('trading:trades')
+        
+        try:
+            with db_transaction.atomic():
+                # Generate random profit rate
+                profit_rate = investment.package.get_random_profit_rate()
+                
+                # Create new trade
+                trade = Trade.objects.create(
+                    investment=investment,
+                    trade_amount=investment.total_investment,
+                    profit_rate=profit_rate,
+                    status='running',
+                    start_time=timezone.now()
+                )
+                
+                # Log the trade initiation
+                SystemLog.objects.create(
+                    user=request.user,
+                    action_type='trade',
+                    level='INFO',
+                    message=f'User initiated trade for {investment.package.display_name}',
+                    ip_address=request.META.get('REMOTE_ADDR'),
+                    metadata={
+                        'trade_id': str(trade.id), 
+                        'investment_id': str(investment.id),
+                        'profit_rate': str(profit_rate)
+                    }
+                )
+                
+                messages.success(
+                    request,
+                    f'Trade initiated successfully! Expected profit: {trade.profit_amount} {request.user.wallet.currency}'
+                )
+                
+                return redirect('trading:trade_detail', trade_id=trade.id)
+                
+        except Exception as e:
+            logger.error(f"Error initiating trade: {str(e)}")
+            messages.error(request, 'An error occurred while initiating the trade. Please try again.')
+            return self.render_to_response(self.get_context_data())
     
     def is_trading_allowed(self):
         """Check if trading is currently allowed"""
