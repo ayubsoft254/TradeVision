@@ -124,6 +124,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             count=Count('id')
         )
         
+        # Handle empty data case
+        if not investments.exists():
+            return {
+                'labels': ['No Investments'],
+                'data': [0]
+            }
+        
         return {
             'labels': [inv['package__display_name'] for inv in investments],
             'data': [float(inv['total_amount']) for inv in investments]

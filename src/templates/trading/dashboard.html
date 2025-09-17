@@ -438,119 +438,199 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Update current time
+    // Debug: Check if elements exist
+    console.log('profitChart element:', document.getElementById('profitChart'));
+    console.log('distributionChart element:', document.getElementById('distributionChart'));
+    
+    // Debug: Check chart data
+    console.log('Profit data:', {{ profit_chart_data|safe }});
+    console.log('Distribution data:', {{ investment_distribution|safe }});
+
+    // Update current time (only if element exists)
     function updateTime() {
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('en-US', { 
-            hour12: false,
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-        document.getElementById('current-time').textContent = timeString;
+        const timeElement = document.getElementById('current-time');
+        if (timeElement) {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            timeElement.textContent = timeString;
+        }
     }
     
     setInterval(updateTime, 1000);
     updateTime();
 
-    // Profit Chart
-    const profitCtx = document.getElementById('profitChart').getContext('2d');
-    const profitData = {{ profit_chart_data|safe }};
-    
-    new Chart(profitCtx, {
-        type: 'line',
-        data: {
-            labels: profitData.labels,
-            datasets: [{
-                label: 'Daily Profit',
-                data: profitData.data,
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                tension: 0.4,
-                fill: true,
-                borderWidth: 3,
-                pointBackgroundColor: '#3b82f6',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 5,
-                pointHoverRadius: 7
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleFont: { size: 14 },
-                    bodyFont: { size: 14 },
-                    padding: 12,
-                    cornerRadius: 8
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            // Profit Chart
+            const profitCtx = document.getElementById('profitChart');
+            if (profitCtx) {
+                const profitData = {{ profit_chart_data|safe }};
+                
+                // Validate data structure
+                if (!profitData || !profitData.labels || !profitData.data) {
+                    console.error('Invalid profit chart data:', profitData);
+                    return;
                 }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { 
-                        color: 'rgba(0, 0, 0, 0.05)',
-                        drawBorder: false
+                
+                console.log('Creating profit chart with data:', profitData);
+                
+                new Chart(profitCtx, {
+                    type: 'line',
+                    data: {
+                        labels: profitData.labels,
+                        datasets: [{
+                            label: 'Daily Profit ({{ wallet.currency }})',
+                            data: profitData.data,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#3b82f6',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
                     },
-                    ticks: {
-                        font: { size: 12 },
-                        callback: function(value) {
-                            return '{{ wallet.currency }} ' + value;
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleFont: { size: 14 },
+                                bodyFont: { size: 14 },
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'Profit: {{ wallet.currency }} ' + context.parsed.y.toFixed(2);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { 
+                                    color: 'rgba(0, 0, 0, 0.05)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    font: { size: 12 },
+                                    callback: function(value) {
+                                        return '{{ wallet.currency }} ' + value.toFixed(2);
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 12 },
+                                    callback: function(value, index) {
+                                        const date = new Date(profitData.labels[index]);
+                                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                    }
+                                }
+                            }
                         }
                     }
-                },
-                x: {
-                    grid: { display: false },
-                    ticks: {
-                        font: { size: 12 }
-                    }
-                }
+                });
+                console.log('Profit chart created successfully');
+            } else {
+                console.error('profitChart canvas element not found');
             }
+        } catch (error) {
+            console.error('Error creating profit chart:', error);
         }
-    });
 
-    // Investment Distribution Chart
-    const distributionCtx = document.getElementById('distributionChart').getContext('2d');
-    const distributionData = {{ investment_distribution|safe }};
-    
-    new Chart(distributionCtx, {
-        type: 'doughnut',
-        data: {
-            labels: distributionData.labels,
-            datasets: [{
-                data: distributionData.data,
-                backgroundColor: [
-                    '#3b82f6',
-                    '#10b981', 
-                    '#f59e0b',
-                    '#ef4444',
-                    '#8b5cf6',
-                    '#ec4899',
-                    '#06b6d4'
-                ],
-                borderWidth: 0,
-                borderRadius: 6,
-                hoverOffset: 12
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: '70%',
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        font: { size: 12 },
-                        padding: 20,
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
+        try {
+            // Investment Distribution Chart
+            const distributionCtx = document.getElementById('distributionChart');
+            if (distributionCtx) {
+                const distributionData = {{ investment_distribution|safe }};
+                
+                // Validate data structure
+                if (!distributionData || !distributionData.labels || !distributionData.data) {
+                    console.error('Invalid distribution chart data:', distributionData);
+                    return;
                 }
+                
+                console.log('Creating distribution chart with data:', distributionData);
+                
+                // Handle empty data case
+                if (distributionData.labels.length === 0 || distributionData.data.length === 0) {
+                    console.log('No investment data available');
+                    // Show a message in the chart container instead
+                    const chartContainer = distributionCtx.parentElement;
+                    chartContainer.innerHTML = '<p class="text-center text-gray-500 py-8">No investment data available</p>';
+                    return;
+                }
+                
+                new Chart(distributionCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: distributionData.labels,
+                        datasets: [{
+                            data: distributionData.data,
+                            backgroundColor: [
+                                '#3b82f6',
+                                '#10b981', 
+                                '#f59e0b',
+                                '#ef4444',
+                                '#8b5cf6',
+                                '#ec4899',
+                                '#06b6d4'
+                            ],
+                            borderWidth: 0,
+                            borderRadius: 6,
+                            hoverOffset: 12
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: { size: 12 },
+                                    padding: 20,
+                                    usePointStyle: true,
+                                    pointStyle: 'circle'
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                titleFont: { size: 14 },
+                                bodyFont: { size: 14 },
+                                padding: 12,
+                                cornerRadius: 8,
+                                callbacks: {
+                                    label: function(context) {
+                                        const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                        const percentage = ((context.parsed * 100) / total).toFixed(1);
+                                        return context.label + ': {{ wallet.currency }} ' + context.parsed.toFixed(2) + ' (' + percentage + '%)';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('Distribution chart created successfully');
+            } else {
+                console.error('distributionChart canvas element not found');
             }
+        } catch (error) {
+            console.error('Error creating distribution chart:', error);
         }
     });
 

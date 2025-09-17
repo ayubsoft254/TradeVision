@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chart Test</h1>
+    
+    <div class="chart-container">
+        <h3>Profit Chart</h3>
+        <canvas id="profitChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+        <h3>Distribution Chart</h3>
+        <canvas id="distributionChart"></canvas>
+    </div>
+
+    <script>
+        // Test data (similar to what Django would generate)
+        const profitData = {
+            "labels": ["2025-09-11", "2025-09-12", "2025-09-13", "2025-09-14", "2025-09-15", "2025-09-16", "2025-09-17"],
+            "data": [15000.0, 0, 0, 0, 0, 0, 137.5]
+        };
+        
+        const distributionData = {
+            "labels": ["Basic", "Premium", "Standard"],
+            "data": [999.97, 10000.0, 46000.0]
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Profit Chart
+                const profitCtx = document.getElementById('profitChart');
+                if (profitCtx) {
+                    console.log('Creating profit chart with data:', profitData);
+                    
+                    new Chart(profitCtx, {
+                        type: 'line',
+                        data: {
+                            labels: profitData.labels,
+                            datasets: [{
+                                label: 'Daily Profit',
+                                data: profitData.data,
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4,
+                                fill: true,
+                                borderWidth: 3,
+                                pointBackgroundColor: '#3b82f6',
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2,
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                    console.log('Profit chart created successfully');
+                } else {
+                    console.error('profitChart canvas element not found');
+                }
+            } catch (error) {
+                console.error('Error creating profit chart:', error);
+            }
+
+            try {
+                // Distribution Chart
+                const distributionCtx = document.getElementById('distributionChart');
+                if (distributionCtx) {
+                    console.log('Creating distribution chart with data:', distributionData);
+                    
+                    new Chart(distributionCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: distributionData.labels,
+                            datasets: [{
+                                data: distributionData.data,
+                                backgroundColor: [
+                                    '#3b82f6',
+                                    '#10b981', 
+                                    '#f59e0b',
+                                    '#ef4444',
+                                    '#8b5cf6'
+                                ],
+                                borderWidth: 0,
+                                borderRadius: 6,
+                                hoverOffset: 12
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '70%',
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                }
+                            }
+                        }
+                    });
+                    console.log('Distribution chart created successfully');
+                } else {
+                    console.error('distributionChart canvas element not found');
+                }
+            } catch (error) {
+                console.error('Error creating distribution chart:', error);
+            }
+        });
+    </script>
+</body>
+</html>
