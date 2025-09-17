@@ -1,0 +1,13 @@
+Hello {{ user.username }},
+
+Thank you for registering with Tradevision. To complete your registration,
+Please confirm your email address by visiting the link below:
+
+{{ activate_url }}
+
+If you did not initiate this registration, you can safely ignore this email.
+
+
+
+“Enjoy your Trading with Tradevision”
+This email was sent to {{ user.email }}.
