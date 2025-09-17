@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from decimal import Decimal
 import re
 
-from .models import Transaction, DepositRequest, WithdrawalRequest, Agent, P2PMerchant
+from .models import Transaction, DepositRequest, WithdrawalRequest, Agent, P2PMerchant, PaymentMethod
 
 User = get_user_model()
 
@@ -184,16 +184,13 @@ class P2PForm(BasePaymentForm):
         help_text='Choose a verified P2P merchant'
     )
     
-    payment_method = forms.ChoiceField(
-        choices=[
-            ('mobile_money', 'Mobile Money'),
-            ('bank_transfer', 'Bank Transfer'),
-            ('cash', 'Cash'),
-        ],
+    payment_method = forms.ModelChoiceField(
+        queryset=PaymentMethod.objects.none(),
         widget=forms.Select(attrs={
             'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500'
         }),
-        label='Payment Method'
+        label='Payment Method',
+        help_text='Select from available payment methods'
     )
     
     account_details = forms.CharField(
@@ -212,30 +209,76 @@ class P2PForm(BasePaymentForm):
         super().__init__(*args, **kwargs)
         
         if self.user:
+            # Get user's country code
+            user_country = getattr(self.user, 'country', None)
+            if hasattr(user_country, 'code'):
+                country_code = user_country.code
+            else:
+                # Fallback - adjust based on your user model
+                country_code = getattr(self.user, 'country_code', None) or 'KE'
+            
             # Filter merchants by user's country
             self.fields['merchant'].queryset = P2PMerchant.objects.filter(
                 is_active=True,
                 is_verified=True,
-                country=self.user.country.code
+                country=country_code
             ).order_by('-rating')
+            
+            # Get available payment methods for the user's country
+            available_methods = PaymentMethod.objects.filter(
+                is_active=True,
+                countries__icontains=f'"{country_code}"'
+            ).order_by('display_name')
+            
+            self.fields['payment_method'].queryset = available_methods
+            
+            # Update help text with country info
+            country_name = dict(P2PMerchant.COUNTRY_CHOICES).get(country_code, country_code)
+            self.fields['merchant'].help_text = f'Verified P2P merchants available in {country_name}'
+            self.fields['payment_method'].help_text = f'Payment methods available in {country_name}'
         
         if self.transaction_type == 'withdrawal':
             self.fields['account_details'].label = 'Recipient Account Details'
             self.fields['account_details'].help_text = 'Account where you want to receive funds'
     
+    def clean(self):
+        cleaned_data = super().clean()
+        merchant = cleaned_data.get('merchant')
+        payment_method = cleaned_data.get('payment_method')
+        
+        # Validate that the selected payment method is supported by the merchant
+        if merchant and payment_method:
+            # Check if merchant supports this payment method
+            if not merchant.payment_methods.filter(id=payment_method.id).exists():
+                # Fallback: check if it's in legacy supported_methods
+                legacy_methods = merchant.get_supported_method_names()
+                if payment_method.name not in legacy_methods:
+                    raise forms.ValidationError(
+                        f"{merchant.name} does not support {payment_method.display_name}. "
+                        "Please select a different merchant or payment method."
+                    )
+        
+        return cleaned_data
+    
     def clean_account_details(self):
         account_details = self.cleaned_data['account_details']
         payment_method = self.cleaned_data.get('payment_method')
         
-        if payment_method == 'mobile_money':
-            # Validate mobile money format (basic validation)
-            if not re.match(r'^\+?[0-9]{10,15}$', account_details.replace(' ', '')):
-                raise ValidationError('Please enter a valid mobile money number with country code.')
-        
-        elif payment_method == 'bank_transfer':
-            # Basic bank account validation
-            if len(account_details.replace(' ', '')) < 8:
-                raise ValidationError('Bank account number should be at least 8 digits.')
+        if payment_method:
+            if payment_method.name == 'mobile_money':
+                # Validate mobile money format (basic validation)
+                if not re.match(r'^\+?[0-9]{10,15}$', account_details.replace(' ', '')):
+                    raise ValidationError('Please enter a valid mobile money number with country code.')
+            
+            elif payment_method.name == 'bank_transfer':
+                # Basic bank account validation
+                if len(account_details.replace(' ', '')) < 8:
+                    raise ValidationError('Bank account number should be at least 8 digits.')
+            
+            elif payment_method.name == 'crypto':
+                # Basic wallet address validation
+                if len(account_details) < 26:
+                    raise ValidationError('Cryptocurrency wallet address appears to be too short.')
         
         return account_details
 

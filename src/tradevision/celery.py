@@ -21,7 +21,7 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     
     # =============================================================================
-    # TRADING TASKS (Core Business Logic)
+    # TRADING TASKS (Core Business Logic) - FIXED
     # =============================================================================
     
     'process-completed-trades': {
@@ -138,20 +138,6 @@ app.conf.beat_schedule = {
         'options': {'queue': 'payments'}
     },
     
-    # Clean up old pending payments daily at 2 AM
-    'cleanup-old-payments': {
-        'task': 'apps.payments.tasks.cleanup_old_pending_payments',
-        'schedule': crontab(hour=2, minute=0),
-        'options': {'queue': 'maintenance'}
-    },
-    
-    # Generate daily report at 11:59 PM
-    'daily-payment-report': {
-        'task': 'apps.payments.tasks.generate_payment_report',
-        'schedule': crontab(hour=23, minute=59),
-        'options': {'queue': 'reports'}
-    },
-    
     'detect-suspicious-activity': {
         'task': 'apps.payments.tasks.detect_suspicious_activity',
         'schedule': 3600.0,  # Every hour
@@ -183,13 +169,38 @@ app.conf.beat_schedule = {
             'expires': 1800,  # 30 minutes to complete
         }
     },
+    
+    # =============================================================================
+    # SCHEDULED TASKS (Using Crontab)
+    # =============================================================================
+    
+    # Clean up old pending payments daily at 2 AM EAT (East Africa Time)
+    'cleanup-old-payments': {
+        'task': 'apps.payments.tasks.cleanup_old_pending_payments',
+        'schedule': crontab(hour=2, minute=0),
+        'options': {'queue': 'maintenance'}
+    },
+    
+    # Generate daily report at 11:59 PM EAT
+    'daily-payment-report': {
+        'task': 'apps.payments.tasks.generate_payment_report',
+        'schedule': crontab(hour=23, minute=59),
+        'options': {'queue': 'reports'}
+    },
+    
+    # Monitor queue health every 30 minutes
+    'monitor-queue-health': {
+        'task': 'tradevision.celery.monitor_queue_health',
+        'schedule': 1800.0,  # Every 30 minutes
+        'options': {'expires': 300}
+    },
 }
 
 # Celery Configuration Settings
 app.conf.update(
-    # Timezone Configuration
-    timezone='UTC',
-    enable_utc=True,
+    # FIXED: Use your local timezone instead of UTC
+    timezone='Africa/Nairobi',  # Changed from 'UTC'
+    enable_utc=False,  # Changed from True to use local timezone
     
     # Task Configuration
     task_serializer='json',
@@ -204,15 +215,6 @@ app.conf.update(
     
     # Beat Configuration
     beat_scheduler='django_celery_beat.schedulers:DatabaseScheduler',
-    
-    # Task Routes - Prioritize critical tasks
-    task_routes={
-        'apps.trading.tasks.process_completed_trades': {'queue': 'critical'},
-        'apps.trading.tasks.auto_initiate_daily_trades': {'queue': 'trading'},
-        'apps.payments.tasks.process_pending_deposits': {'queue': 'payments'},
-        'apps.payments.tasks.process_withdrawal_requests': {'queue': 'payments'},
-        'apps.payments.tasks.detect_suspicious_activity': {'queue': 'security'},
-    },
     
     # Default Queue Configuration
     task_default_queue='default',
@@ -308,14 +310,6 @@ app.conf.task_routes = {
         'queue': 'notifications',
         'priority': 5
     },
-    'apps.payments.tasks.send_deposit_confirmation': {
-        'queue': 'notifications',
-        'priority': 6
-    },
-    'apps.payments.tasks.send_withdrawal_confirmation': {
-        'queue': 'notifications',
-        'priority': 6
-    },
 }
 
 # Logging Configuration
@@ -331,19 +325,6 @@ def debug_task(self):
         'status': 'healthy',
         'worker_id': self.request.id,
         'timestamp': timezone.now().isoformat()
-    }
-
-# Custom Error Handler
-@app.task(bind=True)
-def error_handler(self, uuid, error, request, traceback):
-    """Custom error handler for failed tasks"""
-    print(f'Task {uuid} failed: {error}')
-    # Here you could send alerts to admins
-    return {
-        'task_id': uuid,
-        'error': str(error),
-        'request': request,
-        'status': 'failed'
     }
 
 # Performance Monitoring
@@ -378,16 +359,18 @@ def monitor_queue_health(self):
             'timestamp': timezone.now().isoformat()
         }
 
-# Add monitoring task to beat schedule
-app.conf.beat_schedule['monitor-queue-health'] = {
-    'task': 'celery.monitor_queue_health',
-    'schedule': 1800.0,  # Every 30 minutes
-    'options': {'expires': 300}
-}
-
-# Startup Configuration
-if __name__ == '__main__':
-    app.start()
+# Custom Error Handler
+@app.task(bind=True)
+def error_handler(self, uuid, error, request, traceback):
+    """Custom error handler for failed tasks"""
+    print(f'Task {uuid} failed: {error}')
+    # Here you could send alerts to admins
+    return {
+        'task_id': uuid,
+        'error': str(error),
+        'request': request,
+        'status': 'failed'
+    }
 
 # Production Optimizations
 if not settings.DEBUG:
@@ -402,3 +385,7 @@ if not settings.DEBUG:
         },
         worker_max_memory_per_child=200000,  # 200MB per child
     )
+
+# Startup Configuration
+if __name__ == '__main__':
+    app.start()

@@ -120,7 +120,7 @@ class TradeInitiationForm(forms.Form):
                 choices.append((investment.id, choice_text))
             
             self.fields['investment'].choices = [('', 'Select an investment')] + choices
-    
+
     def clean_investment(self):
         investment = self.cleaned_data.get('investment')
         
@@ -128,7 +128,7 @@ class TradeInitiationForm(forms.Form):
             raise ValidationError('Please select an investment.')
         
         # Check if investment belongs to user
-        if investment.user != self.user:
+        if self.user and investment.user != self.user:
             raise ValidationError('Invalid investment selected.')
         
         # Check if investment is active
@@ -145,6 +145,7 @@ class TradeInitiationForm(forms.Form):
             raise ValidationError('This investment already has an active trade.')
         
         return investment
+
 
 class PackageCalculatorForm(forms.Form):
     """Form for package profit calculations"""

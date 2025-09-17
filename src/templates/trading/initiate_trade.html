@@ -239,8 +239,13 @@
                             
                             <div class="space-y-5 mb-7">
                                 {% for investment in available_investments %}
-                                <div class="investment-card rounded-xl p-6" 
-                                     onclick="selectInvestment({{ investment.id }}, '{{ investment.package.display_name }}', {{ investment.total_investment }}, {{ investment.package.profit_min }}, {{ investment.package.profit_max }}, {{ investment.package.duration_hours }})">
+                                <div class="investment-card rounded-lg p-6" 
+                                     data-investment-id="{{ investment.id }}"
+                                     data-package-name="{{ investment.package.display_name }}"
+                                     data-amount="{{ investment.total_investment }}"
+                                     data-profit-min="{{ investment.package.profit_min }}"
+                                     data-profit-max="{{ investment.package.profit_max }}"
+                                     data-duration="24">
                                     <div class="flex items-center justify-between">
                                         <div class="flex-1">
                                             <div class="flex items-center space-x-5">
@@ -275,7 +280,7 @@
                                                 <div>
                                                     <div class="text-sm text-gray-500 mb-1">Duration</div>
                                                     <div class="font-semibold text-gray-900">
-                                                        {{ investment.package.duration_hours }}h
+                                                        24h
                                                     </div>
                                                 </div>
                                             </div>
@@ -314,7 +319,7 @@
                             </div>
 
                             <!-- Submit Button -->
-                            <button type="submit" 
+                            <button type="button" 
                                     id="submit-btn"
                                     class="w-full bg-gradient-primary text-white py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
                                     disabled>
@@ -486,10 +491,10 @@
             </div>
             
             <div class="flex space-x-4">
-                <button onclick="closeModal()" class="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors duration-200">
+                <button id="cancel-btn" class="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg font-medium hover:bg-gray-300 transition-colors duration-200">
                     Cancel
                 </button>
-                <button onclick="confirmTrade()" class="flex-1 bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium hover:shadow-lg transition-all duration-200">
+                <button id="confirm-btn" class="flex-1 bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium hover:shadow-lg transition-all duration-200">
                     Start Trade
                 </button>
             </div>
@@ -500,160 +505,79 @@
 
 {% block extra_js %}
 <script>
-    let selectedInvestment = null;
-    let selectedData = {};
+// Global variables
+let selectedInvestment = null;
+let selectedData = {};
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing trade initiation...');
     
-    function selectInvestment(id, packageName, amount, profitMin, profitMax, duration) {
-        // Remove previous selection
-        document.querySelectorAll('.investment-card').forEach(card => {
-            card.classList.remove('selected');
-        });
-        
-        // Select new investment
-        const selectedCard = document.querySelector(`#investment-${id}`).closest('.investment-card');
-        selectedCard.classList.add('selected');
-        
-        // Check the radio button
-        document.getElementById(`investment-${id}`).checked = true;
-        
-        // Store selection data
-        selectedInvestment = id;
-        selectedData = {
-            packageName,
-            amount,
-            profitMin,
-            profitMax,
-            duration
-        };
-        
-        // Update preview
-        updateTradePreview();
-        
-        // Enable submit button if form is valid
-        updateSubmitButton();
-    }
-    
-    function updateTradePreview() {
-        if (!selectedInvestment) {
-            document.getElementById('trade-preview').classList.add('hidden');
-            return;
-        }
-        
-        const minProfit = (selectedData.amount * selectedData.profitMin / 100);
-        const maxProfit = (selectedData.amount * selectedData.profitMax / 100);
-        const completionTime = new Date();
-        completionTime.setHours(completionTime.getHours() + selectedData.duration);
-        
-        document.getElementById('preview-package').textContent = selectedData.packageName;
-        document.getElementById('preview-amount').textContent = 
-            `${selectedData.amount.toFixed(2)} {{ user.wallet.currency }}`;
-        document.getElementById('preview-profit').textContent = 
-            `${minProfit.toFixed(2)} - ${maxProfit.toFixed(2)} {{ user.wallet.currency }}`;
-        document.getElementById('preview-duration').textContent = `${selectedData.duration} Hours`;
-        document.getElementById('preview-completion').textContent = 
-            completionTime.toLocaleString('en-US', { 
-                month: 'short', 
-                day: 'numeric', 
-                hour: '2-digit', 
-                minute: '2-digit' 
+    // Investment card click handlers
+    document.querySelectorAll('.investment-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const investmentId = this.dataset.investmentId;
+            const packageName = this.dataset.packageName;
+            const amount = parseFloat(this.dataset.amount);
+            const profitMin = parseFloat(this.dataset.profitMin);
+            const profitMax = parseFloat(this.dataset.profitMax);
+            const duration = parseInt(this.dataset.duration);
+            
+            console.log('Investment card clicked:', {
+                investmentId,
+                packageName,
+                amount,
+                profitMin,
+                profitMax,
+                duration
             });
-        
-        document.getElementById('trade-preview').classList.remove('hidden');
-    }
-    
-    function updateSubmitButton() {
-        const submitBtn = document.getElementById('submit-btn');
-        const confirmCheckbox = document.querySelector('input[name="confirm_trade"]');
-        
-        if (selectedInvestment && confirmCheckbox && confirmCheckbox.checked) {
-            submitBtn.disabled = false;
-        } else {
-            submitBtn.disabled = true;
-        }
-    }
-    
-    // Form submission handling
-    document.getElementById('trade-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        if (!selectedInvestment) {
-            alert('Please select an investment first.');
-            return;
-        }
-        
-        showConfirmationModal();
+            
+            selectInvestment(investmentId, packageName, amount, profitMin, profitMax, duration);
+        });
     });
     
-    function showConfirmationModal() {
-        const modal = document.getElementById('confirmation-modal');
-        const modalContent = document.getElementById('modal-content');
-        const modalDetails = document.getElementById('modal-details');
-        
-        const minProfit = (selectedData.amount * selectedData.profitMin / 100);
-        const maxProfit = (selectedData.amount * selectedData.profitMax / 100);
-        
-        modalDetails.innerHTML = `
-            <div class="space-y-2">
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Package:</span>
-                    <span class="font-medium">${selectedData.packageName}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Trading Amount:</span>
-                    <span class="font-medium">${selectedData.amount.toFixed(2)} {{ user.wallet.currency }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Expected Profit:</span>
-                    <span class="font-medium text-success-600">${minProfit.toFixed(2)} - ${maxProfit.toFixed(2)} {{ user.wallet.currency }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Duration:</span>
-                    <span class="font-medium">${selectedData.duration} Hours</span>
-                </div>
-            </div>
-        `;
-        
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-            modalContent.classList.remove('scale-95');
-            modalContent.classList.add('scale-100');
-        }, 50);
+    // Confirmation checkbox handler
+    const confirmCheckbox = document.querySelector('input[name="confirm_trade"]');
+    if (confirmCheckbox) {
+        confirmCheckbox.addEventListener('change', function() {
+            console.log('Confirmation checkbox changed:', this.checked);
+            updateSubmitButton();
+        });
     }
     
-    function closeModal() {
-        const modal = document.getElementById('confirmation-modal');
-        const modalContent = document.getElementById('modal-content');
-        
-        modalContent.classList.remove('scale-100');
-        modalContent.classList.add('scale-95');
-        
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 200);
+    // Submit button handler
+    const submitBtn = document.getElementById('submit-btn');
+    if (submitBtn) {
+        submitBtn.addEventListener('click', function() {
+            console.log('Submit button clicked');
+            if (!selectedInvestment) {
+                alert('Please select an investment first.');
+                return;
+            }
+            showConfirmationModal();
+        });
     }
     
-    function confirmTrade() {
-        const submitText = document.getElementById('submit-text');
-        const submitLoading = document.getElementById('submit-loading');
-        
-        submitText.classList.add('hidden');
-        submitLoading.classList.remove('hidden');
-        
-        closeModal();
-        
-        // Submit the form
-        document.getElementById('trade-form').submit();
+    // Modal handlers
+    const cancelBtn = document.getElementById('cancel-btn');
+    const confirmBtn = document.getElementById('confirm-btn');
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeModal);
     }
     
-    // Listen for confirmation checkbox changes
-    document.querySelector('input[name="confirm_trade"]').addEventListener('change', updateSubmitButton);
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', confirmTrade);
+    }
     
     // Close modal when clicking outside
-    document.getElementById('confirmation-modal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeModal();
-        }
-    });
+    const modal = document.getElementById('confirmation-modal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    }
     
     // Keyboard shortcuts
     document.addEventListener('keydown', function(e) {
@@ -661,5 +585,181 @@
             closeModal();
         }
     });
+    
+    // Initialize button state
+    updateSubmitButton();
+});
+
+function selectInvestment(id, packageName, amount, profitMin, profitMax, duration) {
+    console.log('selectInvestment called with:', { id, packageName, amount, profitMin, profitMax, duration });
+    
+    // Remove previous selection
+    document.querySelectorAll('.investment-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    
+    // Select new investment
+    const selectedCard = document.querySelector(`[data-investment-id="${id}"]`);
+    if (selectedCard) {
+        selectedCard.classList.add('selected');
+    }
+    
+    // Check the radio button
+    const radioInput = document.getElementById(`investment-${id}`);
+    if (radioInput) {
+        radioInput.checked = true;
+    }
+    
+    // Store selection data
+    selectedInvestment = id;
+    selectedData = {
+        packageName,
+        amount,
+        profitMin,
+        profitMax,
+        duration
+    };
+    
+    console.log('Investment selected:', selectedInvestment, selectedData);
+    
+    // Update preview
+    updateTradePreview();
+    
+    // Enable submit button if form is valid
+    updateSubmitButton();
+}
+
+function updateTradePreview() {
+    const previewElement = document.getElementById('trade-preview');
+    if (!selectedInvestment || !previewElement) {
+        if (previewElement) {
+            previewElement.classList.add('hidden');
+        }
+        return;
+    }
+    
+    const minProfit = (selectedData.amount * selectedData.profitMin / 100);
+    const maxProfit = (selectedData.amount * selectedData.profitMax / 100);
+    const completionTime = new Date();
+    completionTime.setHours(completionTime.getHours() + selectedData.duration);
+    
+    // Update preview elements
+    const elements = {
+        'preview-package': selectedData.packageName,
+        'preview-amount': `${selectedData.amount.toFixed(2)} {{ user.wallet.currency|default:'USDT' }}`,
+        'preview-profit': `${minProfit.toFixed(2)} - ${maxProfit.toFixed(2)} {{ user.wallet.currency|default:'USDT' }}`,
+        'preview-duration': `${selectedData.duration} Hours`,
+        'preview-completion': completionTime.toLocaleString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        })
+    };
+    
+    Object.entries(elements).forEach(([id, text]) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = text;
+        }
+    });
+    
+    previewElement.classList.remove('hidden');
+}
+
+function updateSubmitButton() {
+    const submitBtn = document.getElementById('submit-btn');
+    const confirmCheckbox = document.querySelector('input[name="confirm_trade"]');
+    
+    console.log('Updating submit button:', {
+        selectedInvestment, 
+        checkboxExists: !!confirmCheckbox,
+        checkboxChecked: confirmCheckbox ? confirmCheckbox.checked : false
+    });
+    
+    if (selectedInvestment && confirmCheckbox && confirmCheckbox.checked) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        console.log('Submit button enabled');
+    } else {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        console.log('Submit button disabled');
+    }
+}
+
+function showConfirmationModal() {
+    const modal = document.getElementById('confirmation-modal');
+    const modalContent = document.getElementById('modal-content');
+    const modalDetails = document.getElementById('modal-details');
+    
+    if (!selectedData.amount) {
+        console.error('No selected data available');
+        return;
+    }
+    
+    const minProfit = (selectedData.amount * selectedData.profitMin / 100);
+    const maxProfit = (selectedData.amount * selectedData.profitMax / 100);
+    
+    modalDetails.innerHTML = `
+        <div class="space-y-2">
+            <div class="flex justify-between">
+                <span class="text-gray-600">Package:</span>
+                <span class="font-medium">${selectedData.packageName}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Trading Amount:</span>
+                <span class="font-medium">${selectedData.amount.toFixed(2)} {{ user.wallet.currency|default:'USDT' }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Expected Profit:</span>
+                <span class="font-medium text-success-600">${minProfit.toFixed(2)} - ${maxProfit.toFixed(2)} {{ user.wallet.currency|default:'USDT' }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-600">Duration:</span>
+                <span class="font-medium">${selectedData.duration} Hours</span>
+            </div>
+        </div>
+    `;
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modalContent.classList.remove('scale-95');
+        modalContent.classList.add('scale-100');
+    }, 50);
+}
+
+function closeModal() {
+    const modal = document.getElementById('confirmation-modal');
+    const modalContent = document.getElementById('modal-content');
+    
+    modalContent.classList.remove('scale-100');
+    modalContent.classList.add('scale-95');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 200);
+}
+
+function confirmTrade() {
+    const submitText = document.getElementById('submit-text');
+    const submitLoading = document.getElementById('submit-loading');
+    
+    if (submitText && submitLoading) {
+        submitText.classList.add('hidden');
+        submitLoading.classList.remove('hidden');
+    }
+    
+    closeModal();
+    
+    // Submit the form
+    const form = document.getElementById('trade-form');
+    if (form) {
+        console.log('Submitting form for trade initiation...');
+        form.submit();
+    } else {
+        console.error('Form not found!');
+    }
+}
 </script>
 {% endblock %}
