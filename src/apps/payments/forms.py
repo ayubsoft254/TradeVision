@@ -539,6 +539,10 @@ class MobileMoneyForm(BasePaymentForm):
         ('mtn', 'MTN Mobile Money'),
         ('orange', 'Orange Money'),
         ('vodacom', 'Vodacom M-Pesa'),
+        ('tigopesa', 'Tigo Pesa'),
+        ('halopesa', 'HaloPesa'),
+        ('msente', 'M-Sente'),
+        ('zamtel', 'Zamtel Kwacha'),
     ]
     
     provider = forms.ChoiceField(
@@ -569,14 +573,46 @@ class MobileMoneyForm(BasePaymentForm):
     )
     
     payment_proof = forms.ImageField(
-        required=True,
+        required=False,  # Only required for deposits
         widget=forms.FileInput(attrs={
             'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
             'accept': 'image/*'
         }),
         label='Payment Proof',
-        help_text='Upload a screenshot of your mobile money transaction (Required)'
+        help_text='Upload a screenshot of your mobile money transaction (Required for deposits)'
     )
+    
+    confirm_withdrawal = forms.BooleanField(
+        required=False,  # Only required for withdrawals
+        widget=forms.CheckboxInput(attrs={
+            'class': 'h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded'
+        }),
+        label='I confirm this withdrawal request and understand that processing fees may apply'
+    )
+    
+    def __init__(self, *args, **kwargs):
+        self.transaction_type = kwargs.pop('transaction_type', 'deposit')
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        if self.transaction_type == 'withdrawal':
+            # For withdrawals, payment proof is not required but confirmation is
+            self.fields['payment_proof'].required = False
+            self.fields['payment_proof'].widget.attrs['style'] = 'display: none;'
+            self.fields['confirm_withdrawal'].required = True
+            self.fields['account_name'].help_text = 'Name registered with your mobile money account'
+            self.fields['phone_number'].help_text = 'Mobile money number where you want to receive funds'
+        else:
+            # For deposits, payment proof is required
+            self.fields['payment_proof'].required = True
+            self.fields['confirm_withdrawal'].required = False
+            self.fields['confirm_withdrawal'].widget.attrs['style'] = 'display: none;'
+        
+        # Set max amount for withdrawals
+        if self.user and hasattr(self.user, 'wallet') and self.transaction_type == 'withdrawal':
+            max_amount = self.user.wallet.profit_balance
+            self.fields['amount'].help_text = f'Available for withdrawal: {max_amount} {self.user.wallet.currency}'
+            self.fields['amount'].widget.attrs['max'] = str(max_amount)
     
     def clean_phone_number(self):
         phone_number = self.cleaned_data['phone_number']
@@ -592,20 +628,33 @@ class MobileMoneyForm(BasePaymentForm):
         
         return phone_number
     
+    def clean_amount(self):
+        amount = super().clean_amount()
+        
+        # For withdrawals, check available balance
+        if self.transaction_type == 'withdrawal' and self.user and hasattr(self.user, 'wallet'):
+            if amount > self.user.wallet.profit_balance:
+                raise ValidationError(
+                    f'Insufficient profit balance. Available: {self.user.wallet.profit_balance} {self.user.wallet.currency}'
+                )
+        
+        return amount
+    
     def clean_payment_proof(self):
         payment_proof = self.cleaned_data.get('payment_proof')
         
-        if not payment_proof:
+        if self.transaction_type == 'deposit' and not payment_proof:
             raise ValidationError('Payment proof is required for deposit verification.')
         
-        # Check file size (max 5MB)
-        if payment_proof.size > 5 * 1024 * 1024:
-            raise ValidationError('File size must be less than 5MB.')
-        
-        # Check file type
-        allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
-        if payment_proof.content_type not in allowed_types:
-            raise ValidationError('Only JPEG, PNG, and GIF images are allowed.')
+        if payment_proof:
+            # Check file size (max 5MB)
+            if payment_proof.size > 5 * 1024 * 1024:
+                raise ValidationError('File size must be less than 5MB.')
+            
+            # Check file type
+            allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif']
+            if payment_proof.content_type not in allowed_types:
+                raise ValidationError('Only JPEG, PNG, and GIF images are allowed.')
         
         return payment_proof
 

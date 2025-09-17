@@ -21,7 +21,8 @@ from .models import (
 )
 from .forms import (
     DepositForm, WithdrawalForm, BinancePayForm, P2PForm,
-    AgentTransactionForm, TransactionFilterForm
+    AgentTransactionForm, TransactionFilterForm, BankTransferForm,
+    MobileMoneyForm, CryptoForm
 )
 from apps.core.models import SystemLog
 from apps.trading.models import ProfitHistory
@@ -385,14 +386,22 @@ class WithdrawMethodView(LoginRequiredMixin, TemplateView):
     
     def get_withdrawal_form(self, method_name):
         """Get the appropriate form for the payment method"""
+        user = self.request.user
+        
         if method_name == 'binance_pay':
             return BinancePayForm(transaction_type='withdrawal')
+        elif method_name == 'mobile_money':
+            return MobileMoneyForm(transaction_type='withdrawal', user=user)
+        elif method_name == 'bank_transfer':
+            return BankTransferForm()
+        elif method_name == 'crypto':
+            return CryptoForm()
         elif method_name == 'p2p':
-            return P2PForm(transaction_type='withdrawal')
+            return P2PForm(transaction_type='withdrawal', user=user)
         elif method_name == 'agent':
-            return AgentTransactionForm(transaction_type='withdrawal')
+            return AgentTransactionForm(transaction_type='withdrawal', user=user)
         else:
-            return WithdrawalForm()
+            return WithdrawalForm(user=user)
     
     def get_method_data(self, method_name):
         """Get method-specific data"""
@@ -437,26 +446,33 @@ class WithdrawMethodView(LoginRequiredMixin, TemplateView):
     
     def post(self, request, *args, **kwargs):
         method_name = self.kwargs.get('method')
+        user = request.user
         
         # Fix: SQLite does not support contains lookup for JSONField
         try:
             payment_method = next(
                 m for m in PaymentMethod.objects.filter(name=method_name, is_active=True)
-                if request.user.country.code in m.countries
+                if user.country.code in m.countries
             )
         except StopIteration:
             messages.error(request, 'Invalid payment method selected.')
             return redirect('payments:withdraw')
         
-        # Get appropriate form
+        # Get appropriate form with POST data
         if method_name == 'binance_pay':
             form = BinancePayForm(request.POST, request.FILES, transaction_type='withdrawal')
+        elif method_name == 'mobile_money':
+            form = MobileMoneyForm(request.POST, request.FILES, transaction_type='withdrawal', user=user)
+        elif method_name == 'bank_transfer':
+            form = BankTransferForm(request.POST, request.FILES)
+        elif method_name == 'crypto':
+            form = CryptoForm(request.POST, request.FILES)
         elif method_name == 'p2p':
-            form = P2PForm(request.POST, request.FILES, transaction_type='withdrawal')
+            form = P2PForm(request.POST, request.FILES, transaction_type='withdrawal', user=user)
         elif method_name == 'agent':
-            form = AgentTransactionForm(request.POST, request.FILES, transaction_type='withdrawal')
+            form = AgentTransactionForm(request.POST, request.FILES, transaction_type='withdrawal', user=user)
         else:
-            form = WithdrawalForm(request.POST, request.FILES)
+            form = WithdrawalForm(request.POST, request.FILES, user=user)
         
         if form.is_valid():
             return self.process_withdrawal(request, form, payment_method)

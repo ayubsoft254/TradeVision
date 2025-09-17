@@ -444,6 +444,7 @@
                                                 {% for error in form.phone_number.errors %}{{ error }}{% endfor %}
                                             </div>
                                         {% endif %}
+                                        <div class="mt-1 text-sm text-gray-500">{{ form.phone_number.help_text }}</div>
                                     </div>
                                 </div>
                                 
@@ -457,8 +458,25 @@
                                             {% for error in form.account_name.errors %}{{ error }}{% endfor %}
                                         </div>
                                     {% endif %}
-                                    <div class="mt-1 text-sm text-gray-500">{{ form.phone_number.help_text }}</div>
+                                    <div class="mt-1 text-sm text-gray-500">{{ form.account_name.help_text }}</div>
                                 </div>
+                                
+                                <!-- Confirmation Checkbox for Mobile Money Withdrawal -->
+                                {% if form.confirm_withdrawal %}
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <div class="flex items-start">
+                                        {{ form.confirm_withdrawal }}
+                                        <label for="{{ form.confirm_withdrawal.id_for_label }}" class="ml-3 text-sm text-yellow-800">
+                                            {{ form.confirm_withdrawal.label }}
+                                        </label>
+                                    </div>
+                                    {% if form.confirm_withdrawal.errors %}
+                                        <div class="mt-2 text-sm text-red-600">
+                                            {% for error in form.confirm_withdrawal.errors %}{{ error }}{% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
 
                             {% elif payment_method.name == 'bank_transfer' %}
                                 <!-- Bank Transfer Fields -->
