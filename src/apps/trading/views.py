@@ -188,9 +188,23 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def is_trading_allowed(self):
         """Check if trading is currently allowed"""
         # Get current time in the configured timezone (Africa/Nairobi)
-        now = timezone.now()
-        current_weekday = now.weekday()
-        current_time = now.time()
+        from django.conf import settings
+        from django.utils import timezone as tz
+        
+        # Get timezone-aware current time
+        utc_now = timezone.now()
+        
+        # Convert to local timezone
+        if hasattr(tz, 'get_current_timezone'):
+            local_tz = tz.get_current_timezone()
+        else:
+            import zoneinfo
+            local_tz = zoneinfo.ZoneInfo(settings.TIME_ZONE)
+        
+        local_now = utc_now.astimezone(local_tz)
+        
+        current_weekday = local_now.weekday()
+        current_time = local_now.time()
         
         # Check if it's a weekday (Monday=0 to Friday=4)
         if current_weekday >= 5:
@@ -568,9 +582,23 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
     def is_trading_allowed(self):
         """Check if trading is currently allowed"""
         # Get current time in the configured timezone (Africa/Nairobi)
-        now = timezone.now()
-        current_weekday = now.weekday()
-        current_time = now.time()
+        from django.conf import settings
+        from django.utils import timezone as tz
+        
+        # Get timezone-aware current time
+        utc_now = timezone.now()
+        
+        # Convert to local timezone
+        if hasattr(tz, 'get_current_timezone'):
+            local_tz = tz.get_current_timezone()
+        else:
+            import zoneinfo
+            local_tz = zoneinfo.ZoneInfo(settings.TIME_ZONE)
+        
+        local_now = utc_now.astimezone(local_tz)
+        
+        current_weekday = local_now.weekday()
+        current_time = local_now.time()
         
         # Check if it's a weekday (Monday=0 to Friday=4)
         if current_weekday >= 5:
