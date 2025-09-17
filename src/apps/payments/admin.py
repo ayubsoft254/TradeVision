@@ -790,19 +790,106 @@ class AgentAdmin(admin.ModelAdmin):
         self.message_user(request, f'{updated} agents deactivated.')
     deactivate_agents.short_description = 'Deactivate selected agents'
 
+class P2PMerchantAdminForm(forms.ModelForm):
+    """Custom form for P2PMerchant admin with enhanced payment method selection"""
+    
+    class Meta:
+        model = P2PMerchant
+        fields = '__all__'
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Filter payment methods based on merchant's country
+        if self.instance and self.instance.pk and self.instance.country:
+            # Show only payment methods available in the merchant's country
+            available_methods = PaymentMethod.objects.filter(
+                is_active=True,
+                countries__contains=self.instance.country
+            ).order_by('display_name')
+            
+            self.fields['payment_methods'].queryset = available_methods
+            self.fields['payment_methods'].help_text = (
+                f"Select payment methods available in {dict(P2PMerchant.COUNTRY_CHOICES)[self.instance.country]}. "
+                "Only active payment methods supported in this country are shown."
+            )
+        else:
+            # For new merchants, show all active payment methods
+            self.fields['payment_methods'].queryset = PaymentMethod.objects.filter(
+                is_active=True
+            ).order_by('display_name')
+            self.fields['payment_methods'].help_text = (
+                "Select payment methods this merchant supports. "
+                "Save the merchant first to see country-specific options."
+            )
+        
+        # Use CheckboxSelectMultiple widget for better UX
+        self.fields['payment_methods'].widget = forms.CheckboxSelectMultiple(
+            attrs={
+                'class': 'payment-methods-selector',
+                'style': 'display: flex; flex-wrap: wrap; gap: 10px;'
+            }
+        )
+        
+        # Hide the old supported_methods field - it's kept for backward compatibility
+        self.fields['supported_methods'].widget = forms.HiddenInput()
+        self.fields['supported_methods'].required = False
+        self.fields['supported_methods'].help_text = "Legacy field - data automatically migrated to payment_methods"
+        
+        # Enhance other fields
+        self.fields['country'].widget.attrs.update({
+            'class': 'country-selector',
+            'style': 'font-weight: bold;'
+        })
+        
+        self.fields['username'].help_text = "Unique username for the merchant - will be shown to users"
+        self.fields['commission_rate'].help_text = "Commission rate as percentage (e.g., 1.5 for 1.5%)"
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        country = cleaned_data.get('country')
+        payment_methods = cleaned_data.get('payment_methods')
+        
+        # Validate that selected payment methods are available in the merchant's country
+        if country and payment_methods:
+            invalid_methods = []
+            for method in payment_methods:
+                if not method.is_available_for_country(country):
+                    invalid_methods.append(method.display_name)
+            
+            if invalid_methods:
+                raise forms.ValidationError(
+                    f"The following payment methods are not available in "
+                    f"{dict(P2PMerchant.COUNTRY_CHOICES)[country]}: {', '.join(invalid_methods)}"
+                )
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        merchant = super().save(commit=commit)
+        
+        if commit:
+            # Migrate old supported_methods data if payment_methods is empty
+            merchant.migrate_supported_methods()
+        
+        return merchant
+
 @admin.register(P2PMerchant)
 class P2PMerchantAdmin(admin.ModelAdmin):
-    list_display = ['name', 'username', 'country', 'is_verified', 'is_active', 'rating', 'completion_rate', 'total_orders']
-    list_filter = ['country', 'is_verified', 'is_active', 'supported_methods', 'created_at']
+    form = P2PMerchantAdminForm
+    list_display = ['name', 'username', 'country', 'payment_methods_display', 'is_verified', 'is_active', 'rating', 'completion_rate', 'total_orders']
+    list_filter = ['country', 'is_verified', 'is_active', 'payment_methods', 'created_at']
     search_fields = ['name', 'username', 'phone_number', 'email']
-    readonly_fields = ['id', 'created_at', 'updated_at', 'supported_methods_display']
+    readonly_fields = ['id', 'created_at', 'updated_at', 'payment_methods_info', 'country_methods_available']
+    filter_horizontal = ['payment_methods']  # Use the nice filter widget
     
     fieldsets = (
         ('Basic Information', {
             'fields': ('id', 'name', 'username', 'phone_number', 'email')
         }),
         ('Location & Methods', {
-            'fields': ('country', 'supported_methods', 'supported_methods_display')
+            'fields': ('country', 'country_methods_available', 'payment_methods', 'payment_methods_info'),
+            'description': 'Select the country and payment methods this merchant supports'
         }),
         ('Business Settings', {
             'fields': ('commission_rate', 'min_order_amount', 'max_order_amount')
@@ -810,19 +897,133 @@ class P2PMerchantAdmin(admin.ModelAdmin):
         ('Status & Performance', {
             'fields': ('is_verified', 'is_active', 'rating', 'completion_rate', 'total_orders')
         }),
+        ('Advanced Settings', {
+            'fields': ('supported_methods',),
+            'classes': ('collapse',),
+            'description': 'Legacy data (automatically managed)'
+        }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
     
-    actions = ['mark_as_verified', 'mark_as_unverified', 'activate_merchants', 'deactivate_merchants']
+    actions = ['mark_as_verified', 'mark_as_unverified', 'activate_merchants', 'deactivate_merchants', 'migrate_payment_methods']
     
-    def supported_methods_display(self, obj):
-        if obj.supported_methods:
-            return ', '.join(obj.supported_methods)
-        return 'None'
-    supported_methods_display.short_description = 'Payment Methods'
+    def payment_methods_display(self, obj):
+        """Display selected payment methods in list view"""
+        methods = obj.payment_methods.filter(is_active=True)
+        if methods.exists():
+            method_list = []
+            for method in methods[:3]:  # Show max 3 methods in list view
+                # Add emoji/icon based on method type
+                icons = {
+                    'binance_pay': '🟡',
+                    'mobile_money': '📱',
+                    'bank_transfer': '🏦', 
+                    'crypto': '₿',
+                    'agent': '👤',
+                    'p2p': '🤝'
+                }
+                icon = icons.get(method.name, '💳')
+                method_list.append(f'{icon} {method.display_name}')
+            
+            result = ', '.join(method_list)
+            if methods.count() > 3:
+                result += f' (+{methods.count() - 3} more)'
+            
+            return format_html('<span style="font-size: 12px;">{}</span>', result)
+        else:
+            # Fall back to old supported_methods if no payment_methods selected
+            if obj.supported_methods:
+                return format_html(
+                    '<span style="color: orange; font-size: 12px;">⚠️ Legacy: {}</span>',
+                    ', '.join(obj.supported_methods)
+                )
+            return format_html('<span style="color: #999;">No methods</span>')
+    payment_methods_display.short_description = 'Payment Methods'
+    
+    def payment_methods_info(self, obj):
+        """Enhanced display of payment methods in detail view"""
+        methods = obj.payment_methods.filter(is_active=True)
+        
+        if methods.exists():
+            method_html = []
+            for method in methods:
+                # Add styling based on method type
+                colors = {
+                    'binance_pay': '#f0b90b',
+                    'mobile_money': '#2563eb',
+                    'bank_transfer': '#059669',
+                    'crypto': '#f59e0b',
+                    'agent': '#7c3aed',
+                    'p2p': '#dc2626'
+                }
+                
+                icons = {
+                    'binance_pay': '🟡',
+                    'mobile_money': '📱',
+                    'bank_transfer': '🏦', 
+                    'crypto': '₿',
+                    'agent': '👤',
+                    'p2p': '🤝'
+                }
+                
+                color = colors.get(method.name, '#6b7280')
+                icon = icons.get(method.name, '💳')
+                
+                available = method.is_available_for_country(obj.country)
+                status_style = 'color: green;' if available else 'color: red;'
+                status_text = '✓ Available' if available else '✗ Not Available'
+                
+                method_html.append(
+                    f'<div style="display: inline-block; margin: 4px; padding: 8px 12px; '
+                    f'background-color: {color}20; color: {color}; '
+                    f'border: 1px solid {color}40; border-radius: 16px; font-size: 13px;">'
+                    f'{icon} {method.display_name}<br>'
+                    f'<small style="{status_style}">{status_text}</small>'
+                    f'</div>'
+                )
+            
+            return format_html('<div style="line-height: 2;">{}</div>', ''.join(method_html))
+        else:
+            # Show migration info if using old system
+            if obj.supported_methods:
+                return format_html(
+                    '<div style="background: #fff3cd; padding: 10px; border-radius: 5px; color: #856404;">'
+                    '<strong>⚠️ Legacy Payment Methods</strong><br>'
+                    'Old format: {}<br>'
+                    '<small>Use "Migrate payment methods" action to convert to new format</small>'
+                    '</div>',
+                    ', '.join(obj.supported_methods)
+                )
+            return format_html('<span style="color: #dc3545; font-style: italic;">No payment methods selected</span>')
+    payment_methods_info.short_description = 'Payment Methods Details'
+    
+    def country_methods_available(self, obj):
+        """Show available payment methods for the merchant's country"""
+        if obj.country:
+            available_methods = PaymentMethod.objects.filter(
+                is_active=True,
+                countries__contains=obj.country
+            ).order_by('display_name')
+            
+            if available_methods.exists():
+                method_names = [f'• {method.display_name}' for method in available_methods]
+                return format_html(
+                    '<div style="background: #dbeafe; padding: 10px; border-radius: 5px; color: #1e40af;">'
+                    '<strong>Available in {}</strong><br>{}</div>',
+                    dict(P2PMerchant.COUNTRY_CHOICES)[obj.country],
+                    '<br>'.join(method_names)
+                )
+            else:
+                return format_html(
+                    '<div style="background: #fef2f2; padding: 10px; border-radius: 5px; color: #dc2626;">'
+                    'No payment methods available in {}</div>',
+                    dict(P2PMerchant.COUNTRY_CHOICES)[obj.country]
+                )
+        return format_html('<span style="color: #9ca3af;">Select a country first</span>')
+    country_methods_available.short_description = 'Available Methods'
     
     def mark_as_verified(self, request, queryset):
         updated = queryset.update(is_verified=True)
@@ -843,3 +1044,19 @@ class P2PMerchantAdmin(admin.ModelAdmin):
         updated = queryset.update(is_active=False)
         self.message_user(request, f'{updated} merchants deactivated.')
     deactivate_merchants.short_description = 'Deactivate selected merchants'
+    
+    def migrate_payment_methods(self, request, queryset):
+        """Migrate old supported_methods to new payment_methods relationship"""
+        migrated_count = 0
+        for merchant in queryset:
+            if merchant.supported_methods and not merchant.payment_methods.exists():
+                merchant.migrate_supported_methods()
+                migrated_count += 1
+        
+        self.message_user(request, f'{migrated_count} merchants migrated to new payment method system.')
+    migrate_payment_methods.short_description = 'Migrate to new payment method system'
+    
+    class Media:
+        css = {
+            'all': ('admin/css/custom_admin.css',)
+        }

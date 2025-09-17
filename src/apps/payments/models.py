@@ -226,7 +226,13 @@ class P2PMerchant(models.Model):
     phone_number = models.CharField(max_length=20)
     email = models.EmailField()
     country = models.CharField(max_length=2, choices=COUNTRY_CHOICES)
-    supported_methods = models.JSONField(default=list)  # e.g., ['mobile_money', 'bank_transfer']
+    payment_methods = models.ManyToManyField(
+        PaymentMethod, 
+        related_name='merchants',
+        blank=True,
+        help_text="Select the payment methods this merchant supports"
+    )
+    supported_methods = models.JSONField(default=list, blank=True)  # Keep for backward compatibility - will be migrated
     is_verified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     commission_rate = models.DecimalField(max_digits=5, decimal_places=2, default=1.5)
@@ -240,3 +246,35 @@ class P2PMerchant(models.Model):
     
     def __str__(self):
         return f"{self.name} (@{self.username})"
+    
+    def get_available_payment_methods(self):
+        """Get payment methods available for this merchant's country"""
+        return self.payment_methods.filter(
+            is_active=True,
+            countries__contains=self.country
+        )
+    
+    def migrate_supported_methods(self):
+        """Migrate old supported_methods to new payment_methods relationship"""
+        if self.supported_methods and not self.payment_methods.exists():
+            # Map old string values to PaymentMethod objects
+            method_mapping = {
+                'mobile_money': 'mobile_money',
+                'bank_transfer': 'bank_transfer', 
+                'cash': 'agent',  # Cash transactions are typically done through agents
+                'crypto': 'crypto',
+                'binance_pay': 'binance_pay'
+            }
+            
+            for method_string in self.supported_methods:
+                mapped_method = method_mapping.get(method_string, method_string)
+                try:
+                    payment_method = PaymentMethod.objects.filter(
+                        name=mapped_method,
+                        is_active=True,
+                        countries__contains=self.country
+                    ).first()
+                    if payment_method:
+                        self.payment_methods.add(payment_method)
+                except PaymentMethod.DoesNotExist:
+                    pass

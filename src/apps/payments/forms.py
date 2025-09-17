@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from decimal import Decimal
 import re
 
-from .models import Transaction, DepositRequest, WithdrawalRequest, Agent, P2PMerchant
+from .models import Transaction, DepositRequest, WithdrawalRequest, Agent, P2PMerchant, PaymentMethod
 
 User = get_user_model()
 
