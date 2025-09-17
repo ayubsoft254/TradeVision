@@ -337,11 +337,14 @@ class InvestView(LoginRequiredMixin, TemplateView):
                 messages.error(request, 'Insufficient wallet balance.')
                 return self.render_to_response(self.get_context_data(form=form))
             
-            # Create investment
+            # Create investment with maturity date calculation
+            maturity_date = timezone.now() + timedelta(days=package.duration_days)
             investment = Investment.objects.create(
                 user=request.user,
                 package=package,
-                principal_amount=investment_amount
+                principal_amount=investment_amount,
+                maturity_date=maturity_date,
+                welcome_bonus_amount=investment_amount * (package.welcome_bonus / 100)
             )
             
             # Update wallet balances
@@ -545,12 +548,16 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
                 profit_rate = investment.package.get_random_profit_rate()
                 
                 # Create new trade
+                start_time = timezone.now()
+                end_time = start_time + timedelta(hours=24)
+                
                 trade = Trade.objects.create(
                     investment=investment,
                     trade_amount=investment.total_investment,
                     profit_rate=profit_rate,
                     status='running',
-                    start_time=timezone.now()
+                    start_time=start_time,
+                    end_time=end_time
                 )
                 
                 # Log the trade initiation
