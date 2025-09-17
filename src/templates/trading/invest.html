@@ -4,24 +4,57 @@
 
 {% block extra_css %}
 <style>
+    /* Professional color scheme */
+    :root {
+        --primary-color: #2563eb;
+        --primary-dark: #1d4ed8;
+        --secondary-color: #64748b;
+        --accent-color: #0ea5e9;
+        --light-bg: #f8fafc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --success-color: #059669;
+        --warning-color: #d97706;
+    }
+    
     .investment-form {
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-        border: 1px solid rgba(59, 130, 246, 0.1);
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.3s ease;
+    }
+    
+    .investment-form:hover {
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
     }
     
     .package-highlight {
-        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        border-radius: 12px;
+        color: white;
+    }
+    
+    .investment-input {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        width: 100%;
     }
     
     .investment-input:focus {
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        border-color: #3b82f6;
-        transform: scale(1.02);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        border-color: var(--primary-color);
+        outline: none;
     }
     
     .calculation-card {
         transition: all 0.3s ease;
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        background: var(--light-bg);
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
     }
     
     .profit-animation {
@@ -30,39 +63,100 @@
     
     @keyframes profit-pulse {
         0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+        50% { transform: scale(1.02); }
     }
     
     .step-indicator {
         transition: all 0.3s ease;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 14px;
     }
     
     .step-indicator.active {
-        background: linear-gradient(135deg, #10b981, #059669);
-        transform: scale(1.1);
+        background: var(--success-color);
+        color: white;
+        transform: scale(1.05);
+    }
+    
+    .step-indicator.inactive {
+        background: #e5e7eb;
+        color: var(--secondary-color);
+    }
+    
+    .quick-amount-btn {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        transition: all 0.2s ease;
+        background: var(--card-bg);
+    }
+    
+    .quick-amount-btn:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+    }
+    
+    .card-shadow {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 16px 24px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px rgba(37, 99, 235, 0.2);
+    }
+    
+    .btn-primary:disabled {
+        background: #cbd5e1;
+        transform: none;
+        box-shadow: none;
+        cursor: not-allowed;
+    }
+    
+    .font-heading {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        font-weight: 700;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+<div class="min-h-screen bg-gray-50 py-12">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Progress Indicator -->
-        <div class="mb-8">
-            <div class="flex items-center justify-center space-x-4">
-                <div class="step-indicator active w-10 h-10 rounded-full text-white flex items-center justify-center text-sm font-semibold">
+        <div class="mb-10">
+            <div class="flex items-center justify-center space-x-6">
+                <div class="step-indicator active">
                     1
                 </div>
-                <div class="w-16 h-1 bg-gray-200"></div>
-                <div class="step-indicator w-10 h-10 bg-gray-200 rounded-full text-gray-500 flex items-center justify-center text-sm font-semibold">
+                <div class="w-20 h-0.5 bg-gray-200"></div>
+                <div class="step-indicator inactive">
                     2
                 </div>
-                <div class="w-16 h-1 bg-gray-200"></div>
-                <div class="step-indicator w-10 h-10 bg-gray-200 rounded-full text-gray-500 flex items-center justify-center text-sm font-semibold">
+                <div class="w-20 h-0.5 bg-gray-200"></div>
+                <div class="step-indicator inactive">
                     3
                 </div>
             </div>
-            <div class="flex justify-center mt-2">
+            <div class="flex justify-center mt-4">
                 <div class="text-center">
                     <div class="text-sm font-medium text-gray-900">Choose Amount</div>
                     <div class="text-xs text-gray-500">Step 1 of 3</div>
@@ -71,11 +165,11 @@
         </div>
 
         <!-- Page Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold font-heading text-gray-900 mb-2">
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-bold text-gray-900 mb-3">
                 Invest in {{ package.display_name }}
             </h1>
-            <p class="text-gray-600">
+            <p class="text-gray-600 text-lg">
                 Set your investment amount and start earning daily profits
             </p>
         </div>
@@ -83,7 +177,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Investment Form -->
             <div class="order-2 lg:order-1">
-                <div class="investment-form rounded-2xl p-8 card-shadow">
+                <div class="investment-form p-8">
                     <h2 class="text-xl font-semibold text-gray-900 mb-6">
                         Investment Details
                     </h2>
@@ -99,21 +193,24 @@
                             </label>
                             
                             <div class="relative">
-                                {{ form.principal_amount }}
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                    <span class="text-gray-500 text-sm">{{ wallet.currency }}</span>
+                                <input type="number" 
+                                       name="{{ form.principal_amount.name }}" 
+                                       id="{{ form.principal_amount.id_for_label }}" 
+                                       value="{{ form.principal_amount.value|default_if_none:'' }}" 
+                                       class="investment-input" 
+                                       placeholder="Enter amount"
+                                       min="{{ package.min_stake }}"
+                                       max="{{ wallet.balance }}"
+                                       step="any"
+                                       required>
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <span class="text-gray-500">{{ wallet.currency }}</span>
                                 </div>
                             </div>
                             
                             {% if form.principal_amount.errors %}
-                                <div class="mt-2 text-sm text-danger-600">
+                                <div class="mt-2 text-sm text-red-600">
                                     {{ form.principal_amount.errors.0 }}
-                                </div>
-                            {% endif %}
-                            
-                            {% if form.principal_amount.help_text %}
-                                <div class="mt-2 text-sm text-gray-500">
-                                    {{ form.principal_amount.help_text }}
                                 </div>
                             {% endif %}
                         </div>
@@ -126,31 +223,31 @@
                             <div class="grid grid-cols-2 gap-3">
                                 <button type="button" 
                                         onclick="setAmount({{ package.min_stake }})"
-                                        class="quick-amount-btn py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                                        class="quick-amount-btn">
                                     Minimum<br>
-                                    <span class="text-primary-600 font-semibold">{{ package.min_stake|floatformat:0 }}</span>
+                                    <span class="text-blue-600 font-semibold">{{ package.min_stake|floatformat:0 }}</span>
                                 </button>
                                 
                                 <button type="button" 
-                                        onclick="setAmount({{ package.min_stake}})"
-                                        class="quick-amount-btn py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
-                                    Recommended<br>
-                                    <span class="text-primary-600 font-semibold">{{ package.min_stake }}</span>
+                                        onclick="setAmount({{ package.min_stake|add:1000 }})"
+                                        class="quick-amount-btn">
+                                    Standard<br>
+                                    <span class="text-blue-600 font-semibold">{{ package.min_stake|add:1000|floatformat:0 }}</span>
                                 </button>
                                 
                                 <button type="button" 
-                                        onclick="setAmount({{ package.min_stake }})"
-                                        class="quick-amount-btn py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200">
-                                    High Return<br>
-                                    <span class="text-primary-600 font-semibold">{{ package.min_stake }}</span>
+                                        onclick="setAmount({{ package.min_stake|add:5000 }})"
+                                        class="quick-amount-btn">
+                                    Premium<br>
+                                    <span class="text-blue-600 font-semibold">{{ package.min_stake|add:5000|floatformat:0 }}</span>
                                 </button>
                                 
                                 <button type="button" 
                                         onclick="setAmount({{ wallet.balance }})"
-                                        class="quick-amount-btn py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                                        class="quick-amount-btn"
                                         {% if wallet.balance < package.min_stake %}disabled{% endif %}>
                                     Maximum<br>
-                                    <span class="text-primary-600 font-semibold">{{ wallet.balance|floatformat:0 }}</span>
+                                    <span class="text-blue-600 font-semibold">{{ wallet.balance|floatformat:0 }}</span>
                                 </button>
                             </div>
                         </div>
@@ -164,13 +261,18 @@
                                 </span>
                             </div>
                             {% if wallet.balance < package.min_stake %}
-                                <div class="mt-2 text-sm text-danger-600">
-                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                <div class="mt-2 text-sm text-red-600">
+                                    <svg class="inline w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                    </svg>
                                     Insufficient balance. Minimum required: {{ package.min_stake }} {{ wallet.currency }}
                                 </div>
                                 <a href="{% url 'payments:deposit' %}" 
-                                   class="mt-2 inline-flex items-center text-sm text-primary-600 hover:text-primary-700">
-                                    <i class="fas fa-plus-circle mr-1"></i>Add Funds
+                                   class="mt-2 inline-flex items-center text-sm text-blue-600 hover:text-blue-700">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Add Funds
                                 </a>
                             {% endif %}
                         </div>
@@ -178,20 +280,30 @@
                         <!-- Submit Button -->
                         <button type="submit" 
                                 id="submit-btn"
-                                class="w-full bg-gradient-primary text-white py-4 px-6 rounded-lg font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                class="btn-primary"
                                 {% if wallet.balance < package.min_stake %}disabled{% endif %}>
-                            <span id="submit-text">
-                                <i class="fas fa-rocket mr-2"></i>Start Investment
+                            <span id="submit-text" class="flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                                Start Investment
                             </span>
-                            <span id="submit-loading" class="hidden">
-                                <i class="fas fa-spinner fa-spin mr-2"></i>Processing...
+                            <span id="submit-loading" class="hidden items-center justify-center">
+                                <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Processing...
                             </span>
                         </button>
 
                         <div class="mt-4 text-center">
                             <a href="{% url 'trading:packages' %}" 
-                               class="text-sm text-gray-500 hover:text-gray-700">
-                                <i class="fas fa-arrow-left mr-1"></i>Back to Packages
+                               class="text-sm text-gray-500 hover:text-gray-700 inline-flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                                </svg>
+                                Back to Packages
                             </a>
                         </div>
                     </form>
@@ -201,7 +313,7 @@
             <!-- Package Info & Calculations -->
             <div class="order-1 lg:order-2 space-y-6">
                 <!-- Package Overview -->
-                <div class="package-highlight rounded-2xl p-6 text-white card-shadow">
+                <div class="package-highlight p-6">
                     <h3 class="text-xl font-semibold mb-4">{{ package.display_name }}</h3>
                     
                     <div class="grid grid-cols-2 gap-4 mb-4">
@@ -228,27 +340,33 @@
                 </div>
 
                 <!-- Live Calculations -->
-                <div class="calculation-card rounded-2xl p-6 card-shadow">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-calculator mr-2 text-primary-600"></i>
+                <div class="calculation-card p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                        </svg>
                         Profit Projection
                     </h3>
                     
                     <div id="calculation-results" class="space-y-4">
                         <div class="text-center text-gray-500 py-8">
-                            <i class="fas fa-chart-line text-4xl mb-2"></i>
+                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
                             <p>Enter an amount to see profit calculations</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Risk Disclaimer -->
-                <div class="bg-warning-50 border border-warning-200 rounded-lg p-4">
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <div class="flex items-start">
-                        <i class="fas fa-exclamation-triangle text-warning-600 mt-1 mr-3"></i>
+                        <svg class="w-5 h-5 text-yellow-600 mt-1 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
                         <div class="text-sm">
-                            <h4 class="font-semibold text-warning-800 mb-1">Investment Risk Notice</h4>
-                            <p class="text-warning-700">
+                            <h4 class="font-semibold text-yellow-800 mb-1">Investment Risk Notice</h4>
+                            <p class="text-yellow-700">
                                 All investments carry risk. Past performance does not guarantee future results. 
                                 Only invest what you can afford to lose.
                             </p>
@@ -261,19 +379,27 @@
                     <h3 class="font-semibold text-gray-900 mb-4">Security & Trust</h3>
                     <ul class="space-y-3 text-sm text-gray-600">
                         <li class="flex items-center">
-                            <i class="fas fa-shield-alt text-success-500 mr-3"></i>
+                            <svg class="w-4 h-4 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                            </svg>
                             Bank-level encryption
                         </li>
                         <li class="flex items-center">
-                            <i class="fas fa-lock text-success-500 mr-3"></i>
+                            <svg class="w-4 h-4 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                            </svg>
                             Secure fund storage
                         </li>
                         <li class="flex items-center">
-                            <i class="fas fa-headset text-success-500 mr-3"></i>
+                            <svg class="w-4 h-4 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                            </svg>
                             24/7 customer support
                         </li>
                         <li class="flex items-center">
-                            <i class="fas fa-history text-success-500 mr-3"></i>
+                            <svg class="w-4 h-4 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                            </svg>
                             Transparent trading history
                         </li>
                     </ul>
@@ -311,7 +437,9 @@
         if (amount < packageData.minStake) {
             resultsDiv.innerHTML = `
                 <div class="text-center text-gray-500 py-4">
-                    <i class="fas fa-info-circle text-2xl mb-2"></i>
+                    <svg class="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
                     <p class="text-sm">Minimum investment: ${packageData.minStake} ${packageData.currency}</p>
                 </div>
             `;
@@ -331,7 +459,7 @@
         resultsDiv.innerHTML = `
             <div class="space-y-4">
                 <!-- Investment Breakdown -->
-                <div class="bg-white rounded-lg p-4 border">
+                <div class="bg-white rounded-lg p-4 border border-gray-200">
                     <h4 class="font-semibold text-gray-900 mb-3">Investment Breakdown</h4>
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between">
@@ -340,36 +468,39 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Welcome Bonus (${packageData.welcomeBonus}%):</span>
-                            <span class="font-semibold text-success-600">+${welcomeBonus.toFixed(2)} ${packageData.currency}</span>
+                            <span class="font-semibold text-green-600">+${welcomeBonus.toFixed(2)} ${packageData.currency}</span>
                         </div>
                         <div class="flex justify-between border-t pt-2">
                             <span class="text-gray-900 font-medium">Total Trading Amount:</span>
-                            <span class="font-bold text-primary-600">${totalTradingAmount.toFixed(2)} ${packageData.currency}</span>
+                            <span class="font-bold text-blue-600">${totalTradingAmount.toFixed(2)} ${packageData.currency}</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Profit Projections -->
-                <div class="bg-gradient-to-r from-success-50 to-primary-50 rounded-lg p-4 border">
-                    <h4 class="font-semibold text-gray-900 mb-3 profit-animation">
-                        <i class="fas fa-chart-line mr-2 text-success-600"></i>Profit Projections
+                <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                    <h4 class="font-semibold text-gray-900 mb-3 profit-animation flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        Profit Projections
                     </h4>
                     <div class="grid grid-cols-1 gap-3">
                         <div class="text-center">
-                            <div class="text-lg font-bold text-success-600">
+                            <div class="text-lg font-bold text-green-600">
                                 ${minDailyProfit.toFixed(2)} - ${maxDailyProfit.toFixed(2)}
                             </div>
                             <div class="text-xs text-gray-500">Daily Profit Range</div>
                         </div>
                         <div class="grid grid-cols-2 gap-3 text-center">
                             <div>
-                                <div class="text-sm font-semibold text-primary-600">
+                                <div class="text-sm font-semibold text-blue-600">
                                     ~${monthlyProfit.toFixed(0)}
                                 </div>
                                 <div class="text-xs text-gray-500">Monthly</div>
                             </div>
                             <div>
-                                <div class="text-sm font-semibold text-primary-600">
+                                <div class="text-sm font-semibold text-blue-600">
                                     ~${yearlyProfit.toFixed(0)}
                                 </div>
                                 <div class="text-xs text-gray-500">Yearly</div>
@@ -380,7 +511,9 @@
 
                 <!-- ROI Information -->
                 <div class="text-center text-xs text-gray-500 bg-gray-50 rounded p-3">
-                    <i class="fas fa-info-circle mr-1"></i>
+                    <svg class="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
                     Projected ROI: ~${(avgDailyProfit / amount * 365 * 100).toFixed(0)}% annually
                 </div>
             </div>
@@ -399,9 +532,6 @@
         submitText.classList.add('hidden');
         submitLoading.classList.remove('hidden');
         submitBtn.disabled = true;
-        
-        // Show loading overlay
-        showLoading();
     });
 
     // Real-time calculations

@@ -4,46 +4,62 @@
 
 {% block extra_css %}
 <style>
+    /* Enhanced styling for professional appearance */
     .investment-card {
         transition: all 0.3s ease;
-        border: 2px solid transparent;
+        border: 1px solid #e2e8f0;
         cursor: pointer;
+        border-radius: 12px;
+        background: white;
     }
     
     .investment-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
         border-color: #3b82f6;
     }
     
     .investment-card.selected {
         border-color: #3b82f6;
-        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.15);
     }
     
     .trading-hours-card {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        background: linear-gradient(135deg, #0e9f6e 0%, #046c4e 100%);
+        box-shadow: 0 10px 20px rgba(16, 185, 129, 0.15);
     }
     
     .trading-closed-card {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        background: linear-gradient(135deg, #f05252 0%, #c81e1e 100%);
+        box-shadow: 0 10px 20px rgba(239, 68, 68, 0.15);
     }
     
     .step-indicator {
         transition: all 0.3s ease;
+        border: 2px solid #e2e8f0;
     }
     
     .step-indicator.active {
         background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-        transform: scale(1.1);
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.2);
+        border-color: #3b82f6;
     }
     
     .step-indicator.completed {
-        background: linear-gradient(135deg, #10b981, #059669);
+        background: linear-gradient(135deg, #0e9f6e, #057a55);
+        border-color: #0e9f6e;
     }
     
     .confirmation-modal {
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(5px);
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
     }
     
     .pulse-animation {
@@ -51,8 +67,97 @@
     }
     
     .trade-preview {
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-        border: 1px solid #bae6fd;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+    }
+    
+    .card-shadow {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: inline-block;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn-secondary {
+        background: white;
+        color: #4b5563;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        border: 1px solid #e5e7eb;
+        transition: all 0.2s ease;
+        display: inline-block;
+    }
+    
+    .btn-secondary:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+    }
+    
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    }
+    
+    /* Enhanced typography */
+    .font-heading {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        font-weight: 700;
+    }
+    
+    /* Improved form elements */
+    input[type="checkbox"]:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+    
+    /* Refined color palette */
+    .text-primary-600 {
+        color: #2563eb;
+    }
+    
+    .text-success-600 {
+        color: #059669;
+    }
+    
+    .text-warning-500 {
+        color: #f59e0b;
+    }
+    
+    .text-warning-600 {
+        color: #d97706;
+    }
+    
+    .text-warning-700 {
+        color: #b45309;
+    }
+    
+    .text-warning-800 {
+        color: #92400e;
+    }
+    
+    .bg-primary-100 {
+        background-color: #dbeafe;
+    }
+    
+    .bg-warning-50 {
+        background-color: #fffbeb;
+    }
+    
+    .border-warning-200 {
+        border-color: #fde68a;
     }
 </style>
 {% endblock %}
@@ -61,59 +166,59 @@
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Progress Steps -->
-        <div class="mb-8">
+        <div class="mb-10">
             <div class="flex items-center justify-center space-x-4">
-                <div class="step-indicator active w-10 h-10 rounded-full text-white flex items-center justify-center text-sm font-semibold">
+                <div class="step-indicator active w-12 h-12 rounded-full text-white flex items-center justify-center text-sm font-semibold">
                     1
                 </div>
-                <div class="w-16 h-1 bg-gray-200"></div>
-                <div class="step-indicator w-10 h-10 bg-gray-200 rounded-full text-gray-500 flex items-center justify-center text-sm font-semibold">
+                <div class="w-20 h-1 bg-gray-300"></div>
+                <div class="step-indicator w-12 h-12 bg-gray-200 rounded-full text-gray-500 flex items-center justify-center text-sm font-semibold">
                     2
                 </div>
-                <div class="w-16 h-1 bg-gray-200"></div>
-                <div class="step-indicator w-10 h-10 bg-gray-200 rounded-full text-gray-500 flex items-center justify-center text-sm font-semibold">
+                <div class="w-20 h-1 bg-gray-300"></div>
+                <div class="step-indicator w-12 h-12 bg-gray-200 rounded-full text-gray-500 flex items-center justify-center text-sm font-semibold">
                     3
                 </div>
             </div>
-            <div class="flex justify-center mt-3">
+            <div class="flex justify-center mt-4">
                 <div class="text-center">
-                    <div class="text-sm font-medium text-gray-900">Select Investment</div>
-                    <div class="text-xs text-gray-500">Step 1 of 3</div>
+                    <div class="text-sm font-medium text-gray-800">Select Investment</div>
+                    <div class="text-xs text-gray-500 mt-1">Step 1 of 3</div>
                 </div>
             </div>
         </div>
 
         <!-- Page Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold font-heading text-gray-900 mb-2">
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-bold font-heading text-gray-900 mb-3">
                 Initiate New Trade
             </h1>
-            <p class="text-gray-600 max-w-2xl mx-auto">
+            <p class="text-gray-600 max-w-2xl mx-auto text-lg">
                 Select an active investment to start a new 24-hour trading session and earn daily profits
             </p>
         </div>
 
         <!-- Trading Hours Status -->
-        <div class="mb-8">
+        <div class="mb-10">
             {% if trading_allowed %}
-                <div class="trading-hours-card rounded-2xl p-6 text-white text-center">
-                    <div class="flex items-center justify-center mb-4">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                <div class="trading-hours-card rounded-xl p-8 text-white text-center">
+                    <div class="flex items-center justify-center mb-5">
+                        <div class="w-14 h-14 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
                             <i class="fas fa-chart-line text-2xl pulse-animation"></i>
                         </div>
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">Markets Are Open</h3>
-                    <p class="opacity-90">Perfect timing! You can start trading now during market hours (Mon-Fri, 8AM-6PM)</p>
+                    <h3 class="text-2xl font-semibold mb-3">Markets Are Open</h3>
+                    <p class="opacity-95 text-lg">Perfect timing! You can start trading now during market hours (Mon-Fri, 8AM-6PM)</p>
                 </div>
             {% else %}
-                <div class="trading-closed-card rounded-2xl p-6 text-white text-center">
-                    <div class="flex items-center justify-center mb-4">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                <div class="trading-closed-card rounded-xl p-8 text-white text-center">
+                    <div class="flex items-center justify-center mb-5">
+                        <div class="w-14 h-14 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
                             <i class="fas fa-pause-circle text-2xl"></i>
                         </div>
                     </div>
-                    <h3 class="text-xl font-semibold mb-2">Markets Are Closed</h3>
-                    <p class="opacity-90">Trading is only available Monday to Friday, 8:00 AM to 6:00 PM. Please return during market hours.</p>
+                    <h3 class="text-2xl font-semibold mb-3">Markets Are Closed</h3>
+                    <p class="opacity-95 text-lg">Trading is only available Monday to Friday, 8:00 AM to 6:00 PM. Please return during market hours.</p>
                 </div>
             {% endif %}
         </div>
@@ -123,8 +228,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Investment Selection -->
             <div class="lg:col-span-2">
-                <div class="bg-white rounded-2xl p-6 card-shadow">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-6">
+                <div class="bg-white rounded-xl p-8 card-shadow">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-7 border-b pb-4">
                         Select Investment to Trade
                     </h2>
 
@@ -132,7 +237,7 @@
                         <form method="post" id="trade-form">
                             {% csrf_token %}
                             
-                            <div class="space-y-4 mb-6">
+                            <div class="space-y-5 mb-7">
                                 {% for investment in available_investments %}
                                 <div class="investment-card rounded-lg p-6" 
                                      data-investment-id="{{ investment.id }}"
@@ -143,15 +248,15 @@
                                      data-duration="24">
                                     <div class="flex items-center justify-between">
                                         <div class="flex-1">
-                                            <div class="flex items-center space-x-4">
-                                                <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
-                                                    <i class="fas fa-box text-primary-600 text-lg"></i>
+                                            <div class="flex items-center space-x-5">
+                                                <div class="w-14 h-14 bg-primary-100 rounded-xl flex items-center justify-center">
+                                                    <i class="fas fa-box text-primary-600 text-xl"></i>
                                                 </div>
                                                 <div>
                                                     <h3 class="text-lg font-semibold text-gray-900">
                                                         {{ investment.package.display_name }}
                                                     </h3>
-                                                    <p class="text-sm text-gray-500">
+                                                    <p class="text-sm text-gray-500 mt-1">
                                                         Created {{ investment.created_at|date:"M d, Y" }}
                                                     </p>
                                                 </div>
@@ -159,21 +264,21 @@
                                         </div>
                                         
                                         <div class="text-right">
-                                            <div class="grid grid-cols-3 gap-4 text-center">
+                                            <div class="grid grid-cols-3 gap-5 text-center">
                                                 <div>
-                                                    <div class="text-sm text-gray-500">Trading Amount</div>
+                                                    <div class="text-sm text-gray-500 mb-1">Trading Amount</div>
                                                     <div class="font-semibold text-gray-900">
                                                         {{ investment.total_investment|floatformat:2 }}
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div class="text-sm text-gray-500">Profit Range</div>
+                                                    <div class="text-sm text-gray-500 mb-1">Profit Range</div>
                                                     <div class="font-semibold text-primary-600">
                                                         {{ investment.package.profit_min }}-{{ investment.package.profit_max }}%
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div class="text-sm text-gray-500">Duration</div>
+                                                    <div class="text-sm text-gray-500 mb-1">Duration</div>
                                                     <div class="font-semibold text-gray-900">
                                                         24h
                                                     </div>
@@ -181,8 +286,8 @@
                                             </div>
                                         </div>
                                         
-                                        <div class="ml-4">
-                                            <i class="fas fa-chevron-right text-gray-400"></i>
+                                        <div class="ml-5">
+                                            <i class="fas fa-chevron-right text-gray-400 text-lg"></i>
                                         </div>
                                     </div>
                                     
@@ -197,15 +302,15 @@
                             </div>
 
                             <!-- Confirmation Checkbox -->
-                            <div class="mb-6 p-4 bg-gray-50 rounded-lg">
-                                <label class="flex items-start space-x-3">
+                            <div class="mb-7 p-5 bg-gray-50 rounded-xl border border-gray-200">
+                                <label class="flex items-start space-x-4">
                                     <input type="checkbox" 
                                            name="confirm_trade" 
                                            required
-                                           class="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                           class="mt-1 h-5 w-5 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
                                     <div class="text-sm">
-                                        <div class="font-medium text-gray-900">Trading Confirmation</div>
-                                        <div class="text-gray-600 mt-1">
+                                        <div class="font-medium text-gray-900 mb-1">Trading Confirmation</div>
+                                        <div class="text-gray-600">
                                             I understand that this will start a 24-hour automated trading session. 
                                             I confirm that I want to proceed with this trade and acknowledge the associated risks.
                                         </div>
@@ -216,22 +321,22 @@
                             <!-- Submit Button -->
                             <button type="button" 
                                     id="submit-btn"
-                                    class="w-full bg-gradient-primary text-white py-4 px-6 rounded-lg font-semibold text-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                    class="w-full bg-gradient-primary text-white py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
                                     disabled>
-                                <span id="submit-text">
-                                    <i class="fas fa-rocket mr-2"></i>Start Trading Session
+                                <span id="submit-text" class="flex items-center">
+                                    <i class="fas fa-rocket mr-3"></i>Start Trading Session
                                 </span>
-                                <span id="submit-loading" class="hidden">
-                                    <i class="fas fa-spinner fa-spin mr-2"></i>Initiating Trade...
+                                <span id="submit-loading" class="hidden items-center">
+                                    <i class="fas fa-spinner fa-spin mr-3"></i>Initiating Trade...
                                 </span>
                             </button>
                         </form>
                     {% else %}
                         <!-- No Investments Available -->
-                        <div class="text-center py-12">
-                            <i class="fas fa-inbox text-gray-300 text-6xl mb-4"></i>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-2">No Investments Available</h3>
-                            <p class="text-gray-500 mb-6">
+                        <div class="text-center py-14">
+                            <i class="fas fa-inbox text-gray-300 text-6xl mb-5"></i>
+                            <h3 class="text-xl font-semibold text-gray-900 mb-3">No Investments Available</h3>
+                            <p class="text-gray-500 mb-7 max-w-md mx-auto">
                                 You need to create an investment first before you can start trading. 
                                 All your current investments may already have active trades.
                             </p>
@@ -249,29 +354,29 @@
             </div>
 
             <!-- Trade Preview Sidebar -->
-            <div class="space-y-6">
+            <div class="space-y-7">
                 <!-- Selected Investment Preview -->
-                <div id="trade-preview" class="trade-preview rounded-2xl p-6 card-shadow hidden">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Trade Preview</h3>
+                <div id="trade-preview" class="trade-preview rounded-xl p-6 card-shadow hidden">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-5 border-b pb-3">Trade Preview</h3>
                     
                     <div class="space-y-4">
                         <div>
-                            <label class="text-sm text-gray-500 uppercase tracking-wide">Package</label>
+                            <label class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1 block">Package</label>
                             <div id="preview-package" class="font-semibold text-gray-900">-</div>
                         </div>
                         
                         <div>
-                            <label class="text-sm text-gray-500 uppercase tracking-wide">Trading Amount</label>
+                            <label class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1 block">Trading Amount</label>
                             <div id="preview-amount" class="text-xl font-bold text-primary-600">-</div>
                         </div>
                         
                         <div>
-                            <label class="text-sm text-gray-500 uppercase tracking-wide">Expected Profit Range</label>
+                            <label class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1 block">Expected Profit Range</label>
                             <div id="preview-profit" class="font-semibold text-success-600">-</div>
                         </div>
                         
                         <div>
-                            <label class="text-sm text-gray-500 uppercase tracking-wide">Duration</label>
+                            <label class="text-xs text-gray-500 uppercase tracking-wide font-medium mb-1 block">Duration</label>
                             <div id="preview-duration" class="font-semibold text-gray-900">-</div>
                         </div>
                         
@@ -285,37 +390,37 @@
                 </div>
 
                 <!-- Trading Tips -->
-                <div class="bg-white rounded-2xl p-6 card-shadow">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">
-                        <i class="fas fa-lightbulb text-warning-500 mr-2"></i>Trading Tips
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-lightbulb text-warning-500 mr-3"></i>Trading Tips
                     </h3>
                     
                     <ul class="space-y-3 text-sm text-gray-600">
                         <li class="flex items-start">
-                            <i class="fas fa-check text-success-500 mr-2 mt-1 flex-shrink-0"></i>
+                            <i class="fas fa-check text-success-500 mr-3 mt-1 flex-shrink-0"></i>
                             <span>Trading sessions run for 24 hours automatically</span>
                         </li>
                         <li class="flex items-start">
-                            <i class="fas fa-check text-success-500 mr-2 mt-1 flex-shrink-0"></i>
+                            <i class="fas fa-check text-success-500 mr-3 mt-1 flex-shrink-0"></i>
                             <span>Profits are calculated and credited upon completion</span>
                         </li>
                         <li class="flex items-start">
-                            <i class="fas fa-check text-success-500 mr-2 mt-1 flex-shrink-0"></i>
+                            <i class="fas fa-check text-success-500 mr-3 mt-1 flex-shrink-0"></i>
                             <span>You can only have one active trade per investment</span>
                         </li>
                         <li class="flex items-start">
-                            <i class="fas fa-check text-success-500 mr-2 mt-1 flex-shrink-0"></i>
+                            <i class="fas fa-check text-success-500 mr-3 mt-1 flex-shrink-0"></i>
                             <span>Monitor progress in your dashboard</span>
                         </li>
                     </ul>
                 </div>
 
                 <!-- Risk Warning -->
-                <div class="bg-warning-50 border border-warning-200 rounded-lg p-4">
+                <div class="bg-warning-50 border border-warning-200 rounded-lg p-5">
                     <div class="flex items-start">
-                        <i class="fas fa-exclamation-triangle text-warning-600 mt-1 mr-3 flex-shrink-0"></i>
+                        <i class="fas fa-exclamation-triangle text-warning-600 mt-1 mr-4 flex-shrink-0"></i>
                         <div class="text-sm">
-                            <h4 class="font-semibold text-warning-800 mb-1">Risk Disclosure</h4>
+                            <h4 class="font-semibold text-warning-800 mb-2">Risk Disclosure</h4>
                             <p class="text-warning-700">
                                 Trading involves risk. While our algorithms aim to generate profits within the specified ranges, 
                                 returns are not guaranteed. Only trade with amounts you can afford to lose.
@@ -325,33 +430,33 @@
                 </div>
 
                 <!-- Support Contact -->
-                <div class="bg-white rounded-lg p-4 card-shadow">
-                    <h4 class="font-semibold text-gray-900 mb-2">Need Help?</h4>
-                    <p class="text-sm text-gray-600 mb-3">
+                <div class="bg-white rounded-xl p-5 card-shadow">
+                    <h4 class="font-semibold text-gray-900 mb-3">Need Help?</h4>
+                    <p class="text-sm text-gray-600 mb-4">
                         Our support team is available 24/7 to assist you with trading questions.
                     </p>
-                    <a href="{% url 'core:support_tickets' %}" class="text-sm text-primary-600 hover:text-primary-700 font-medium">
-                        Contact Support <i class="fas fa-arrow-right ml-1"></i>
+                    <a href="{% url 'core:support_tickets' %}" class="text-sm text-primary-600 hover:text-primary-700 font-medium inline-flex items-center">
+                        Contact Support <i class="fas fa-arrow-right ml-2"></i>
                     </a>
                 </div>
             </div>
         </div>
         {% else %}
         <!-- Markets Closed Content -->
-        <div class="text-center py-12">
+        <div class="text-center py-14">
             <div class="max-w-md mx-auto">
-                <div class="mb-6">
+                <div class="mb-7">
                     <i class="fas fa-clock text-gray-300 text-6xl"></i>
                 </div>
                 <h3 class="text-xl font-semibold text-gray-900 mb-4">Come Back During Market Hours</h3>
-                <p class="text-gray-600 mb-6">
+                <p class="text-gray-600 mb-7 text-lg">
                     Trading is available Monday through Friday from 8:00 AM to 6:00 PM. 
                     This ensures optimal market conditions for your trades.
                 </p>
-                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <div class="bg-gray-50 rounded-xl p-5 mb-7 border border-gray-200">
                     <div class="text-sm text-gray-600">
-                        <div class="font-medium mb-2">Trading Schedule:</div>
-                        <div>Monday - Friday: 8:00 AM - 6:00 PM</div>
+                        <div class="font-medium mb-3 text-gray-800">Trading Schedule:</div>
+                        <div class="mb-2">Monday - Friday: 8:00 AM - 6:00 PM</div>
                         <div>Saturday - Sunday: Closed</div>
                     </div>
                 </div>
@@ -371,17 +476,17 @@
 
 <!-- Confirmation Modal -->
 <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 confirmation-modal flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-2xl p-8 max-w-md mx-4 transform transition-all duration-300 scale-95" id="modal-content">
+    <div class="bg-white rounded-xl p-8 max-w-md mx-4 transform transition-all duration-300 scale-95" id="modal-content">
         <div class="text-center">
-            <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-5">
                 <i class="fas fa-rocket text-primary-600 text-2xl"></i>
             </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">Confirm Trade Initiation</h3>
+            <h3 class="text-xl font-semibold text-gray-900 mb-3">Confirm Trade Initiation</h3>
             <p class="text-gray-600 mb-6">
                 You are about to start a 24-hour trading session. Are you sure you want to proceed?
             </p>
             
-            <div id="modal-details" class="bg-gray-50 rounded-lg p-4 mb-6 text-sm text-left">
+            <div id="modal-details" class="bg-gray-50 rounded-lg p-5 mb-6 text-sm text-left border border-gray-200">
                 <!-- Details will be populated by JavaScript -->
             </div>
             
