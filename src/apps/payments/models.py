@@ -226,7 +226,13 @@ class P2PMerchant(models.Model):
     phone_number = models.CharField(max_length=20)
     email = models.EmailField()
     country = models.CharField(max_length=2, choices=COUNTRY_CHOICES)
-    supported_methods = models.JSONField(default=list)  # e.g., ['mobile_money', 'bank_transfer']
+    payment_methods = models.ManyToManyField(
+        PaymentMethod,
+        related_name='merchants',
+        blank=True,
+        help_text="Select the payment methods this merchant supports"
+    )
+    supported_methods = models.JSONField(default=list, blank=True)  # Keep for backward compatibility
     is_verified = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     commission_rate = models.DecimalField(max_digits=5, decimal_places=2, default=1.5)
@@ -240,3 +246,16 @@ class P2PMerchant(models.Model):
     
     def __str__(self):
         return f"{self.name} (@{self.username})"
+    
+    def get_available_payment_methods(self):
+        """Get payment methods available for this merchant's country"""
+        return self.payment_methods.filter(
+            is_active=True,
+            countries__icontains=f'"{self.country}"'
+        )
+    
+    def get_supported_method_names(self):
+        """Get list of supported payment method names for backward compatibility"""
+        if self.payment_methods.exists():
+            return list(self.payment_methods.values_list('name', flat=True))
+        return self.supported_methods or []
