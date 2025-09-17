@@ -871,6 +871,16 @@ class P2PMerchantAdmin(admin.ModelAdmin):
             'fields': ('country', 'available_methods_info', 'payment_methods', 'payment_methods_info'),
             'description': 'Select the country and payment methods this merchant supports'
         }),
+        ('Mobile Money Payment Details', {
+            'fields': ('mobile_money_provider', 'mobile_money_number', 'mobile_money_name'),
+            'description': 'Enter mobile money payment details if merchant supports mobile money',
+            'classes': ('collapse',)
+        }),
+        ('Bank Transfer Payment Details', {
+            'fields': ('bank_name', 'bank_account_number', 'bank_account_name', 'bank_branch', 'bank_swift_code'),
+            'description': 'Enter bank account details if merchant supports bank transfers',
+            'classes': ('collapse',)
+        }),
         ('Business Settings', {
             'fields': ('commission_rate', 'min_order_amount', 'max_order_amount')
         }),

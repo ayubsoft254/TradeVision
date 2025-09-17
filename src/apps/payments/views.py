@@ -257,6 +257,9 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
                 continue
             elif isinstance(value, Decimal):
                 payment_details[key] = str(value)
+            elif hasattr(value, 'pk'):  # Django model instance
+                payment_details[key] = str(value.pk)
+                payment_details[f'{key}_name'] = str(value)  # Also store the string representation
             else:
                 payment_details[key] = value
         
@@ -498,6 +501,9 @@ class WithdrawMethodView(LoginRequiredMixin, TemplateView):
                 continue
             elif isinstance(value, Decimal):
                 withdrawal_address[key] = str(value)
+            elif hasattr(value, 'pk'):  # Django model instance
+                withdrawal_address[key] = str(value.pk)
+                withdrawal_address[f'{key}_name'] = str(value)  # Also store the string representation
             else:
                 withdrawal_address[key] = value
         

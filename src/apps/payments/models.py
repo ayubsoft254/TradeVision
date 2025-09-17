@@ -241,6 +241,51 @@ class P2PMerchant(models.Model):
     completion_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     total_orders = models.IntegerField(default=0)
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=0)
+    
+    # Mobile Money Payment Details
+    mobile_money_provider = models.CharField(
+        max_length=50, 
+        blank=True, 
+        help_text="Mobile money provider (e.g., M-Pesa, Airtel Money, MTN Mobile Money)"
+    )
+    mobile_money_number = models.CharField(
+        max_length=20, 
+        blank=True, 
+        help_text="Mobile money account number/phone number"
+    )
+    mobile_money_name = models.CharField(
+        max_length=100, 
+        blank=True, 
+        help_text="Account holder name for mobile money"
+    )
+    
+    # Bank Transfer Payment Details
+    bank_name = models.CharField(
+        max_length=100, 
+        blank=True, 
+        help_text="Name of the bank"
+    )
+    bank_account_number = models.CharField(
+        max_length=30, 
+        blank=True, 
+        help_text="Bank account number"
+    )
+    bank_account_name = models.CharField(
+        max_length=100, 
+        blank=True, 
+        help_text="Account holder name as per bank records"
+    )
+    bank_branch = models.CharField(
+        max_length=100, 
+        blank=True, 
+        help_text="Bank branch name or code"
+    )
+    bank_swift_code = models.CharField(
+        max_length=20, 
+        blank=True, 
+        help_text="Bank SWIFT/BIC code for international transfers"
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -259,3 +304,37 @@ class P2PMerchant(models.Model):
         if self.payment_methods.exists():
             return list(self.payment_methods.values_list('name', flat=True))
         return self.supported_methods or []
+    
+    def get_mobile_money_details(self):
+        """Get mobile money payment details if available"""
+        if self.mobile_money_provider and self.mobile_money_number:
+            return {
+                'provider': self.mobile_money_provider,
+                'number': self.mobile_money_number,
+                'name': self.mobile_money_name or self.name
+            }
+        return None
+    
+    def get_bank_transfer_details(self):
+        """Get bank transfer payment details if available"""
+        if self.bank_name and self.bank_account_number:
+            return {
+                'bank_name': self.bank_name,
+                'account_number': self.bank_account_number,
+                'account_name': self.bank_account_name or self.name,
+                'branch': self.bank_branch,
+                'swift_code': self.bank_swift_code
+            }
+        return None
+    
+    def get_payment_details_for_method(self, method_name):
+        """Get payment details for a specific payment method"""
+        if method_name == 'mobile_money':
+            return self.get_mobile_money_details()
+        elif method_name == 'bank_transfer':
+            return self.get_bank_transfer_details()
+        return None
+    
+    def has_payment_details_for_method(self, method_name):
+        """Check if merchant has payment details for a specific method"""
+        return self.get_payment_details_for_method(method_name) is not None

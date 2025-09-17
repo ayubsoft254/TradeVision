@@ -209,10 +209,90 @@
 
                 <!-- Payment Methods -->
                 <div class="px-6 pb-4">
-                    <div class="mb-2">
-                        <span class="text-sm font-medium text-gray-700">Supported Methods:</span>
+                    <div class="mb-3">
+                        <span class="text-sm font-medium text-gray-700">Payment Methods & Details:</span>
                     </div>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="space-y-3">
+                        {% for payment_method in merchant.payment_methods.all %}
+                        <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                    {% if payment_method.name == 'mobile_money' %}bg-blue-100 text-blue-800
+                                    {% elif payment_method.name == 'bank_transfer' %}bg-green-100 text-green-800
+                                    {% elif payment_method.name == 'crypto' %}bg-purple-100 text-purple-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {% if payment_method.name == 'mobile_money' %}
+                                        <i class="fas fa-mobile-alt mr-1"></i>Mobile Money
+                                    {% elif payment_method.name == 'bank_transfer' %}
+                                        <i class="fas fa-university mr-1"></i>Bank Transfer
+                                    {% elif payment_method.name == 'crypto' %}
+                                        <i class="fas fa-coins mr-1"></i>Cryptocurrency
+                                    {% else %}
+                                        {{ payment_method.display_name }}
+                                    {% endif %}
+                                </span>
+                                <span class="text-xs text-gray-500">{{ payment_method.processing_time }}</span>
+                            </div>
+                            
+                            {% if payment_method.name == 'mobile_money' and merchant.get_mobile_money_details %}
+                                {% with mobile_details=merchant.get_mobile_money_details %}
+                                <div class="text-xs text-gray-600 space-y-1">
+                                    <div class="flex justify-between">
+                                        <span>Provider:</span>
+                                        <span class="font-medium">{{ mobile_details.provider }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Number:</span>
+                                        <span class="font-medium">{{ mobile_details.number }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Name:</span>
+                                        <span class="font-medium">{{ mobile_details.name }}</span>
+                                    </div>
+                                </div>
+                                {% endwith %}
+                            {% elif payment_method.name == 'bank_transfer' and merchant.get_bank_transfer_details %}
+                                {% with bank_details=merchant.get_bank_transfer_details %}
+                                <div class="text-xs text-gray-600 space-y-1">
+                                    <div class="flex justify-between">
+                                        <span>Bank:</span>
+                                        <span class="font-medium">{{ bank_details.bank_name }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Account:</span>
+                                        <span class="font-medium">{{ bank_details.account_number }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Name:</span>
+                                        <span class="font-medium">{{ bank_details.account_name }}</span>
+                                    </div>
+                                    {% if bank_details.branch %}
+                                    <div class="flex justify-between">
+                                        <span>Branch:</span>
+                                        <span class="font-medium">{{ bank_details.branch }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endwith %}
+                            {% elif payment_method.name == 'crypto' %}
+                                <div class="text-xs text-gray-600">
+                                    <div class="flex justify-between">
+                                        <span>Type:</span>
+                                        <span class="font-medium">Digital Currency</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Network:</span>
+                                        <span class="font-medium">Binance, USDT, BTC</span>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="text-xs text-gray-500">
+                                    Contact merchant for payment details
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% empty %}
+                        <!-- Fallback to old supported_methods format -->
                         {% for method in merchant.supported_methods %}
                         <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                             {% if method == 'mobile_money' %}bg-blue-100 text-blue-800
@@ -229,6 +309,7 @@
                                 {{ method|title }}
                             {% endif %}
                         </span>
+                        {% endfor %}
                         {% endfor %}
                     </div>
                 </div>
