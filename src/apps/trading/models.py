@@ -58,7 +58,14 @@ class Investment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     def save(self, *args, **kwargs):
-        # The following logic is misplaced for Investment; remove or adjust as needed.
+        # Auto-calculate maturity_date if not set
+        if not self.maturity_date and self.package:
+            self.maturity_date = timezone.now() + timedelta(days=self.package.duration_days)
+        
+        # Auto-calculate welcome bonus if not set
+        if not self.welcome_bonus_amount and self.package and self.principal_amount:
+            self.welcome_bonus_amount = self.principal_amount * (self.package.welcome_bonus / 100)
+        
         super().save(*args, **kwargs)
     
     def __str__(self):
