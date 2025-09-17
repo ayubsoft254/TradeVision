@@ -31,6 +31,7 @@ THIRD_PARTY_APPS = [
     'phonenumber_field',
     'django_countries',
     'django_celery_beat',
+    
 ]
 
 LOCAL_APPS = [
