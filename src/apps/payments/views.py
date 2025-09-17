@@ -146,19 +146,42 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
     def get_method_data(self, method_name):
         """Get method-specific data"""
         if method_name == 'p2p':
+            merchants = P2PMerchant.objects.filter(
+                is_active=True,
+                country=self.request.user.country.code
+            ).order_by('-rating')[:10]
             return {
-                'merchants': P2PMerchant.objects.filter(
-                    is_active=True,
-                    country=self.request.user.country.code
-                ).order_by('-rating')[:10]
+                'merchants': [
+                    {
+                        'id': m.id,
+                        'name': m.name,
+                        'rating': m.rating,
+                        'total_orders': m.total_orders,
+                        'payment_methods': [pm.display_name for pm in m.payment_methods.all()]
+                    }
+                    for m in merchants
+                ]
             }
         elif method_name == 'agent':
-            return {
-                'agents': Agent.objects.filter(
+            try:
+                agents = Agent.objects.filter(
                     is_active=True,
                     country=self.request.user.country.code
                 ).order_by('-rating')[:10]
-            }
+                return {
+                    'agents': [
+                        {
+                            'id': a.id,
+                            'name': a.name,
+                            'rating': getattr(a, 'rating', 0),
+                            'location': getattr(a, 'location', '')
+                        }
+                        for a in agents
+                    ]
+                }
+            except:
+                # Agent model might not exist yet
+                return {'agents': []}
         return {}
     
     def post(self, request, *args, **kwargs):
@@ -371,19 +394,42 @@ class WithdrawMethodView(LoginRequiredMixin, TemplateView):
     def get_method_data(self, method_name):
         """Get method-specific data"""
         if method_name == 'p2p':
+            merchants = P2PMerchant.objects.filter(
+                is_active=True,
+                country=self.request.user.country.code
+            ).order_by('-rating')[:10]
             return {
-                'merchants': P2PMerchant.objects.filter(
-                    is_active=True,
-                    country=self.request.user.country.code
-                ).order_by('-rating')[:10]
+                'merchants': [
+                    {
+                        'id': m.id,
+                        'name': m.name,
+                        'rating': m.rating,
+                        'total_orders': m.total_orders,
+                        'payment_methods': [pm.display_name for pm in m.payment_methods.all()]
+                    }
+                    for m in merchants
+                ]
             }
         elif method_name == 'agent':
-            return {
-                'agents': Agent.objects.filter(
+            try:
+                agents = Agent.objects.filter(
                     is_active=True,
                     country=self.request.user.country.code
                 ).order_by('-rating')[:10]
-            }
+                return {
+                    'agents': [
+                        {
+                            'id': a.id,
+                            'name': a.name,
+                            'rating': getattr(a, 'rating', 0),
+                            'location': getattr(a, 'location', '')
+                        }
+                        for a in agents
+                    ]
+                }
+            except:
+                # Agent model might not exist yet
+                return {'agents': []}
         return {}
     
     def post(self, request, *args, **kwargs):
