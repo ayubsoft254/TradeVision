@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.views.generic import TemplateView, DetailView, ListView
+from django.views.decorators.http import require_http_methods
 from django.http import JsonResponse
 from django.db.models import Sum, Count, Avg
 from django.utils import timezone
@@ -514,20 +515,20 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
         if not self.is_trading_allowed():
             messages.error(request, 'Trading is only allowed Monday to Friday, 8 AM to 6 PM.')
             return redirect('trading:initiate_trade')
-        
+
         # Get investment ID from form data
         investment_id = request.POST.get('investment')
         confirm_trade = request.POST.get('confirm_trade')
-        
+
         # Validate inputs
         if not investment_id:
             messages.error(request, 'Please select an investment.')
             return self.render_to_response(self.get_context_data())
-        
+
         if not confirm_trade:
             messages.error(request, 'Please confirm the trade initiation.')
             return self.render_to_response(self.get_context_data())
-        
+
         try:
             # Get the investment and validate ownership
             investment = Investment.objects.get(
@@ -538,58 +539,42 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
         except Investment.DoesNotExist:
             messages.error(request, 'Invalid investment selected.')
             return self.render_to_response(self.get_context_data())
-        
+
         # Check if there's already a pending/running trade
         existing_trade = Trade.objects.filter(
             investment=investment,
             status__in=['pending', 'running']
         ).first()
-        
+
         if existing_trade:
             messages.warning(request, 'There is already an active trade for this investment.')
             return redirect('trading:trades')
-        
+
         try:
-            with db_transaction.atomic():
-                # Generate random profit rate
-                profit_rate = investment.package.get_random_profit_rate()
-                
-                # Create new trade
-                start_time = timezone.now()
-                end_time = start_time + timedelta(hours=24)
-                
-                trade = Trade.objects.create(
-                    investment=investment,
-                    trade_amount=investment.total_investment,
-                    profit_rate=profit_rate,
-                    status='running',
-                    start_time=start_time,
-                    end_time=end_time
-                )
-                
-                # Log the trade initiation
-                SystemLog.objects.create(
-                    user=request.user,
-                    action_type='trade',
-                    level='INFO',
-                    message=f'User initiated trade for {investment.package.display_name}',
-                    ip_address=request.META.get('REMOTE_ADDR'),
-                    metadata={
-                        'trade_id': str(trade.id), 
-                        'investment_id': str(investment.id),
-                        'profit_rate': str(profit_rate)
-                    }
-                )
-                
-                messages.success(
-                    request,
-                    f'Trade initiated successfully! Expected profit: {trade.profit_amount} {request.user.wallet.currency}'
-                )
-                
-                return redirect('trading:trade_detail', trade_id=trade.id)
-                
+            # Import the Celery task
+            from .tasks import initiate_manual_trade
+            
+            # Initiate trade asynchronously
+            task_result = initiate_manual_trade.delay(
+                investment_id=investment.id,
+                user_id=request.user.id,
+                ip_address=request.META.get('REMOTE_ADDR')
+            )
+            
+            # Store task ID in session for status checking
+            request.session['trade_initiation_task_id'] = task_result.id
+            request.session['trade_initiation_investment'] = str(investment.id)
+            
+            messages.success(
+                request,
+                f'Trade initiation started for {investment.package.display_name}. Please wait...'
+            )
+            
+            # Redirect to status page where we'll check the task result
+            return redirect('trading:trade_initiation_status')
+            
         except Exception as e:
-            logger.error(f"Error initiating trade: {str(e)}")
+            logger.error(f"Error starting trade initiation task: {str(e)}")
             messages.error(request, 'An error occurred while initiating the trade. Please try again.')
             return self.render_to_response(self.get_context_data())
     
@@ -624,6 +609,82 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
         trading_end = time(18, 0)   # 6:00 PM
         
         return trading_start <= current_time <= trading_end
+
+class TradeInitiationStatusView(LoginRequiredMixin, TemplateView):
+    """Check trade initiation status"""
+    template_name = 'trading/trade_initiation_status.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get task ID from session
+        task_id = self.request.session.get('trade_initiation_task_id')
+        investment_id = self.request.session.get('trade_initiation_investment')
+        
+        context.update({
+            'task_id': task_id,
+            'investment_id': investment_id,
+            'has_task': bool(task_id),
+        })
+        
+        return context
+
+@require_http_methods(["GET"])
+def check_trade_initiation_status(request):
+    """AJAX endpoint to check trade initiation task status"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+    
+    task_id = request.GET.get('task_id')
+    if not task_id:
+        return JsonResponse({'error': 'Task ID required'}, status=400)
+    
+    try:
+        from celery.result import AsyncResult
+        from .tasks import initiate_manual_trade
+        
+        # Get task result
+        task_result = AsyncResult(task_id)
+        
+        response_data = {
+            'task_id': task_id,
+            'status': task_result.status,
+            'ready': task_result.ready(),
+        }
+        
+        if task_result.ready():
+            if task_result.successful():
+                result = task_result.result
+                response_data.update({
+                    'success': True,
+                    'result': result,
+                })
+                
+                # Clear session data if successful
+                if 'trade_initiation_task_id' in request.session:
+                    del request.session['trade_initiation_task_id']
+                if 'trade_initiation_investment' in request.session:
+                    del request.session['trade_initiation_investment']
+                    
+            else:
+                response_data.update({
+                    'success': False,
+                    'error': str(task_result.result) if task_result.result else 'Unknown error',
+                })
+        else:
+            response_data.update({
+                'success': None,
+                'message': 'Trade initiation in progress...'
+            })
+        
+        return JsonResponse(response_data)
+        
+    except Exception as e:
+        logger.error(f"Error checking trade initiation status: {str(e)}")
+        return JsonResponse({
+            'error': 'Failed to check task status',
+            'success': False
+        }, status=500)
 
 class InvestmentListView(LoginRequiredMixin, ListView):
     """User investments list"""

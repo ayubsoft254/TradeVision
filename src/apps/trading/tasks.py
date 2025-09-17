@@ -587,6 +587,110 @@ def cleanup_failed_trades():
             'error': str(e)
         }
 
+@shared_task(bind=True, max_retries=3)
+def initiate_manual_trade(self, investment_id, user_id, ip_address=None):
+    """
+    Initiate a trade manually (user-requested).
+    This is called when a user clicks 'Start Trade' button.
+    """
+    try:
+        from apps.accounts.models import User
+        from apps.core.models import SystemLog
+        
+        # Get user and investment
+        user = User.objects.select_related('wallet').get(id=user_id)
+        investment = Investment.objects.select_related('package', 'user').get(
+            id=investment_id,
+            user=user,
+            status='active'
+        )
+        
+        # Check if there's already a pending/running trade
+        existing_trade = Trade.objects.filter(
+            investment=investment,
+            status__in=['pending', 'running']
+        ).first()
+        
+        if existing_trade:
+            logger.warning(f"Trade already exists for investment {investment_id}")
+            return {
+                'status': 'error',
+                'error': 'There is already an active trade for this investment',
+                'trade_id': str(existing_trade.id)
+            }
+        
+        with db_transaction.atomic():
+            # Generate random profit rate
+            profit_rate = investment.package.get_random_profit_rate()
+            
+            # Create new trade
+            start_time = timezone.now()
+            end_time = start_time + timedelta(hours=24)
+            
+            trade = Trade.objects.create(
+                investment=investment,
+                trade_amount=investment.total_investment,
+                profit_rate=profit_rate,
+                status='running',
+                start_time=start_time,
+                end_time=end_time
+            )
+            
+            # Log the trade initiation
+            SystemLog.objects.create(
+                user=user,
+                action_type='trade',
+                level='INFO',
+                message=f'User manually initiated trade for {investment.package.display_name}',
+                ip_address=ip_address,
+                metadata={
+                    'trade_id': str(trade.id),
+                    'investment_id': str(investment.id),
+                    'profit_rate': str(profit_rate),
+                    'manual_initiation': True
+                }
+            )
+            
+            logger.info(f"Successfully initiated manual trade {trade.id} for user {user_id}")
+            
+            return {
+                'status': 'success',
+                'trade_id': str(trade.id),
+                'profit_amount': str(trade.profit_amount),
+                'profit_rate': str(profit_rate),
+                'end_time': end_time.isoformat(),
+                'message': f'Trade initiated successfully! Expected profit: {trade.profit_amount} {user.wallet.currency}'
+            }
+            
+    except Investment.DoesNotExist:
+        error_msg = 'Investment not found or not owned by user'
+        logger.error(f"Investment {investment_id} not found for user {user_id}")
+        return {
+            'status': 'error',
+            'error': error_msg
+        }
+        
+    except User.DoesNotExist:
+        error_msg = 'User not found'
+        logger.error(f"User {user_id} not found")
+        return {
+            'status': 'error',
+            'error': error_msg
+        }
+        
+    except Exception as e:
+        logger.error(f"Error initiating manual trade for user {user_id}, investment {investment_id}: {str(e)}")
+        
+        # Retry the task if it failed
+        if self.request.retries < self.max_retries:
+            logger.info(f"Retrying initiate_manual_trade, attempt {self.request.retries + 1}")
+            raise self.retry(countdown=30, exc=e)
+        
+        return {
+            'status': 'error',
+            'error': str(e)
+        }
+
 # Task to send profit notifications (placeholder for future email/SMS integration)
 @shared_task
 def send_profit_notifications():
