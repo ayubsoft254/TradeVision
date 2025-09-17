@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPS Hosting Invoice - VybezTribe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .invoice-header {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .company-logo {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .company-tagline {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .invoice-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            padding: 2rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .invoice-info h3,
+        .client-info h3 {
+            color: #22c55e;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #22c55e;
+            padding-bottom: 0.5rem;
+        }
+        
+        .invoice-info p,
+        .client-info p {
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+        
+        .invoice-number {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.2rem;
+        }
+        
+        .services-table {
+            margin: 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+        
+        th {
+            background: #f8f9fa;
+            color: #333;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .amount {
+            text-align: right;
+            font-weight: 600;
+        }
+        
+        .total-section {
+            background: #f8f9fa;
+            padding: 2rem;
+            text-align: right;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 0;
+        }
+        
+        .total-final {
+            border-top: 2px solid #22c55e;
+            padding-top: 1rem;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #22c55e;
+        }
+        
+        .payment-info {
+            padding: 2rem;
+            background: #f1f5f9;
+            border-left: 4px solid #22c55e;
+        }
+        
+        .payment-info h3 {
+            color: #22c55e;
+            margin-bottom: 1rem;
+        }
+        
+        .terms-section {
+            padding: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .terms-section h2 {
+            color: #22c55e;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+        
+        .terms-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .terms-column h3 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+        
+        .terms-column ul {
+            padding-left: 1.2rem;
+        }
+        
+        .terms-column li {
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+        
+        .footer {
+            background: #1f2937;
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background: #fbbf24;
+            color: white;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .paid-badge {
+            background: #10b981;
+        }
+        
+        @media print {
+            body { background: white; }
+            .invoice-container { box-shadow: none; }
+        }
+        
+        .highlight {
+            background: #fef3c7;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+        }
+        
+        .contact-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .contact-item i {
+            margin-right: 0.5rem;
+            color: #22c55e;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="company-logo">Ayubsoft Inc</div>
+            <div class="company-tagline">Engineering Your Digital Future</div>
+        </div>
+        
+        <!-- Invoice Details -->
+        <div class="invoice-details">
+            <div class="invoice-info">
+                <h3>Invoice Details</h3>
+                <p><strong>Invoice #:</strong> <span class="invoice-number">AI2025INV0315</span></p>
+                <p><strong>Issue Date:</strong> September 7, 2025</p>
+                <p><strong>Due Date:</strong> September 14, 2025</p>
+                <p><strong>Service Period:</strong> September 8 - October 8, 2025</p>
+                <p><strong>Status:</strong> <span class="status-badge">Pending</span></p>
+            </div>
+            
+            <div class="client-info">
+                <h3>Bill To</h3>
+                <p><strong>VybezTribe Platform</strong></p>
+                <p>Client Organization</p>
+                <p>Nairobi, Kenya</p>
+                <p>Email: vibeztribe254@gmail.com</p>
+                <p>Phone: +254 790 058 060</p>
+            </div>
+        </div>
+        
+        <!-- Services Table -->
+        <div class="services-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50%;">Service Description</th>
+                        <th style="width: 15%;">Period</th>
+                        <th style="width: 15%;">Rate</th>
+                        <th style="width: 10%;">Qty</th>
+                        <th style="width: 15%;" class="amount">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>VPS Hosting - Starter Plan</strong><br>
+                            <small>2GB RAM, 2 CPU cores, 50GB SSD storage<br>
+                            Django + PostgreSQL + Redis setup<br>
+                            SSL certificate, daily backups, monitoring<br>
+                            Business hours email support</small>
+                        </td>
+                        <td>Monthly</td>
+                        <td>$15.00</td>
+                        <td>1</td>
+                        <td class="amount">$15.00</td>
+                    </tr>
+                    <tr style="background: #f8f9fa;">
+                        <td colspan="5">
+                            <strong>Current Plan:</strong> Starter Package<br>
+                            <small>Perfect for communities up to 500 active users</small>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Total Section -->
+        <div class="total-section">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>$15.00</span>
+            </div>
+            <div class="total-row">
+                <span>VAT (16%):</span>
+                <span>$0.00</span>
+            </div>
+            <div class="total-row total-final">
+                <span>Total Amount:</span>
+                <span>$15.00</span>
+            </div>
+        </div>
+        
+        <!-- Payment Information -->
+        <div class="payment-info">
+            <h3>💳 Payment Information</h3>
+            <div class="contact-info">
+                <div>
+                    <p><strong>Bank Transfer :</strong></p>
+                    <p>Bank: Diamond Trust Bank Kenya</p>
+                    <p>Account: 5940636001</p>
+                    <p>Swift: DTKEKENA</p>
+                    <p>Amount: $15.00 USD</p>                    
+                </div>
+                <div>
+                    <p><strong>M-Pesa Option:</strong></p>
+                    <p>Paybill: 516600</p>
+                    <p>Account: 5940636001</p>
+                    <p>Amount: $15.00 USD</p>
+                    <p><em>($15.00 USD = ~KSh 2,436)</em></p>
+                </div>
+            </div>
+            <p style="margin-top: 1rem;"><strong>Payment Terms:</strong> Net 30 days. Late payments subject to 1.5% monthly service charge.</p>
+        </div>
+        
+        <!-- Available Plans -->
+        <div style="padding: 2rem; background: #f0f9ff; border: 2px solid #3b82f6; margin: 2rem;">
+            <h3 style="color: #1e40af; text-align: center; margin-bottom: 1rem;">📈 Upgrade Options Available</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; text-align: center;">
+                <div style="background: white; padding: 1rem; border-radius: 8px; border: 2px solid #3b82f6; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.1);">
+                    <h4 style="color: #1e40af; font-weight: 600;">✅ Current: Starter</h4>
+                    <p style="font-size: 1.3rem; font-weight: bold; color: #1e293b;">$15/month</p>
+                    <p style="font-size: 0.9rem; color: #64748b;">Up to 500 users</p>
+                    <p style="font-size: 0.8rem; color: #10b981;">VAT Inclusive</p>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <h4 style="color: #7c3aed;">Growth Plan</h4>
+                    <p style="font-size: 1.3rem; font-weight: bold; color: #1e293b;">$25/month</p>
+                    <p style="font-size: 0.9rem; color: #64748b;">Up to 2,000 users</p>
+                    <p style="font-size: 0.8rem; color: #10b981;">VAT Inclusive</p>
+                </div>
+                <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <h4 style="color: #dc2626;">Enterprise Plan</h4>
+                    <p style="font-size: 1.3rem; font-weight: bold; color: #1e293b;">$45/month</p>
+                    <p style="font-size: 0.9rem; color: #64748b;">2,000+ users</p>
+                    <p style="font-size: 0.8rem; color: #10b981;">VAT Inclusive</p>
+                </div>
+            </div>
+            <p style="text-align: center; margin-top: 1rem; font-size: 0.9rem; color: #64748b;">
+                All plans include VAT. Contact us anytime to upgrade as your community grows.
+            </p>
+        </div>
+    </div>
+    
+    <!-- Terms and Conditions -->
+    <div class="invoice-container" style="margin-top: 2rem;">
+        <div class="terms-section">
+            <h2>📋 Terms and Conditions</h2>
+            
+            <div class="terms-grid">
+                <div class="terms-column">
+                    <h3>🔧 Service Level Agreement</h3>
+                    <ul>
+                        <li><strong>Uptime Guarantee:</strong> 99.5% monthly uptime</li>
+                        <li><strong>Support Hours:</strong> Monday-Friday, 8AM-6PM EAT</li>
+                        <li><strong>Response Time:</strong> 4 hours for critical issues</li>
+                        <li><strong>Maintenance Window:</strong> Sundays 2AM-4AM EAT</li>
+                        <li><strong>Backup Schedule:</strong> Daily automated backups</li>
+                        <li><strong>Retention:</strong> 30-day backup retention</li>
+                    </ul>
+                    
+                    <h3>💰 Billing Terms</h3>
+                    <ul>
+                        <li><strong>Billing Cycle:</strong> Monthly in advance</li>
+                        <li><strong>Payment Terms:</strong> Net 30 days</li>
+                        <li><strong>Late Fee:</strong> 1.5% monthly on overdue amounts</li>
+                        <li><strong>Auto-renewal:</strong> Unless 30-day notice given</li>
+                        <li><strong>Refund Policy:</strong> Pro-rated for unused services</li>
+                        <li><strong>Price Changes:</strong> 60-day advance notice</li>
+                    </ul>
+                </div>
+                
+                <div class="terms-column">
+                    <h3>📊 Resource Limits & Usage</h3>
+                    <ul>
+                        <li><strong>RAM:</strong> 2GB guaranteed allocation</li>
+                        <li><strong>CPU:</strong> 2 vCPU cores with burst capability</li>
+                        <li><strong>Storage:</strong> 50GB SSD with daily monitoring</li>
+                        <li><strong>Bandwidth:</strong> 2TB monthly transfer</li>
+                        <li><strong>Database:</strong> PostgreSQL with optimization</li>
+                        <li><strong>Concurrent Users:</strong> Optimized for up to 500</li>
+                    </ul>
+                    
+                    <h3>🛡️ Security & Compliance</h3>
+                    <ul>
+                        <li><strong>SSL Certificate:</strong> Let's Encrypt auto-renewal</li>
+                        <li><strong>Firewall:</strong> Configured and maintained</li>
+                        <li><strong>Updates:</strong> Security patches applied promptly</li>
+                        <li><strong>Data Protection:</strong> Kenya Data Protection Act compliant</li>
+                        <li><strong>Access Control:</strong> SSH key-based authentication</li>
+                        <li><strong>Monitoring:</strong> 24/7 automated system monitoring</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div style="background: #f1f5f9; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #22c55e;">
+                <h3 style="color: #22c55e; margin-bottom: 1rem;">🚀 Included Services</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <p><strong>✅ Server Management:</strong></p>
+                        <ul style="margin-left: 1rem; color: #666;">
+                            <li>OS updates and security patches</li>
+                            <li>Django application deployment</li>
+                            <li>Database optimization and maintenance</li>
+                            <li>Redis configuration and monitoring</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p><strong>✅ Support Services:</strong></p>
+                        <ul style="margin-left: 1rem; color: #666;">
+                            <li>Technical support via email</li>
+                            <li>Performance optimization assistance</li>
+                            <li>Troubleshooting and issue resolution</li>
+                            <li>Monthly performance reports</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="background: #fef3c7; padding: 1.5rem; border-radius: 8px; margin-top: 2rem; border: 1px solid #f59e0b;">
+                <h3 style="color: #92400e; margin-bottom: 1rem;">⚠️ Important Terms</h3>
+                <ul style="color: #92400e;">
+                    <li><strong>Cancellation:</strong> 30-day written notice required</li>
+                    <li><strong>Data Migration:</strong> Client responsible for data export upon cancellation</li>
+                    <li><strong>Service Suspension:</strong> May occur for non-payment after 15 days past due</li>
+                    <li><strong>Liability:</strong> Limited to monthly service fee amount</li>
+                    <li><strong>Acceptable Use:</strong> Compliance with Kenyan laws and regulations required</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center; margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                <p><strong>Questions about your hosting service?</strong></p>
+                <p>📧 Email: info@ayubsoft-inc.systems | 📱 WhatsApp: +254 113 364 472</p>
+                <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">
+                    By using our services, you agree to these terms and conditions.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Ayubsoft Inc</strong> | Professional Software Development & VPS Hosting Solutions</p>
+            <p>🌐 https://ayubsoft-inc.systems | Thank you for choosing our hosting services!</p>
+        </div>
+    </div>
+</body>
+</html>
