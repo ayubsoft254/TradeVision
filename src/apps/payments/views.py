@@ -44,7 +44,11 @@ class DepositView(LoginRequiredMixin, TemplateView):
         
         # Get available payment methods for user's country
         # Fix: SQLite does not support contains lookup for JSONField
-        payment_methods = [m for m in PaymentMethod.objects.filter(is_active=True).order_by('name') if user.country.code in m.countries]
+        if user.country and user.country.code:
+            payment_methods = [m for m in PaymentMethod.objects.filter(is_active=True).order_by('name') if user.country.code in m.countries]
+        else:
+            # If user has no country set, show all payment methods
+            payment_methods = list(PaymentMethod.objects.filter(is_active=True).order_by('name'))
         
         # Get recent deposits
         recent_deposits = Transaction.objects.filter(
@@ -124,9 +128,9 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
         if method_name == 'binance_pay':
             return BinancePayForm()
         elif method_name == 'p2p':
-            return P2PForm(transaction_type='deposit')
+            return P2PForm(transaction_type='deposit', user=self.request.user)
         elif method_name == 'agent':
-            return AgentTransactionForm(transaction_type='deposit')
+            return AgentTransactionForm(transaction_type='deposit', user=self.request.user)
         elif method_name == 'mobile_money':
             from .forms import MobileMoneyForm
             return MobileMoneyForm()
@@ -162,11 +166,15 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
         
         # Fix: SQLite does not support contains lookup for JSONField
         try:
-            payment_method = next(
-                m for m in PaymentMethod.objects.filter(name=method_name, is_active=True)
-                if request.user.country.code in m.countries
-            )
-        except StopIteration:
+            if request.user.country and request.user.country.code:
+                payment_method = next(
+                    m for m in PaymentMethod.objects.filter(name=method_name, is_active=True)
+                    if request.user.country.code in m.countries
+                )
+            else:
+                # If user has no country, allow any active payment method
+                payment_method = PaymentMethod.objects.get(name=method_name, is_active=True)
+        except (StopIteration, PaymentMethod.DoesNotExist):
             messages.error(request, 'Invalid payment method selected.')
             return redirect('payments:deposit')
         
@@ -174,9 +182,9 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
         if method_name == 'binance_pay':
             form = BinancePayForm(request.POST, request.FILES)
         elif method_name == 'p2p':
-            form = P2PForm(request.POST, request.FILES, transaction_type='deposit')
+            form = P2PForm(request.POST, request.FILES, transaction_type='deposit', user=request.user)
         elif method_name == 'agent':
-            form = AgentTransactionForm(request.POST, request.FILES, transaction_type='deposit')
+            form = AgentTransactionForm(request.POST, request.FILES, transaction_type='deposit', user=request.user)
         elif method_name == 'mobile_money':
             from .forms import MobileMoneyForm
             form = MobileMoneyForm(request.POST, request.FILES)

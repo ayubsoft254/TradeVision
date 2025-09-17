@@ -217,25 +217,36 @@ class P2PForm(BasePaymentForm):
                 # Fallback - adjust based on your user model
                 country_code = getattr(self.user, 'country_code', None) or 'KE'
             
-            # Filter merchants by user's country
-            self.fields['merchant'].queryset = P2PMerchant.objects.filter(
-                is_active=True,
-                is_verified=True,
-                country=country_code
-            ).order_by('-rating')
-            
-            # Get available payment methods for the user's country
-            available_methods = PaymentMethod.objects.filter(
-                is_active=True,
-                countries__icontains=f'"{country_code}"'
-            ).order_by('display_name')
-            
-            self.fields['payment_method'].queryset = available_methods
-            
-            # Update help text with country info
-            country_name = dict(P2PMerchant.COUNTRY_CHOICES).get(country_code, country_code)
-            self.fields['merchant'].help_text = f'Verified P2P merchants available in {country_name}'
-            self.fields['payment_method'].help_text = f'Payment methods available in {country_name}'
+            # Only proceed if we have a valid country code
+            if country_code:
+                # Filter merchants by user's country
+                self.fields['merchant'].queryset = P2PMerchant.objects.filter(
+                    is_active=True,
+                    is_verified=True,
+                    country=country_code
+                ).order_by('-rating')
+                
+                # Get available payment methods for the user's country
+                # Filter payment methods that include the user's country in their countries list
+                available_methods = []
+                for method in PaymentMethod.objects.filter(is_active=True):
+                    if country_code in method.countries:
+                        available_methods.append(method)
+                
+                self.fields['payment_method'].queryset = PaymentMethod.objects.filter(
+                    id__in=[m.id for m in available_methods]
+                ).order_by('display_name')
+                
+                # Update help text with country info
+                country_name = dict(P2PMerchant.COUNTRY_CHOICES).get(country_code, country_code)
+                self.fields['merchant'].help_text = f'Verified P2P merchants available in {country_name}'
+                self.fields['payment_method'].help_text = f'Payment methods available in {country_name}'
+            else:
+                # No country set - show empty querysets with helpful message
+                self.fields['merchant'].queryset = P2PMerchant.objects.none()
+                self.fields['payment_method'].queryset = PaymentMethod.objects.none()
+                self.fields['merchant'].help_text = 'Please update your country in profile settings to see available merchants'
+                self.fields['payment_method'].help_text = 'Please update your country in profile settings to see payment methods'
         
         if self.transaction_type == 'withdrawal':
             self.fields['account_details'].label = 'Recipient Account Details'
