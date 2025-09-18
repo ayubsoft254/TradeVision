@@ -54,4 +54,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD /app/scripts/healthcheck.sh
 
 # Default command
-CMD ["/app/scripts/entrypoint.sh"]
+CMD ["/scripts/entrypoint.sh"]
