@@ -36,9 +36,7 @@ COPY . /app/
 
 # Create necessary directories and set permissions
 RUN mkdir -p /app/staticfiles /app/media /app/logs \
-    && chmod +x /app/scripts/wait-for-it.sh \
-    && chmod +x /app/scripts/entrypoint.sh \
-    && chmod +x /app/scripts/healthcheck.sh \
+    && find /app/scripts -name "*.sh" -exec chmod +x {} \; \
     && chown -R appuser:appuser /app
 
 # Switch to non-root user
