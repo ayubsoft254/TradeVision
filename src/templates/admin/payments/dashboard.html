@@ -1,0 +1,283 @@
+{% extends "admin/base_site.html" %}
+{% load admin_urls static admin_list %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1>💰 Payments Management Dashboard</h1>
+    <p class="dashboard-description">
+        Centralized control panel for processing deposits, withdrawals, and monitoring payment activities.
+    </p>
+
+    <!-- Quick Stats Cards -->
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 30px 0;">
+        
+        <!-- Pending Deposits Card -->
+        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);">
+            <h3 style="margin: 0 0 10px 0; font-size: 18px;">🔄 Pending Deposits</h3>
+            <div style="font-size: 32px; font-weight: bold; margin: 10px 0;">{{ pending_deposits_count }}</div>
+            <div style="font-size: 14px; opacity: 0.9;">
+                Today: {{ today_deposits.count|default:0 }} deposits<br>
+                Total: {{ today_deposits.total|default:0|floatformat:2 }} USDT
+            </div>
+            <a href="{{ deposit_admin_url }}?transaction__status=pending" 
+               style="display: inline-block; margin-top: 15px; padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 6px; font-size: 14px;">
+                Process Now →
+            </a>
+        </div>
+
+        <!-- Pending Withdrawals Card -->
+        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);">
+            <h3 style="margin: 0 0 10px 0; font-size: 18px;">💸 Pending Withdrawals</h3>
+            <div style="font-size: 32px; font-weight: bold; margin: 10px 0;">{{ pending_withdrawals_count }}</div>
+            <div style="font-size: 14px; opacity: 0.9;">
+                OTP Pending: {{ otp_pending_count }}<br>
+                Total: {{ today_withdrawals.total|default:0|floatformat:2 }} USDT
+            </div>
+            <a href="{{ withdrawal_admin_url }}?transaction__status=pending" 
+               style="display: inline-block; margin-top: 15px; padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 6px; font-size: 14px;">
+                Process Now →
+            </a>
+        </div>
+
+        <!-- Platform Balance Card -->
+        <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(250, 112, 154, 0.4);">
+            <h3 style="margin: 0 0 10px 0; font-size: 18px;">📊 Platform Balance</h3>
+            <div style="font-size: 24px; font-weight: bold; margin: 10px 0;">{{ total_balance.balance|default:0|floatformat:2 }} USDT</div>
+            <div style="font-size: 14px; opacity: 0.9;">
+                Profit Balance: {{ total_balance.profit_balance|default:0|floatformat:2 }}<br>
+                Locked: {{ total_balance.locked_balance|default:0|floatformat:2 }}
+            </div>
+        </div>
+
+        <!-- Weekly Activity Card -->
+        <div class="stat-card" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(168, 237, 234, 0.4);">
+            <h3 style="margin: 0 0 10px 0; font-size: 18px;">📈 Weekly Activity</h3>
+            <div style="font-size: 16px; margin: 10px 0;">
+                <strong>Deposits:</strong> {{ week_deposits.count|default:0 }}<br>
+                <strong>Withdrawals:</strong> {{ week_withdrawals.count|default:0 }}
+            </div>
+            <div style="font-size: 14px; color: #666;">
+                Volume: {{ week_deposits.total|default:0|floatformat:2 }} USDT
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Actions Section -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 40px 0;">
+        
+        <!-- Pending Deposits -->
+        <div class="pending-section">
+            <h2 style="color: #e91e63; border-bottom: 2px solid #e91e63; padding-bottom: 10px;">
+                🔄 Pending Deposits ({{ pending_deposits_count }})
+            </h2>
+            {% if pending_deposits %}
+                <div class="pending-list" style="background: #f8f9fa; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                    {% for deposit in pending_deposits %}
+                    <div class="pending-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 10px; background: white; border-radius: 6px; border-left: 4px solid #e91e63;">
+                        <div>
+                            <strong>{{ deposit.transaction.user.email }}</strong><br>
+                            <span style="color: #666; font-size: 14px;">{{ deposit.transaction.amount }} {{ deposit.transaction.currency }}</span><br>
+                            <span style="color: #999; font-size: 12px;">{{ deposit.transaction.created_at|timesince }} ago</span>
+                        </div>
+                        <div>
+                            {% if deposit.payment_proof %}
+                                <span style="color: green; font-size: 12px;">✓ Proof</span><br>
+                            {% endif %}
+                            <a href="/admin/payments/depositrequest/{{ deposit.id }}/change/" 
+                               style="color: #e91e63; text-decoration: none; font-size: 12px; font-weight: bold;">
+                                Review →
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if pending_deposits_count > 10 %}
+                    <div style="text-align: center; margin-top: 15px;">
+                        <a href="{{ deposit_admin_url }}?transaction__status=pending" 
+                           style="color: #e91e63; font-weight: bold;">
+                            View All {{ pending_deposits_count }} Pending Deposits →
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p style="color: #666; font-style: italic; margin-top: 15px;">No pending deposits! 🎉</p>
+            {% endif %}
+        </div>
+
+        <!-- Pending Withdrawals -->
+        <div class="pending-section">
+            <h2 style="color: #2196f3; border-bottom: 2px solid #2196f3; padding-bottom: 10px;">
+                💸 Pending Withdrawals ({{ pending_withdrawals_count }})
+            </h2>
+            {% if pending_withdrawals %}
+                <div class="pending-list" style="background: #f8f9fa; border-radius: 8px; padding: 15px; margin-top: 15px;">
+                    {% for withdrawal in pending_withdrawals %}
+                    <div class="pending-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 10px; background: white; border-radius: 6px; border-left: 4px solid #2196f3;">
+                        <div>
+                            <strong>{{ withdrawal.transaction.user.email }}</strong><br>
+                            <span style="color: #666; font-size: 14px;">{{ withdrawal.transaction.amount }} {{ withdrawal.transaction.currency }}</span><br>
+                            <span style="color: #999; font-size: 12px;">{{ withdrawal.transaction.created_at|timesince }} ago</span>
+                        </div>
+                        <div>
+                            {% if withdrawal.otp_verified %}
+                                <span style="color: green; font-size: 12px;">✓ OTP</span><br>
+                            {% else %}
+                                <span style="color: orange; font-size: 12px;">⏳ OTP</span><br>
+                            {% endif %}
+                            <a href="/admin/payments/withdrawalrequest/{{ withdrawal.id }}/change/" 
+                               style="color: #2196f3; text-decoration: none; font-size: 12px; font-weight: bold;">
+                                Review →
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% if pending_withdrawals_count > 10 %}
+                    <div style="text-align: center; margin-top: 15px;">
+                        <a href="{{ withdrawal_admin_url }}?transaction__status=pending" 
+                           style="color: #2196f3; font-weight: bold;">
+                            View All {{ pending_withdrawals_count }} Pending Withdrawals →
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p style="color: #666; font-style: italic; margin-top: 15px;">No pending withdrawals! 🎉</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- High Value Transactions Alert -->
+    {% if high_value_deposits or high_value_withdrawals %}
+    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 30px 0;">
+        <h3 style="color: #856404; margin: 0 0 15px 0;">⚠️ High Value Transactions Requiring Attention</h3>
+        
+        {% if high_value_deposits %}
+        <div style="margin-bottom: 15px;">
+            <strong style="color: #e91e63;">High Value Deposits (≥1000 USDT):</strong>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+                {% for deposit in high_value_deposits %}
+                <li style="margin-bottom: 5px;">
+                    <a href="/admin/payments/depositrequest/{{ deposit.id }}/change/" style="color: #856404;">
+                        {{ deposit.transaction.user.email }} - {{ deposit.transaction.amount }} {{ deposit.transaction.currency }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        {% if high_value_withdrawals %}
+        <div>
+            <strong style="color: #2196f3;">High Value Withdrawals (≥1000 USDT):</strong>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+                {% for withdrawal in high_value_withdrawals %}
+                <li style="margin-bottom: 5px;">
+                    <a href="/admin/payments/withdrawalrequest/{{ withdrawal.id }}/change/" style="color: #856404;">
+                        {{ withdrawal.transaction.user.email }} - {{ withdrawal.transaction.amount }} {{ withdrawal.transaction.currency }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div style="background: #e8f4fd; border: 1px solid #b3d9ff; border-radius: 8px; padding: 20px; margin: 30px 0;">
+        <h3 style="color: #1976d2; margin: 0 0 15px 0;">🚀 Quick Actions</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <a href="{{ deposit_admin_url }}?transaction__status=pending" 
+               style="display: block; padding: 15px; background: #e91e63; color: white; text-decoration: none; border-radius: 6px; text-align: center; font-weight: bold;">
+                Process Pending Deposits
+            </a>
+            <a href="{{ withdrawal_admin_url }}?transaction__status=pending" 
+               style="display: block; padding: 15px; background: #2196f3; color: white; text-decoration: none; border-radius: 6px; text-align: center; font-weight: bold;">
+                Process Pending Withdrawals
+            </a>
+            <a href="{{ withdrawal_admin_url }}?otp_verified=0" 
+               style="display: block; padding: 15px; background: #ff9800; color: white; text-decoration: none; border-radius: 6px; text-align: center; font-weight: bold;">
+                OTP Verification Queue
+            </a>
+            <a href="{{ transaction_admin_url }}?status=failed" 
+               style="display: block; padding: 15px; background: #f44336; color: white; text-decoration: none; border-radius: 6px; text-align: center; font-weight: bold;">
+                Review Failed Transactions
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Failed Transactions -->
+    {% if failed_transactions %}
+    <div style="background: #ffebee; border: 1px solid #ffcdd2; border-radius: 8px; padding: 20px; margin: 30px 0;">
+        <h3 style="color: #d32f2f; margin: 0 0 15px 0;">❌ Recent Failed Transactions (Last 7 Days)</h3>
+        <div style="background: white; border-radius: 6px; padding: 15px;">
+            {% for transaction in failed_transactions %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f5f5f5;">
+                <div>
+                    <strong>{{ transaction.user.email }}</strong> - 
+                    {{ transaction.transaction_type|title }}: {{ transaction.amount }} {{ transaction.currency }}
+                </div>
+                <div style="font-size: 12px; color: #666;">
+                    {{ transaction.created_at|date:"M d, H:i" }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<style>
+.dashboard {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.dashboard-description {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.stats-grid {
+    margin-bottom: 40px;
+}
+
+.stat-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.pending-item {
+    transition: transform 0.1s ease;
+}
+
+.pending-item:hover {
+    transform: translateX(3px);
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+{% endblock %}

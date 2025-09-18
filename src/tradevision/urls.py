@@ -2,9 +2,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from apps.payments.admin_views import payments_dashboard
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('admin/payments-dashboard/', payments_dashboard, name='admin_payments_dashboard'),
     path('accounts/', include('allauth.urls')),
     path('', include('apps.core.urls')),
     path('dashboard/', include('apps.trading.urls')),

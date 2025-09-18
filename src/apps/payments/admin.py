@@ -1,7 +1,7 @@
 # apps/payments/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
-from django.urls import reverse
+from django.urls import reverse, path
 from django.utils.safestring import mark_safe
 from django.conf import settings
 from django import forms
@@ -9,6 +9,22 @@ from .models import (
     PaymentMethod, Wallet, Transaction, DepositRequest, 
     WithdrawalRequest, Agent, P2PMerchant
 )
+from .admin_views import payments_dashboard
+
+
+class PaymentsAdminSite(admin.AdminSite):
+    """Custom admin site with payments dashboard"""
+    
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('payments-dashboard/', payments_dashboard, name='payments_dashboard'),
+        ]
+        return custom_urls + urls
+
+
+# Use the custom admin site
+payments_admin_site = PaymentsAdminSite(name='payments_admin')
 
 # Custom admin forms for enhanced currency selection
 class PaymentMethodAdminForm(forms.ModelForm):
@@ -534,7 +550,7 @@ class TransactionAdmin(admin.ModelAdmin):
         }),
     )
     
-    actions = ['mark_as_completed', 'mark_as_failed']
+    actions = ['mark_as_completed', 'mark_as_failed', 'mark_as_processing', 'bulk_approve_transactions']
     
     def amount_display(self, obj):
         currency_formats = {
@@ -567,6 +583,90 @@ class TransactionAdmin(admin.ModelAdmin):
         self.message_user(request, f'{updated} transactions marked as failed.')
     mark_as_failed.short_description = 'Mark selected transactions as failed'
     
+    def mark_as_processing(self, request, queryset):
+        """Mark selected transactions as processing"""
+        updated = queryset.update(status='processing')
+        self.message_user(request, f'{updated} transactions marked as processing.')
+    mark_as_processing.short_description = '🔄 Mark as processing'
+    
+    def bulk_approve_transactions(self, request, queryset):
+        """Bulk approve transactions and update related wallets"""
+        from django.utils import timezone
+        from django.db import transaction
+        
+        approved_count = 0
+        failed_count = 0
+        
+        for trans in queryset.filter(status__in=['pending', 'processing']):
+            try:
+                with transaction.atomic():
+                    # Update transaction status
+                    trans.status = 'completed'
+                    trans.completed_at = timezone.now()
+                    trans.save()
+                    
+                    # Handle different transaction types
+                    if trans.transaction_type == 'deposit':
+                        # Add to balance
+                        wallet = trans.user.wallet
+                        wallet.balance += trans.net_amount
+                        wallet.save()
+                        
+                        # Log the deposit
+                        from apps.core.models import SystemLog
+                        SystemLog.objects.create(
+                            user=trans.user,
+                            action_type='deposit',
+                            level='INFO',
+                            message=f'Deposit approved via bulk action: {trans.amount} {trans.currency}',
+                            ip_address=request.META.get('REMOTE_ADDR'),
+                            metadata={
+                                'transaction_id': str(trans.id),
+                                'bulk_approved_by': request.user.username
+                            }
+                        )
+                        
+                    elif trans.transaction_type == 'withdrawal':
+                        # Deduct from profit balance
+                        wallet = trans.user.wallet
+                        if wallet.profit_balance >= trans.amount:
+                            wallet.profit_balance -= trans.amount
+                            wallet.save()
+                            
+                            # Log the withdrawal
+                            from apps.core.models import SystemLog
+                            SystemLog.objects.create(
+                                user=trans.user,
+                                action_type='withdrawal',
+                                level='INFO',
+                                message=f'Withdrawal approved via bulk action: {trans.amount} {trans.currency}',
+                                ip_address=request.META.get('REMOTE_ADDR'),
+                                metadata={
+                                    'transaction_id': str(trans.id),
+                                    'bulk_approved_by': request.user.username
+                                }
+                            )
+                        else:
+                            # Insufficient balance - mark as failed
+                            trans.status = 'failed'
+                            trans.save()
+                            failed_count += 1
+                            continue
+                    
+                    approved_count += 1
+                    
+            except Exception as e:
+                failed_count += 1
+                # Optionally log the error
+                pass
+        
+        if approved_count > 0:
+            self.message_user(request, f'{approved_count} transactions approved successfully.', level='SUCCESS')
+        if failed_count > 0:
+            self.message_user(request, f'{failed_count} transactions failed to approve.', level='ERROR')
+    
+    bulk_approve_transactions.short_description = '✅ Bulk approve transactions'
+    
     class Media:
         css = {
             'all': ('admin/css/custom_admin.css',)
@@ -574,10 +674,10 @@ class TransactionAdmin(admin.ModelAdmin):
 
 @admin.register(DepositRequest)
 class DepositRequestAdmin(admin.ModelAdmin):
-    list_display = ['id', 'get_user', 'get_amount', 'get_status', 'payment_proof_link', 'processed_by', 'created_at']
+    list_display = ['id', 'get_user', 'get_amount', 'get_status', 'payment_proof_link', 'processed_by', 'created_at', 'dashboard_link']
     list_filter = ['transaction__status', 'processed_by', 'transaction__created_at']
     search_fields = ['transaction__user__email', 'transaction__external_reference']
-    readonly_fields = ['id', 'get_transaction_link', 'payment_proof_preview']
+    readonly_fields = ['id', 'get_transaction_link', 'payment_proof_preview', 'dashboard_link']
     date_hierarchy = 'transaction__created_at'
     
     fieldsets = (
@@ -587,10 +687,30 @@ class DepositRequestAdmin(admin.ModelAdmin):
         ('Payment Proof', {
             'fields': ('payment_proof', 'payment_proof_preview')
         }),
-        ('Processing', {
-            'fields': ('admin_notes', 'processed_by', 'processed_at')
+        ('Processing Information', {
+            'fields': ('admin_notes', 'processed_by', 'processed_at'),
+            'description': 'Use the actions dropdown above to approve, reject, or mark as processing.'
+        }),
+        ('Quick Actions Help', {
+            'fields': (),
+            'description': '''
+            <div style="background: #e8f4fd; padding: 15px; border-radius: 8px; border-left: 4px solid #1976d2;">
+                <strong>🚀 Quick Processing Actions:</strong><br>
+                • <strong>Approve Deposits:</strong> Instantly approve valid deposit requests and credit user wallets<br>
+                • <strong>Reject Deposits:</strong> Reject invalid or suspicious deposits<br>
+                • <strong>Mark as Processing:</strong> Move requests to processing status for review<br><br>
+                
+                <strong>⚠️ Before Approving:</strong><br>
+                1. Verify payment proof image<br>
+                2. Check payment details match the transaction<br>
+                3. Confirm transaction amount is correct<br>
+                4. Ensure user details are verified
+            </div>
+            '''
         }),
     )
+    
+    actions = ['approve_deposits', 'reject_deposits', 'mark_as_processing']
     
     def get_user(self, obj):
         return obj.transaction.user
@@ -655,6 +775,137 @@ class DepositRequestAdmin(admin.ModelAdmin):
         return obj.transaction.created_at
     created_at.short_description = 'Created'
     created_at.admin_order_field = 'transaction__created_at'
+    
+    def approve_deposits(self, request, queryset):
+        """Manually approve selected deposit requests"""
+        from django.utils import timezone
+        from django.db import transaction
+        from decimal import Decimal
+        
+        approved_count = 0
+        failed_count = 0
+        
+        for deposit_request in queryset:
+            try:
+                with transaction.atomic():
+                    # Check if already processed
+                    if deposit_request.transaction.status == 'completed':
+                        continue
+                    
+                    # Update transaction status
+                    deposit_request.transaction.status = 'completed'
+                    deposit_request.transaction.completed_at = timezone.now()
+                    deposit_request.transaction.save()
+                    
+                    # Update deposit request
+                    deposit_request.processed_by = request.user
+                    deposit_request.processed_at = timezone.now()
+                    deposit_request.admin_notes += f"\nApproved by {request.user.username} on {timezone.now()}"
+                    deposit_request.save()
+                    
+                    # Update user wallet
+                    user = deposit_request.transaction.user
+                    wallet = user.wallet
+                    wallet.balance += deposit_request.transaction.net_amount
+                    wallet.save()
+                    
+                    # Log the approval
+                    from apps.core.models import SystemLog
+                    SystemLog.objects.create(
+                        user=user,
+                        action_type='deposit',
+                        level='INFO',
+                        message=f'Deposit approved by admin: {deposit_request.transaction.amount} {deposit_request.transaction.currency}',
+                        ip_address=request.META.get('REMOTE_ADDR'),
+                        metadata={
+                            'transaction_id': str(deposit_request.transaction.id),
+                            'approved_by': request.user.username,
+                            'admin_approval': True
+                        }
+                    )
+                    
+                    approved_count += 1
+                    
+            except Exception as e:
+                failed_count += 1
+                deposit_request.admin_notes += f"\nFailed to approve: {str(e)}"
+                deposit_request.save()
+        
+        if approved_count > 0:
+            self.message_user(request, f'{approved_count} deposits approved successfully.', level='SUCCESS')
+        if failed_count > 0:
+            self.message_user(request, f'{failed_count} deposits failed to approve.', level='ERROR')
+    
+    approve_deposits.short_description = '✅ Approve selected deposits'
+    
+    def reject_deposits(self, request, queryset):
+        """Manually reject selected deposit requests"""
+        from django.utils import timezone
+        
+        rejected_count = 0
+        
+        for deposit_request in queryset:
+            if deposit_request.transaction.status not in ['completed']:
+                # Update transaction status
+                deposit_request.transaction.status = 'failed'
+                deposit_request.transaction.save()
+                
+                # Update deposit request
+                deposit_request.processed_by = request.user
+                deposit_request.processed_at = timezone.now()
+                deposit_request.admin_notes += f"\nRejected by {request.user.username} on {timezone.now()}"
+                deposit_request.save()
+                
+                # Log the rejection
+                from apps.core.models import SystemLog
+                SystemLog.objects.create(
+                    user=deposit_request.transaction.user,
+                    action_type='deposit',
+                    level='WARNING',
+                    message=f'Deposit rejected by admin: {deposit_request.transaction.amount} {deposit_request.transaction.currency}',
+                    ip_address=request.META.get('REMOTE_ADDR'),
+                    metadata={
+                        'transaction_id': str(deposit_request.transaction.id),
+                        'rejected_by': request.user.username,
+                        'admin_rejection': True
+                    }
+                )
+                
+                rejected_count += 1
+        
+        if rejected_count > 0:
+            self.message_user(request, f'{rejected_count} deposits rejected.', level='WARNING')
+    
+    reject_deposits.short_description = '❌ Reject selected deposits'
+    
+    def mark_as_processing(self, request, queryset):
+        """Mark selected deposits as processing"""
+        from django.utils import timezone
+        
+        updated_count = 0
+        
+        for deposit_request in queryset:
+            if deposit_request.transaction.status == 'pending':
+                deposit_request.transaction.status = 'processing'
+                deposit_request.transaction.save()
+                
+                deposit_request.processed_by = request.user
+                deposit_request.processed_at = timezone.now()
+                deposit_request.admin_notes += f"\nMarked as processing by {request.user.username} on {timezone.now()}"
+                deposit_request.save()
+                
+                updated_count += 1
+        
+        if updated_count > 0:
+            self.message_user(request, f'{updated_count} deposits marked as processing.')
+    
+    mark_as_processing.short_description = '🔄 Mark as processing'
+    
+    def dashboard_link(self, obj=None):
+        return format_html(
+            '<a href="/admin/payments-dashboard/" target="_blank" style="color: #1976d2; font-weight: bold;">📊 Payments Dashboard</a>'
+        )
+    dashboard_link.short_description = 'Quick Access'
 
 @admin.register(WithdrawalRequest)
 class WithdrawalRequestAdmin(admin.ModelAdmin):
@@ -668,15 +919,35 @@ class WithdrawalRequestAdmin(admin.ModelAdmin):
         ('Request Details', {
             'fields': ('id', 'get_transaction_link', 'withdrawal_address', 'withdrawal_address_display')
         }),
-        ('Verification', {
-            'fields': ('otp_verified',)
+        ('Verification Status', {
+            'fields': ('otp_verified',),
+            'description': 'OTP verification is required before approval.'
         }),
-        ('Processing', {
-            'fields': ('admin_notes', 'processed_by', 'processed_at')
+        ('Processing Information', {
+            'fields': ('admin_notes', 'processed_by', 'processed_at'),
+            'description': 'Use the actions dropdown above to approve, reject, or mark as processing.'
+        }),
+        ('Quick Actions Help', {
+            'fields': (),
+            'description': '''
+            <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
+                <strong>💰 Withdrawal Processing Actions:</strong><br>
+                • <strong>Approve Withdrawals:</strong> Process valid withdrawal requests and deduct from profit balance<br>
+                • <strong>Reject Withdrawals:</strong> Reject invalid or suspicious withdrawals<br>
+                • <strong>Mark OTP Verified:</strong> Verify OTP for eligible requests<br>
+                • <strong>Mark as Processing:</strong> Move requests to processing status<br><br>
+                
+                <strong>⚠️ Before Approving:</strong><br>
+                1. Ensure OTP is verified<br>
+                2. Check user has sufficient profit balance<br>
+                3. Verify withdrawal address details<br>
+                4. Confirm transaction amount is within limits
+            </div>
+            '''
         }),
     )
     
-    actions = ['mark_otp_verified']
+    actions = ['approve_withdrawals', 'reject_withdrawals', 'mark_otp_verified', 'mark_as_processing']
     
     def get_user(self, obj):
         return obj.transaction.user
@@ -741,6 +1012,148 @@ class WithdrawalRequestAdmin(admin.ModelAdmin):
         updated = queryset.update(otp_verified=True)
         self.message_user(request, f'{updated} withdrawal requests marked as OTP verified.')
     mark_otp_verified.short_description = 'Mark as OTP verified'
+    
+    def approve_withdrawals(self, request, queryset):
+        """Manually approve selected withdrawal requests"""
+        from django.utils import timezone
+        from django.db import transaction
+        from decimal import Decimal
+        
+        approved_count = 0
+        failed_count = 0
+        
+        for withdrawal_request in queryset:
+            try:
+                with transaction.atomic():
+                    # Check if already processed
+                    if withdrawal_request.transaction.status == 'completed':
+                        continue
+                    
+                    # Check if OTP is verified
+                    if not withdrawal_request.otp_verified:
+                        failed_count += 1
+                        withdrawal_request.admin_notes += f"\nFailed to approve: OTP not verified"
+                        withdrawal_request.save()
+                        continue
+                    
+                    # Check if user has sufficient balance
+                    user = withdrawal_request.transaction.user
+                    wallet = user.wallet
+                    
+                    # For withdrawals, check profit_balance
+                    if wallet.profit_balance < withdrawal_request.transaction.amount:
+                        failed_count += 1
+                        withdrawal_request.admin_notes += f"\nFailed to approve: Insufficient profit balance"
+                        withdrawal_request.save()
+                        continue
+                    
+                    # Update transaction status
+                    withdrawal_request.transaction.status = 'completed'
+                    withdrawal_request.transaction.completed_at = timezone.now()
+                    withdrawal_request.transaction.save()
+                    
+                    # Update withdrawal request
+                    withdrawal_request.processed_by = request.user
+                    withdrawal_request.processed_at = timezone.now()
+                    withdrawal_request.admin_notes += f"\nApproved by {request.user.username} on {timezone.now()}"
+                    withdrawal_request.save()
+                    
+                    # Update user wallet - deduct from profit balance
+                    wallet.profit_balance -= withdrawal_request.transaction.amount
+                    wallet.save()
+                    
+                    # Log the approval
+                    from apps.core.models import SystemLog
+                    SystemLog.objects.create(
+                        user=user,
+                        action_type='withdrawal',
+                        level='INFO',
+                        message=f'Withdrawal approved by admin: {withdrawal_request.transaction.amount} {withdrawal_request.transaction.currency}',
+                        ip_address=request.META.get('REMOTE_ADDR'),
+                        metadata={
+                            'transaction_id': str(withdrawal_request.transaction.id),
+                            'approved_by': request.user.username,
+                            'admin_approval': True,
+                            'withdrawal_address': withdrawal_request.withdrawal_address
+                        }
+                    )
+                    
+                    approved_count += 1
+                    
+            except Exception as e:
+                failed_count += 1
+                withdrawal_request.admin_notes += f"\nFailed to approve: {str(e)}"
+                withdrawal_request.save()
+        
+        if approved_count > 0:
+            self.message_user(request, f'{approved_count} withdrawals approved successfully.', level='SUCCESS')
+        if failed_count > 0:
+            self.message_user(request, f'{failed_count} withdrawals failed to approve.', level='ERROR')
+    
+    approve_withdrawals.short_description = '✅ Approve selected withdrawals'
+    
+    def reject_withdrawals(self, request, queryset):
+        """Manually reject selected withdrawal requests"""
+        from django.utils import timezone
+        
+        rejected_count = 0
+        
+        for withdrawal_request in queryset:
+            if withdrawal_request.transaction.status not in ['completed']:
+                # Update transaction status
+                withdrawal_request.transaction.status = 'failed'
+                withdrawal_request.transaction.save()
+                
+                # Update withdrawal request
+                withdrawal_request.processed_by = request.user
+                withdrawal_request.processed_at = timezone.now()
+                withdrawal_request.admin_notes += f"\nRejected by {request.user.username} on {timezone.now()}"
+                withdrawal_request.save()
+                
+                # Log the rejection
+                from apps.core.models import SystemLog
+                SystemLog.objects.create(
+                    user=withdrawal_request.transaction.user,
+                    action_type='withdrawal',
+                    level='WARNING',
+                    message=f'Withdrawal rejected by admin: {withdrawal_request.transaction.amount} {withdrawal_request.transaction.currency}',
+                    ip_address=request.META.get('REMOTE_ADDR'),
+                    metadata={
+                        'transaction_id': str(withdrawal_request.transaction.id),
+                        'rejected_by': request.user.username,
+                        'admin_rejection': True
+                    }
+                )
+                
+                rejected_count += 1
+        
+        if rejected_count > 0:
+            self.message_user(request, f'{rejected_count} withdrawals rejected.', level='WARNING')
+    
+    reject_withdrawals.short_description = '❌ Reject selected withdrawals'
+    
+    def mark_as_processing(self, request, queryset):
+        """Mark selected withdrawals as processing"""
+        from django.utils import timezone
+        
+        updated_count = 0
+        
+        for withdrawal_request in queryset:
+            if withdrawal_request.transaction.status == 'pending':
+                withdrawal_request.transaction.status = 'processing'
+                withdrawal_request.transaction.save()
+                
+                withdrawal_request.processed_by = request.user
+                withdrawal_request.processed_at = timezone.now()
+                withdrawal_request.admin_notes += f"\nMarked as processing by {request.user.username} on {timezone.now()}"
+                withdrawal_request.save()
+                
+                updated_count += 1
+        
+        if updated_count > 0:
+            self.message_user(request, f'{updated_count} withdrawals marked as processing.')
+    
+    mark_as_processing.short_description = '🔄 Mark as processing'
 
 @admin.register(Agent)
 class AgentAdmin(admin.ModelAdmin):
