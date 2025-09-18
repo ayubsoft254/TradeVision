@@ -17,7 +17,12 @@ RUN apt-get update \
         libpq-dev \
         gcc \
         python3-dev \
+        curl \
+        netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user first
+RUN adduser --disabled-password --gecos '' --uid 1000 appuser
 
 # Install Python dependencies
 COPY requirements.txt /app/
@@ -27,23 +32,26 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy project files
 COPY . /app/
 
-# Make wait script executable
-RUN chmod +x /app/wait-for-it.py
+# Create necessary directories
+RUN mkdir -p /app/staticfiles /app/media /app/logs
 
-# Create static and media directories
-RUN mkdir -p /app/staticfiles /app/media
+# Make scripts executable
+RUN chmod +x /app/scripts/wait-for-it.sh \
+    && chmod +x /app/scripts/entrypoint.sh \
+    && chmod +x /app/scripts/healthcheck.sh
 
-# Create a non-root user
-RUN adduser --disabled-password --gecos '' appuser \
-    && chown -R appuser:appuser /app
+# Change ownership to appuser
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
 USER appuser
 
-# Expose port 7373
-EXPOSE 7373
+# Expose port 8000
+EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:7373/health/ || exit 1
+    CMD /app/scripts/healthcheck.sh
 
 # Default command
-CMD ["gunicorn", "tradevision.wsgi:application", "-c", "gunicorn.conf.py"]
+CMD ["/app/scripts/entrypoint.sh"]

@@ -1,101 +1,213 @@
+version: '3.8'
+
 services:
+  # PostgreSQL Database
   db:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: tradevision_db
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     environment:
       POSTGRES_DB: tradevision
       POSTGRES_USER: tradevision
       POSTGRES_PASSWORD: tradevision123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    networks:
+      - tradevision_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tradevision"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U tradevision -d tradevision"]
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # Redis Cache & Message Broker
   redis:
     image: redis:7-alpine
-    ports:
-      - "6380:6379"
+    container_name: tradevision_redis
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - tradevision_network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
+      interval: 10s
       timeout: 3s
-      retries: 5
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # Django Web Application
   web:
     build: .
-    command: >
-      sh -c "
-      python wait-for-it.py db 5432 &&
-      echo 'Running migrations...' &&
-      python manage.py migrate &&
-      echo 'Running django-celery-beat migrations...' &&
-      python manage.py migrate django_celery_beat &&
-      echo 'Collecting static files...' &&
-      python manage.py collectstatic --noinput &&
-      echo 'Starting Gunicorn server...' &&
-      gunicorn tradevision.wsgi:application -c gunicorn.conf.py
-      "
+    container_name: tradevision_web
+    command: /app/scripts/entrypoint.sh web
     volumes:
-      - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+      - logs_volume:/app/logs
     ports:
-      - "7373:7373"
+      - "7373:8000"
     environment:
-      - DEBUG=1
+      - DEBUG=0
       - DJANGO_SETTINGS_MODULE=tradevision.settings
+      - DATABASE_URL=postgresql://tradevision:tradevision123@db:5432/tradevision
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - SECRET_KEY=your-super-secret-key-change-this-in-production
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+      - TIME_ZONE=Africa/Nairobi
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-    env_file:
-      - .env
+    networks:
+      - tradevision_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/app/scripts/healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
 
-  celery:
+  # Celery Worker
+  celery_worker:
     build: .
-    command: >
-      sh -c "
-      python wait-for-it.py db 5432 &&
-      python wait-for-it.py redis 6379 &&
-      echo 'Waiting for web service to complete migrations...' &&
-      sleep 10 &&
-      echo 'Starting Celery worker...' &&
-      celery -A tradevision worker --loglevel=info
-      "
+    container_name: tradevision_celery_worker
+    command: /app/scripts/entrypoint.sh celery-worker
     volumes:
-      - .:/app
+      - logs_volume:/app/logs
     environment:
+      - DEBUG=0
       - DJANGO_SETTINGS_MODULE=tradevision.settings
+      - DATABASE_URL=postgresql://tradevision:tradevision123@db:5432/tradevision
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - SECRET_KEY=your-super-secret-key-change-this-in-production
+      - TIME_ZONE=Africa/Nairobi
     depends_on:
-      - web
-    env_file:
-      - .env
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_started
+    networks:
+      - tradevision_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A tradevision inspect ping -d celery@$(hostname)"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 120s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
 
-  celery-beat:
+  # Celery Beat Scheduler
+  celery_beat:
     build: .
-    command: >
-      sh -c "
-      python wait-for-it.py db 5432 &&
-      python wait-for-it.py redis 6379 &&
-      echo 'Waiting for web service to complete migrations...' &&
-      sleep 15 &&
-      echo 'Starting Celery beat...' &&
-      celery -A tradevision beat --loglevel=info
-      "
+    container_name: tradevision_celery_beat
+    command: /app/scripts/entrypoint.sh celery-beat
     volumes:
-      - .:/app
+      - logs_volume:/app/logs
     environment:
+      - DEBUG=0
       - DJANGO_SETTINGS_MODULE=tradevision.settings
+      - DATABASE_URL=postgresql://tradevision:tradevision123@db:5432/tradevision
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - SECRET_KEY=your-super-secret-key-change-this-in-production
+      - TIME_ZONE=Africa/Nairobi
     depends_on:
-      - web
-    env_file:
-      - .env
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_started
+    networks:
+      - tradevision_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'celery.*beat' > /dev/null"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+  # Flower - Celery Monitoring (Optional)
+  flower:
+    build: .
+    container_name: tradevision_flower
+    command: /app/scripts/entrypoint.sh flower
+    ports:
+      - "5555:5555"
+    environment:
+      - DEBUG=0
+      - DJANGO_SETTINGS_MODULE=tradevision.settings
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - FLOWER_PORT=5555
+      - FLOWER_BASIC_AUTH=admin:flower123
+    depends_on:
+      - redis
+      - celery_worker
+    networks:
+      - tradevision_network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Networks
+networks:
+  tradevision_network:
+    driver: bridge
+    name: tradevision_network
+
+# Volumes
 volumes:
   postgres_data:
+    name: tradevision_postgres_data
+  redis_data:
+    name: tradevision_redis_data
   static_volume:
+    name: tradevision_static_volume
   media_volume:
+    name: tradevision_media_volume
+  logs_volume:
+    name: tradevision_logs_volume
