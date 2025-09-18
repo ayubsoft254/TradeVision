@@ -167,6 +167,54 @@ start_celery_worker() {
         -Q critical,trading,payments,security,maintenance,notifications,default
 }
 
+start_celery_worker_critical() {
+    log_info "Starting Celery worker for critical tasks..."
+    
+    wait_for_services
+    
+    # Wait for web service to complete migrations
+    log_info "Waiting for web service to complete setup..."
+    sleep 45
+    
+    test_connections
+    
+    log_info "Starting critical Celery worker..."
+    exec celery -A tradevision worker \
+        --loglevel=info \
+        --concurrency=1 \
+        --max-tasks-per-child=500 \
+        --time-limit=600 \
+        --soft-time-limit=540 \
+        --logfile="$LOG_DIR/celery-critical.log" \
+        --pidfile="$LOG_DIR/celery-critical.pid" \
+        --hostname=critical@%h \
+        -Q critical,trading
+}
+
+start_celery_worker_general() {
+    log_info "Starting Celery worker for general tasks..."
+    
+    wait_for_services
+    
+    # Wait for web service to complete migrations
+    log_info "Waiting for web service to complete setup..."
+    sleep 60
+    
+    test_connections
+    
+    log_info "Starting general Celery worker..."
+    exec celery -A tradevision worker \
+        --loglevel=info \
+        --concurrency=3 \
+        --max-tasks-per-child=1000 \
+        --time-limit=300 \
+        --soft-time-limit=240 \
+        --logfile="$LOG_DIR/celery-general.log" \
+        --pidfile="$LOG_DIR/celery-general.pid" \
+        --hostname=general@%h \
+        -Q payments,security,maintenance,notifications,default
+}
+
 start_celery_beat() {
     log_info "Starting Celery beat scheduler..."
     
@@ -235,6 +283,12 @@ main() {
     case "$SERVICE_TYPE" in
         "web")
             start_web
+            ;;
+        "celery-worker-critical")
+            start_celery_worker_critical
+            ;;
+        "celery-worker-general")
+            start_celery_worker_general
             ;;
         "celery-worker")
             start_celery_worker

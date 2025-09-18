@@ -8,31 +8,32 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - ./backups:/backups
     environment:
       POSTGRES_DB: tradevision
       POSTGRES_USER: tradevision
-      POSTGRES_PASSWORD: tradevision123
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tradevision123}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     networks:
       - tradevision_network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U tradevision -d tradevision"]
-      interval: 10s
-      timeout: 5s
+      interval: 30s
+      timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 60s
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: "50m"
+        max-file: "5"
 
   # Redis Cache & Message Broker
   redis:
     image: redis:7-alpine
     container_name: tradevision_redis
-    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru ${REDIS_AUTH_CMD}
     volumes:
       - redis_data:/data
     networks:
@@ -40,14 +41,14 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
+      interval: 30s
+      timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 30s
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
+        max-size: "20m"
         max-file: "3"
 
   # Django Web Application
@@ -60,17 +61,21 @@ services:
       - media_volume:/app/media
       - logs_volume:/app/logs
     ports:
-      - "7373:8000"
+      - "7373:8000"  # Keep your existing port mapping
     environment:
-      - DEBUG=0
+      - DEBUG=${DEBUG:-0}
       - DJANGO_SETTINGS_MODULE=tradevision.settings
-      - DATABASE_URL=postgresql://tradevision:tradevision123@db:5432/tradevision
+      - DATABASE_URL=postgresql://tradevision:${DB_PASSWORD:-tradevision123}@db:5432/tradevision
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/1
       - CELERY_RESULT_BACKEND=redis://redis:6379/2
-      - SECRET_KEY=your-super-secret-key-change-this-in-production
-      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-tradevision.uk,www.tradevision.uk,localhost,127.0.0.1}
       - TIME_ZONE=Africa/Nairobi
+      - SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT:-True}
+      - SECURE_PROXY_SSL_HEADER=HTTP_X_FORWARDED_PROTO,https
+      - USE_X_FORWARDED_HOST=True
+      - USE_X_FORWARDED_PORT=True
     depends_on:
       db:
         condition: service_healthy
@@ -80,32 +85,32 @@ services:
       - tradevision_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "/app/scripts/healthcheck.sh"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "/app/scripts/healthcheck.sh", "web"]
+      interval: 60s
+      timeout: 30s
       retries: 3
-      start_period: 40s
+      start_period: 120s
     logging:
       driver: "json-file"
       options:
-        max-size: "20m"
-        max-file: "5"
+        max-size: "100m"
+        max-file: "10"
 
-  # Celery Worker
-  celery_worker:
+  # Celery Worker - Critical Tasks
+  celery_worker_critical:
     build: .
-    container_name: tradevision_celery_worker
-    command: /app/scripts/entrypoint.sh celery-worker
+    container_name: tradevision_celery_critical
+    command: /app/scripts/entrypoint.sh celery-worker-critical
     volumes:
       - logs_volume:/app/logs
     environment:
-      - DEBUG=0
+      - DEBUG=${DEBUG:-0}
       - DJANGO_SETTINGS_MODULE=tradevision.settings
-      - DATABASE_URL=postgresql://tradevision:tradevision123@db:5432/tradevision
+      - DATABASE_URL=postgresql://tradevision:${DB_PASSWORD:-tradevision123}@db:5432/tradevision
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/1
       - CELERY_RESULT_BACKEND=redis://redis:6379/2
-      - SECRET_KEY=your-super-secret-key-change-this-in-production
+      - SECRET_KEY=${SECRET_KEY}
       - TIME_ZONE=Africa/Nairobi
     depends_on:
       db:
@@ -118,15 +123,53 @@ services:
       - tradevision_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "celery -A tradevision inspect ping -d celery@$(hostname)"]
+      test: ["CMD-SHELL", "celery -A tradevision inspect ping -d celery@$(hostname) --timeout=10"]
       interval: 60s
       timeout: 30s
       retries: 3
-      start_period: 120s
+      start_period: 180s
     logging:
       driver: "json-file"
       options:
-        max-size: "20m"
+        max-size: "50m"
+        max-file: "5"
+
+  # Celery Worker - General Tasks
+  celery_worker_general:
+    build: .
+    container_name: tradevision_celery_general
+    command: /app/scripts/entrypoint.sh celery-worker-general
+    volumes:
+      - logs_volume:/app/logs
+    environment:
+      - DEBUG=${DEBUG:-0}
+      - DJANGO_SETTINGS_MODULE=tradevision.settings
+      - DATABASE_URL=postgresql://tradevision:${DB_PASSWORD:-tradevision123}@db:5432/tradevision
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - SECRET_KEY=${SECRET_KEY}
+      - TIME_ZONE=Africa/Nairobi
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_started
+    networks:
+      - tradevision_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A tradevision inspect ping -d celery@$(hostname) --timeout=10"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 180s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
         max-file: "5"
 
   # Celery Beat Scheduler
@@ -137,13 +180,13 @@ services:
     volumes:
       - logs_volume:/app/logs
     environment:
-      - DEBUG=0
+      - DEBUG=${DEBUG:-0}
       - DJANGO_SETTINGS_MODULE=tradevision.settings
-      - DATABASE_URL=postgresql://tradevision:tradevision123@db:5432/tradevision
+      - DATABASE_URL=postgresql://tradevision:${DB_PASSWORD:-tradevision123}@db:5432/tradevision
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/1
       - CELERY_RESULT_BACKEND=redis://redis:6379/2
-      - SECRET_KEY=your-super-secret-key-change-this-in-production
+      - SECRET_KEY=${SECRET_KEY}
       - TIME_ZONE=Africa/Nairobi
     depends_on:
       db:
@@ -160,33 +203,33 @@ services:
       interval: 60s
       timeout: 10s
       retries: 3
-      start_period: 120s
+      start_period: 240s
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: "50m"
+        max-file: "5"
 
-  # Flower - Celery Monitoring (Optional)
+  # Flower - Celery Monitoring (Optional - remove in production)
   flower:
     build: .
     container_name: tradevision_flower
     command: /app/scripts/entrypoint.sh flower
     ports:
-      - "5555:5555"
+      - "5555:5555"  # Only accessible locally
     environment:
-      - DEBUG=0
-      - DJANGO_SETTINGS_MODULE=tradevision.settings
+      - DEBUG=${DEBUG:-0}
       - CELERY_BROKER_URL=redis://redis:6379/1
       - CELERY_RESULT_BACKEND=redis://redis:6379/2
-      - FLOWER_PORT=5555
-      - FLOWER_BASIC_AUTH=admin:flower123
+      - FLOWER_BASIC_AUTH=${FLOWER_AUTH:-admin:flower123}
     depends_on:
       - redis
-      - celery_worker
+      - celery_worker_critical
     networks:
       - tradevision_network
     restart: unless-stopped
+    profiles:
+      - monitoring  # Only start with --profile monitoring
     logging:
       driver: "json-file"
       options:
