@@ -512,20 +512,28 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
         return context
     
     def post(self, request, *args, **kwargs):
+        logger.info(f"Trade initiation POST request received for user {request.user.id}")
+        logger.info(f"POST data: {request.POST}")
+        
         if not self.is_trading_allowed():
+            logger.warning(f"Trade initiation blocked - outside trading hours for user {request.user.id}")
             messages.error(request, 'Trading is only allowed Monday to Friday, 8 AM to 6 PM.')
             return redirect('trading:initiate_trade')
 
         # Get investment ID from form data
         investment_id = request.POST.get('investment')
         confirm_trade = request.POST.get('confirm_trade')
+        
+        logger.info(f"Form data - investment_id: {investment_id}, confirm_trade: {confirm_trade}")
 
         # Validate inputs
         if not investment_id:
+            logger.error(f"No investment selected by user {request.user.id}")
             messages.error(request, 'Please select an investment.')
             return self.render_to_response(self.get_context_data())
 
         if not confirm_trade:
+            logger.error(f"Trade confirmation not provided by user {request.user.id}")
             messages.error(request, 'Please confirm the trade initiation.')
             return self.render_to_response(self.get_context_data())
 
@@ -536,7 +544,9 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
                 user=request.user,
                 status='active'
             )
+            logger.info(f"Found valid investment {investment.id} for user {request.user.id}")
         except Investment.DoesNotExist:
+            logger.error(f"Invalid investment {investment_id} selected by user {request.user.id}")
             messages.error(request, 'Invalid investment selected.')
             return self.render_to_response(self.get_context_data())
 
@@ -547,6 +557,7 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
         ).first()
 
         if existing_trade:
+            logger.warning(f"Trade already exists for investment {investment.id}")
             messages.warning(request, 'There is already an active trade for this investment.')
             return redirect('trading:trades')
 
@@ -554,12 +565,16 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
             # Import the Celery task
             from .tasks import initiate_manual_trade
             
+            logger.info(f"Starting manual trade task for investment {investment.id}")
+            
             # Initiate trade asynchronously
             task_result = initiate_manual_trade.delay(
                 investment_id=investment.id,
                 user_id=request.user.id,
                 ip_address=request.META.get('REMOTE_ADDR')
             )
+            
+            logger.info(f"Trade initiation task started with ID: {task_result.id}")
             
             # Store task ID in session for status checking
             request.session['trade_initiation_task_id'] = task_result.id
@@ -574,7 +589,7 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
             return redirect('trading:trade_initiation_status')
             
         except Exception as e:
-            logger.error(f"Error starting trade initiation task: {str(e)}")
+            logger.error(f"Error starting trade initiation task: {str(e)}", exc_info=True)
             messages.error(request, 'An error occurred while initiating the trade. Please try again.')
             return self.render_to_response(self.get_context_data())
     
