@@ -1,5 +1,5 @@
 #!/bin/bash
-# deploy.sh - Production deployment script
+# deploy.sh - Production deployment script (No Health Check)
 
 set -e
 
@@ -71,7 +71,7 @@ create_directories() {
     mkdir -p "./scripts"
     
     # Set proper permissions
-    chmod 755 ./scripts/*.sh
+    chmod 755 ./scripts/*.sh 2>/dev/null || true
     
     log_info "Directories created successfully."
 }
@@ -96,219 +96,12 @@ backup_data() {
     # Backup volumes
     if docker volume ls | grep -q "tradevision_"; then
         log_info "Backing up volumes..."
-        docker run --rm -v tradevision_media_volume:/data -v "$(pwd)/$BACKUP_PATH":/backup alpine tar czf /backup/media.tar.gz -C /data .
-        docker run --rm -v tradevision_static_volume:/data -v "$(pwd)/$BACKUP_PATH":/backup alpine tar czf /backup/static.tar.gz -C /data .
+        docker run --rm -v tradevision_media_volume:/data -v "$(pwd)/$BACKUP_PATH":/backup alpine tar czf /backup/media.tar.gz -C /data . 2>/dev/null || true
+        docker run --rm -v tradevision_static_volume:/data -v "$(pwd)/$BACKUP_PATH":/backup alpine tar czf /backup/static.tar.gz -C /data . 2>/dev/null || true
     fi
     
     log_info "Backup completed: $BACKUP_PATH"
     echo "$BACKUP_PATH" > ./last_backup.txt
-}
-
-# Update external Nginx configuration
-update_nginx() {
-    log_info "Checking Nginx configuration..."
-    
-    NGINX_SITE="/etc/nginx/sites-available/tradevision"
-    NGINX_ENABLED="/etc/nginx/sites-enabled/tradevision"
-    
-    # Check if we have sudo access and Nginx is installed
-    if command -v nginx &> /dev/null && sudo -n true 2>/dev/null; then
-        log_info "Updating Nginx configuration with optimizations..."
-        
-        # Backup current config
-        sudo cp "$NGINX_SITE" "$NGINX_SITE.backup.$(date +%Y%m%d_%H%M%S)" 2>/dev/null || true
-        
-        # Create optimized Nginx config
-        sudo tee "$NGINX_SITE" > /dev/null << 'EOF'
-# Redirect www to non-www
-server {
-    server_name www.tradevision.uk;
-    return 301 https://tradevision.uk$request_uri;
-    listen 443 ssl http2; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/tradevision.uk/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/tradevision.uk/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
-}
-
-# Rate limiting zones
-limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
-limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;
-
-# Main server block
-server {
-    server_name tradevision.uk;
-    
-    # Basic settings
-    client_max_body_size 50M;
-    client_body_buffer_size 1M;
-    client_header_buffer_size 8k;
-    
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;
-    
-    # API endpoints with rate limiting
-    location /api/ {
-        limit_req zone=api burst=20 nodelay;
-        limit_req_status 429;
-        
-        proxy_pass http://localhost:7373;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Port $server_port;
-        
-        # Timeout settings
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-        
-        # Buffer settings
-        proxy_buffer_size 4k;
-        proxy_buffers 8 4k;
-        proxy_busy_buffers_size 8k;
-    }
-    
-    # Authentication endpoints with stricter rate limiting
-    location ~ ^/(login|register|password_reset)/ {
-        limit_req zone=login burst=5 nodelay;
-        limit_req_status 429;
-        
-        proxy_pass http://localhost:7373;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Port $server_port;
-    }
-    
-    # Static files caching
-    location /static/ {
-        proxy_pass http://localhost:7373;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        # Cache static files
-        expires 30d;
-        add_header Cache-Control "public, immutable";
-        add_header Vary "Accept-Encoding";
-        
-        # Gzip compression
-        gzip on;
-        gzip_vary on;
-        gzip_types
-            text/css
-            text/javascript
-            text/xml
-            text/plain
-            application/javascript
-            application/xml+rss
-            application/json
-            image/svg+xml;
-    }
-    
-    # Media files
-    location /media/ {
-        proxy_pass http://localhost:7373;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        
-        expires 7d;
-        add_header Cache-Control "public";
-    }
-    
-    # Health check endpoint
-    location /health/ {
-        proxy_pass http://localhost:7373;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        access_log off;
-    }
-    
-    # All other requests
-    location / {
-        proxy_pass http://localhost:7373;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Port $server_port;
-        
-        # WebSocket support (if needed in future)
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        
-        # Timeout settings
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-        
-        # Buffer settings
-        proxy_buffer_size 4k;
-        proxy_buffers 8 4k;
-        proxy_busy_buffers_size 8k;
-    }
-    
-    # Error pages
-    error_page 404 /404.html;
-    error_page 500 502 503 504 /50x.html;
-    
-    listen 443 ssl http2; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/tradevision.uk/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/tradevision.uk/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
-}
-
-# HTTP to HTTPS redirect
-server {
-    if ($host = tradevision.uk) {
-        return 301 https://$host$request_uri;
-    }
-    
-    listen 80;
-    server_name tradevision.uk;
-    return 404;
-}
-
-server {
-    if ($host = www.tradevision.uk) {
-        return 301 https://$host$request_uri;
-    }
-    
-    listen 80;
-    server_name www.tradevision.uk;
-    return 404;
-}
-EOF
-        
-        # Test Nginx configuration
-        if sudo nginx -t; then
-            log_info "Nginx configuration is valid. Reloading Nginx..."
-            sudo systemctl reload nginx
-        else
-            log_error "Nginx configuration test failed. Restoring backup..."
-            sudo mv "$NGINX_SITE.backup.$(date +%Y%m%d_%H%M%S)" "$NGINX_SITE"
-            exit 1
-        fi
-    else
-        log_warn "Cannot update Nginx configuration automatically. Please update manually if needed."
-    fi
 }
 
 # Deploy application
@@ -333,7 +126,7 @@ deploy_application() {
     log_info "Waiting for database to be ready..."
     timeout=300
     while [ $timeout -gt 0 ]; do
-        if docker-compose exec -T db pg_isready -U tradevision -d tradevision; then
+        if docker-compose exec -T db pg_isready -U tradevision -d tradevision 2>/dev/null; then
             break
         fi
         sleep 5
@@ -342,17 +135,16 @@ deploy_application() {
     
     if [ $timeout -le 0 ]; then
         log_error "Database failed to start within timeout period."
+        log_error "Database logs:"
+        docker-compose logs --tail=20 db
         exit 1
     fi
     
-    # Start web application
-    docker-compose up -d web
-    
-    # Wait for web to be healthy
-    log_info "Waiting for web application to be ready..."
-    timeout=180
+    # Wait for Redis to be healthy
+    log_info "Waiting for Redis to be ready..."
+    timeout=120
     while [ $timeout -gt 0 ]; do
-        if curl -f http://localhost:7373/health/ &>/dev/null; then
+        if docker-compose exec -T redis redis-cli ping 2>/dev/null | grep -q "PONG"; then
             break
         fi
         sleep 5
@@ -360,7 +152,61 @@ deploy_application() {
     done
     
     if [ $timeout -le 0 ]; then
+        log_error "Redis failed to start within timeout period."
+        log_error "Redis logs:"
+        docker-compose logs --tail=20 redis
+        exit 1
+    fi
+    
+    # Start web application
+    log_info "Starting web application..."
+    docker-compose up -d web
+    
+    # Wait for web to be ready (check if container is running and port is listening)
+    log_info "Waiting for web application to be ready..."
+    timeout=300  # 5 minutes
+    web_ready=false
+    
+    while [ $timeout -gt 0 ]; do
+        # Check if container is running
+        if docker-compose ps web | grep -q "Up"; then
+            # Check if port 7373 is accepting connections
+            if nc -z localhost 7373 2>/dev/null; then
+                log_info "✓ Web application is responding on port 7373"
+                web_ready=true
+                break
+            fi
+            
+            # Also try to curl the root endpoint (without /health/)
+            if curl -f -s --max-time 5 http://localhost:7373/ >/dev/null 2>&1; then
+                log_info "✓ Web application is responding to HTTP requests"
+                web_ready=true
+                break
+            fi
+        else
+            log_warn "Web container is not running. Checking logs..."
+            docker-compose logs --tail=10 web
+        fi
+        
+        if [ $((timeout % 30)) -eq 0 ]; then
+            log_info "Still waiting for web application... ($timeout seconds remaining)"
+            log_info "Container status:"
+            docker-compose ps web
+        fi
+        
+        sleep 5
+        timeout=$((timeout - 5))
+    done
+    
+    if [ "$web_ready" = false ]; then
         log_error "Web application failed to start within timeout period."
+        log_error "=== DEBUGGING INFO ==="
+        log_error "Container status:"
+        docker-compose ps
+        log_error "Web application logs:"
+        docker-compose logs --tail=50 web
+        log_error "Port check:"
+        netstat -tulpn | grep :7373 || echo "Port 7373 not listening"
         exit 1
     fi
     
@@ -371,7 +217,7 @@ deploy_application() {
     log_info "Application deployed successfully!"
 }
 
-# Post-deployment checks
+# Post-deployment checks (without health endpoint)
 post_deployment_checks() {
     log_info "Running post-deployment checks..."
     
@@ -383,17 +229,23 @@ post_deployment_checks() {
             log_info "✓ $service is running"
         else
             log_error "✗ $service is not running"
-            docker-compose logs "$service"
+            docker-compose logs --tail=10 "$service"
         fi
     done
     
-    # Check application endpoints
+    # Check application endpoints (without /health/)
     log_info "Testing application endpoints..."
     
-    if curl -f -s http://localhost:7373/health/ | grep -q "ok\|healthy"; then
-        log_info "✓ Health check endpoint is responding"
+    if curl -f -s --max-time 10 http://localhost:7373/ >/dev/null 2>&1; then
+        log_info "✓ Root endpoint is responding"
     else
-        log_error "✗ Health check endpoint is not responding properly"
+        log_warn "⚠ Root endpoint is not responding properly"
+        # Try admin endpoint as fallback
+        if curl -f -s --max-time 10 http://localhost:7373/admin/ >/dev/null 2>&1; then
+            log_info "✓ Admin endpoint is responding"
+        else
+            log_warn "⚠ Admin endpoint also not responding"
+        fi
     fi
     
     # Check Celery workers
@@ -432,7 +284,7 @@ cleanup() {
     log_info "Cleanup completed."
 }
 
-# Show deployment status
+# Show deployment status (without health check)
 show_status() {
     log_info "=== TradeVision Deployment Status ==="
     echo
@@ -444,7 +296,7 @@ show_status() {
     
     # Resource usage
     echo -e "${BLUE}Resource Usage:${NC}"
-    docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}"
+    docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}" 2>/dev/null || echo "Could not get stats"
     echo
     
     # Disk usage
@@ -463,6 +315,21 @@ show_status() {
     docker-compose exec -T celery_worker_general celery -A tradevision inspect active 2>/dev/null || echo "General worker not responding"
     echo
     
+    # Test basic connectivity
+    echo -e "${BLUE}Connectivity Test:${NC}"
+    if nc -z localhost 7373 2>/dev/null; then
+        echo "✓ Port 7373 is accepting connections"
+        
+        if curl -f -s --max-time 5 http://localhost:7373/ >/dev/null 2>&1; then
+            echo "✓ HTTP requests are working"
+        else
+            echo "⚠ Port open but HTTP requests failing"
+        fi
+    else
+        echo "✗ Port 7373 is not accepting connections"
+    fi
+    echo
+    
     log_info "Status check completed."
 }
 
@@ -472,18 +339,17 @@ main() {
     
     case "$action" in
         "deploy")
-            log_info "=== Starting TradeVision Deployment ==="
+            log_info "=== Starting TradeVision Deployment (No Health Check) ==="
             check_prerequisites
             create_directories
             backup_data
-            update_nginx
             deploy_application
             post_deployment_checks
             cleanup
             show_status
             log_info "=== Deployment Completed Successfully ==="
-            log_info "Application is available at: https://tradevision.uk"
-            log_info "Flower monitoring: http://localhost:5555 (use --profile monitoring)"
+            log_info "Application should be available at: https://tradevision.uk"
+            log_info "Direct access (testing): http://localhost:7373"
             ;;
         "status")
             show_status

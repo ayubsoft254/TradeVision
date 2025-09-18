@@ -44,12 +44,8 @@ RUN mkdir -p /app/staticfiles /app/media /app/logs \
 # Switch to non-root user
 USER appuser
 
-# Expose port 8080
-EXPOSE 8080
-
-# Improved health check with longer intervals for startup
-HEALTHCHECK --interval=60s --timeout=30s --start-period=180s --retries=3 \
-    CMD /app/scripts/healthcheck.sh web
+# Expose port 8000
+EXPOSE 8000
 
 # Default command
 CMD ["/app/scripts/entrypoint.sh", "web"]

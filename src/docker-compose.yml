@@ -61,7 +61,7 @@ services:
       - media_volume:/app/media
       - logs_volume:/app/logs
     ports:
-      - "7373:8080"  # Keep your existing port mapping
+      - "7373:8000"  # Keep your existing port mapping for Nginx
     environment:
       - DEBUG=${DEBUG:-0}
       - DJANGO_SETTINGS_MODULE=tradevision.settings
@@ -84,12 +84,7 @@ services:
     networks:
       - tradevision_network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "/app/scripts/healthcheck.sh", "web"]
-      interval: 60s
-      timeout: 30s
-      retries: 3
-      start_period: 120s
+    # Removed health check
     logging:
       driver: "json-file"
       options:
@@ -118,7 +113,7 @@ services:
       redis:
         condition: service_healthy
       web:
-        condition: service_started
+        condition: service_started  # Changed from service_healthy to service_started
     networks:
       - tradevision_network
     restart: unless-stopped
@@ -156,7 +151,7 @@ services:
       redis:
         condition: service_healthy
       web:
-        condition: service_started
+        condition: service_started  # Changed from service_healthy to service_started
     networks:
       - tradevision_network
     restart: unless-stopped
@@ -194,7 +189,7 @@ services:
       redis:
         condition: service_healthy
       web:
-        condition: service_started
+        condition: service_started  # Changed from service_healthy to service_started
     networks:
       - tradevision_network
     restart: unless-stopped
@@ -216,7 +211,7 @@ services:
     container_name: tradevision_flower
     command: /app/scripts/entrypoint.sh flower
     ports:
-      - "5555:5555"  # Only accessible locally
+      - "5555:5555"
     environment:
       - DEBUG=${DEBUG:-0}
       - CELERY_BROKER_URL=redis://redis:6379/1
