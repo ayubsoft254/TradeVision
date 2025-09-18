@@ -61,7 +61,7 @@ services:
       - media_volume:/app/media
       - logs_volume:/app/logs
     ports:
-      - "7373:8000"  # Keep your existing port mapping
+      - "7373:8080"  # Keep your existing port mapping
     environment:
       - DEBUG=${DEBUG:-0}
       - DJANGO_SETTINGS_MODULE=tradevision.settings
