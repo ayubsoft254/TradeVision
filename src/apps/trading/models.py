@@ -30,11 +30,7 @@ class TradingPackage(models.Model):
     def __str__(self):
         return self.display_name
     
-    def get_random_profit_rate(self):
-        """Generate random profit rate within package range"""
-        min_rate = float(self.profit_min)
-        max_rate = float(self.profit_max)
-        return round(random.uniform(min_rate, max_rate), 2)
+    # No custom save method needed for TradingPackage
 
 class Investment(models.Model):
     """User investment in a trading package"""
@@ -110,8 +106,10 @@ class Trade(models.Model):
             self.end_time = self.start_time + timedelta(hours=24)
         
         if not self.profit_amount and self.profit_rate:
-            self.profit_amount = self.trade_amount * (self.profit_rate / 100)
-        
+            # Ensure all operations use Decimal type
+            from decimal import Decimal
+            self.profit_amount = self.trade_amount * (self.profit_rate / Decimal('100'))
+    
         super().save(*args, **kwargs)
     
     def __str__(self):
