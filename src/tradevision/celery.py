@@ -38,7 +38,7 @@ app.conf.beat_schedule = {
         }
     },
 
-    'apps.trading.tasks.initiate_manual_trade': {
+    'initiate_manual_trade': {
     'queue': 'critical',
     'priority': 9
     },
