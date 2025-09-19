@@ -37,11 +37,7 @@ app.conf.beat_schedule = {
             }
         }
     },
-
-    'initiate_manual_trade': {
-    'queue': 'critical',
-    'priority': 9
-    },
+    
     
     'auto-initiate-daily-trades': {
         'task': 'apps.trading.tasks.auto_initiate_daily_trades',
@@ -263,6 +259,12 @@ app.conf.task_routes = {
         'queue': 'trading', 
         'priority': 8
     },
+
+    'apps.trading.tasks.initiate_manual_trade': {
+        'queue': 'critical',
+        'priority': 9
+    },
+    
     'apps.trading.tasks.check_investment_maturity': {
         'queue': 'trading',
         'priority': 7
