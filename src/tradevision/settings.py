@@ -155,19 +155,34 @@ ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
 ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 
+ACCOUNT_EMAIL_SUBJECT_PREFIX="[TRADEVISION] "
+
 # Login/Logout URLs
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
 CSRF_TRUSTED_ORIGINS = ['https://tradevision.uk', 'https://www.tradevision.uk']
+
 # Email settings
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+MANAGERS=[]
+ADMINS=[]
+if all([EMAIL_HOST, EMAIL_HOST]):
+    # 500 errors are emailed to these users
+    ADMINS +=[
+        (f'{EMAIL_HOST}', f'{EMAIL_HOST}')
+    ]
+    MANAGERS=ADMINS
+
+
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
@@ -222,7 +237,7 @@ BINANCE_PAY_SECRET_KEY = os.getenv('BINANCE_PAY_SECRET_KEY', '')
 BINANCE_PAY_BASE_URL = os.getenv('BINANCE_PAY_BASE_URL', 'https://bpay.binanceapi.com')
 
 # Site URL for return/cancel URLs
-SITE_URL = os.getenv('SITE_URL', 'https://yoursite.com')
+SITE_URL = os.getenv('SITE_URL', 'https://tradevision.uk')
 
 # Supported currencies for Binance Pay
 BINANCE_PAY_CURRENCIES = ['USDT', 'BUSD', 'BTC', 'ETH', 'BNB']
