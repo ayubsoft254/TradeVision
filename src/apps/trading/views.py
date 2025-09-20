@@ -571,11 +571,10 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
             
             logger.info(f"Starting manual trade task for investment {investment.id}")
             
-            # Initiate trade asynchronously
-            task_result = initiate_manual_trade.delay(
-                investment_id=investment.id,
-                user_id=request.user.id,
-                ip_address=request.META.get('REMOTE_ADDR')
+            # Initiate trade asynchronously with explicit queue routing
+            task_result = initiate_manual_trade.apply_async(
+                args=[str(investment.id), str(request.user.id), request.META.get('REMOTE_ADDR')],
+                queue='critical'
             )
             
             logger.info(f"Trade initiation task started with ID: {task_result.id}")
