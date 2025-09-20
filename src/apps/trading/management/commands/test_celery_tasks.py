@@ -106,7 +106,7 @@ class Command(BaseCommand):
         # Test process_completed_trades (should be safe to run)
         self.stdout.write('   Testing process_completed_trades...')
         success = self._test_task_execution(
-            process_completed_trades,
+            lambda: process_completed_trades.apply_async(queue='critical'),
             task_name='process_completed_trades'
         )
         
@@ -116,7 +116,7 @@ class Command(BaseCommand):
         # Test update_wallet_balances
         self.stdout.write('   Testing update_wallet_balances...')
         success = self._test_task_execution(
-            update_wallet_balances,
+            lambda: update_wallet_balances.apply_async(queue='trading'),
             task_name='update_wallet_balances'
         )
         
@@ -126,7 +126,7 @@ class Command(BaseCommand):
         # Test auto_initiate_daily_trades
         self.stdout.write('   Testing auto_initiate_daily_trades...')
         success = self._test_task_execution(
-            auto_initiate_daily_trades,
+            lambda: auto_initiate_daily_trades.apply_async(queue='trading'),
             task_name='auto_initiate_daily_trades'
         )
         
@@ -173,10 +173,9 @@ class Command(BaseCommand):
             self.stdout.write('   Initiating manual trade...')
             
             result = self._test_task_execution(
-                lambda: initiate_manual_trade(
-                    investment_id=str(investment.id),
-                    user_id=str(test_user.id),
-                    ip_address='127.0.0.1'
+                lambda: initiate_manual_trade.apply_async(
+                    args=[str(investment.id), str(test_user.id), '127.0.0.1'],
+                    queue='critical'
                 ),
                 task_name='initiate_manual_trade',
                 timeout=self.timeout
