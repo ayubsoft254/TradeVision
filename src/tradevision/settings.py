@@ -163,6 +163,7 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
 CSRF_TRUSTED_ORIGINS = ['https://tradevision.uk', 'https://www.tradevision.uk']
+CSRF_COOKIE_SECURE = True
 
 # Email settings
 

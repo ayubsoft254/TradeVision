@@ -3,6 +3,8 @@ from celery import shared_task
 from django.utils import timezone
 from django.db import transaction as db_transaction
 from django.db.models import Sum, F
+from .binance_integration import BinancePaymentProcessor
+
 from decimal import Decimal
 import logging
 from datetime import timedelta
@@ -12,6 +14,247 @@ from .models import (
 )
 from apps.core.models import SystemLog
 from apps.trading.models import ProfitHistory
+
+from .binance_integration import check_pending_binance_payments
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+def check_binance_payments_task(self):
+    """
+    Celery task to check pending Binance Pay payments
+    Runs every 5 minutes to ensure no payments are missed
+    """
+    try:
+        # Check if Binance Pay is configured
+        binance_pay_method = PaymentMethod.objects.filter(name='binance_pay').first()
+        if not binance_pay_method:
+            logger.info("Binance Pay not configured - skipping payment check")
+            return {
+                'status': 'skipped',
+                'message': 'Binance Pay payment method not configured',
+                'timestamp': timezone.now().isoformat()
+            }
+        
+        logger.info("Starting automated Binance Pay payment check")
+        result = check_pending_binance_payments()
+        logger.info(f"Binance Pay check completed: {result}")
+        return {
+            'status': 'success',
+            'message': result,
+            'timestamp': timezone.now().isoformat()
+        }
+    except Exception as exc:
+        logger.error(f"Binance Pay payment check failed: {str(exc)}")
+        
+        # Log the error
+        SystemLog.objects.create(
+            action_type='task_error',
+            level='ERROR',
+            message=f'Automated Binance Pay check failed: {str(exc)}',
+            metadata={
+                'task_id': self.request.id,
+                'retry_count': self.request.retries
+            }
+        )
+        
+        # Don't retry if it's a configuration error
+        if "not configured" in str(exc).lower():
+            logger.info("Skipping retries for configuration error")
+            return {
+                'status': 'failed',
+                'error': str(exc),
+                'timestamp': timezone.now().isoformat()
+            }
+        
+        # Retry the task
+        if self.request.retries < self.max_retries:
+            logger.info(f"Retrying task in {self.default_retry_delay} seconds")
+            raise self.retry(exc=exc, countdown=self.default_retry_delay)
+        else:
+            logger.error("Max retries exceeded for Binance Pay check task")
+            return {
+                'status': 'failed',
+                'error': str(exc),
+                'timestamp': timezone.now().isoformat()
+            }
+
+@shared_task(bind=True, max_retries=3)
+def verify_single_binance_payment(self, transaction_id):
+    """
+    Verify a specific Binance Pay transaction
+    Can be called individually for urgent verification
+    """
+    try:
+        logger.info(f"Verifying Binance Pay transaction: {transaction_id}")
+        
+        processor = BinancePaymentProcessor()
+        result = processor.verify_payment(transaction_id)
+        
+        if result['success']:
+            logger.info(f"Transaction {transaction_id} verification successful")
+            return {
+                'status': 'success',
+                'transaction_id': transaction_id,
+                'result': result,
+                'timestamp': timezone.now().isoformat()
+            }
+        else:
+            logger.warning(f"Transaction {transaction_id} verification failed: {result.get('error')}")
+            return {
+                'status': 'failed',
+                'transaction_id': transaction_id,
+                'error': result.get('error'),
+                'timestamp': timezone.now().isoformat()
+            }
+            
+    except Exception as exc:
+        logger.error(f"Error verifying transaction {transaction_id}: {str(exc)}")
+        
+        if self.request.retries < self.max_retries:
+            logger.info(f"Retrying verification for {transaction_id}")
+            raise self.retry(exc=exc, countdown=30)
+        else:
+            return {
+                'status': 'failed',
+                'transaction_id': transaction_id,
+                'error': str(exc),
+                'timestamp': timezone.now().isoformat()
+            }
+
+@shared_task
+def cleanup_old_pending_payments():
+    """
+    Clean up old pending payments that are likely abandoned
+    Runs daily to maintain database cleanliness
+    """
+    try:
+        logger.info("Starting cleanup of old pending Binance Pay payments")
+        
+        # Get the Binance Pay payment method
+        binance_pay_method = PaymentMethod.objects.filter(name='binance_pay').first()
+        if not binance_pay_method:
+            logger.info("Binance Pay not configured - skipping cleanup")
+            return {
+                'status': 'skipped',
+                'message': 'Binance Pay payment method not configured',
+                'cleaned_count': 0,
+                'timestamp': timezone.now().isoformat()
+            }
+        
+        # Get transactions older than 24 hours that are still pending
+        cutoff_time = timezone.now() - timedelta(hours=24)
+        old_pending = Transaction.objects.filter(
+            payment_method=binance_pay_method,
+            status='pending',
+            created_at__lt=cutoff_time
+        )
+        
+        processor = BinancePaymentProcessor()
+        cleaned_count = 0
+        
+        for transaction in old_pending:
+            try:
+                # Final check with Binance API
+                result = processor.verify_payment(transaction.id)
+                
+                if not result['success'] or transaction.status == 'pending':
+                    # Mark as abandoned if still pending after 24 hours
+                    transaction.status = 'cancelled'
+                    transaction.failure_reason = 'Payment timeout - automatically cancelled'
+                    transaction.save()
+                    cleaned_count += 1
+                    
+                    logger.info(f"Cancelled abandoned transaction: {transaction.id}")
+                    
+            except Exception as e:
+                logger.error(f"Error processing transaction {transaction.id} during cleanup: {str(e)}")
+        
+        result_message = f"Cleaned up {cleaned_count} abandoned transactions"
+        logger.info(result_message)
+        
+        # Log the cleanup activity
+        SystemLog.objects.create(
+            action_type='cleanup',
+            level='INFO',
+            message=result_message,
+            metadata={'cleaned_count': cleaned_count}
+        )
+        
+        return {
+            'status': 'success',
+            'cleaned_count': cleaned_count,
+            'message': result_message,
+            'timestamp': timezone.now().isoformat()
+        }
+        
+    except Exception as exc:
+        logger.error(f"Cleanup task failed: {str(exc)}")
+        return {
+            'status': 'failed',
+            'error': str(exc),
+            'timestamp': timezone.now().isoformat()
+        }
+
+@shared_task
+def generate_payment_report():
+    """
+    Generate daily payment statistics
+    Useful for monitoring and analytics
+    """
+    try:
+        logger.info("Generating daily Binance Pay payment report")
+        
+        # Get today's transactions
+        today = timezone.now().date()
+        today_start = timezone.make_aware(timezone.datetime.combine(today, timezone.time.min))
+        today_end = timezone.make_aware(timezone.datetime.combine(today, timezone.time.max))
+        
+        binance_transactions = Transaction.objects.filter(
+            payment_method='binance_pay',
+            created_at__range=[today_start, today_end]
+        )
+        
+        # Calculate statistics
+        stats = {
+            'total_transactions': binance_transactions.count(),
+            'completed_transactions': binance_transactions.filter(status='completed').count(),
+            'pending_transactions': binance_transactions.filter(status='pending').count(),
+            'failed_transactions': binance_transactions.filter(status='failed').count(),
+            'cancelled_transactions': binance_transactions.filter(status='cancelled').count(),
+            'total_amount': float(binance_transactions.filter(status='completed').aggregate(
+                total=Sum('amount')
+            )['total'] or 0),
+        }
+        
+        # Calculate success rate
+        if stats['total_transactions'] > 0:
+            stats['success_rate'] = (stats['completed_transactions'] / stats['total_transactions']) * 100
+        else:
+            stats['success_rate'] = 0
+        
+        # Log the report
+        SystemLog.objects.create(
+            action_type='daily_report',
+            level='INFO',
+            message=f"Daily Binance Pay report generated",
+            metadata=stats
+        )
+        
+        logger.info(f"Daily report generated: {stats}")
+        
+        return {
+            'status': 'success',
+            'date': today.isoformat(),
+            'statistics': stats,
+            'timestamp': timezone.now().isoformat()
+        }
+        
+    except Exception as exc:
+        logger.error(f"Report generation failed: {str(exc)}")
+        return {
+            'status': 'failed',
+            'error': str(exc),
+            'timestamp': timezone.now().isoformat()
+        }
 
 logger = logging.getLogger(__name__)
 
@@ -540,6 +783,9 @@ def generate_payment_reports():
         # Log the daily report
         logger.info(f"Daily payment report: {daily_stats}")
         
+        # Here you could send this report via email to admins
+        # send_admin_report.delay(daily_stats)
+        
         return {
             'status': 'completed',
             'daily_stats': daily_stats
@@ -551,6 +797,74 @@ def generate_payment_reports():
             'status': 'failed',
             'error': str(e)
         }
+
+# Notification tasks
+@shared_task
+def send_deposit_confirmation(transaction_id):
+    """
+    Send deposit confirmation notification to user.
+    """
+    try:
+        transaction = Transaction.objects.get(id=transaction_id)
+        user = transaction.user
+        
+        # Here you would integrate with your notification service
+        # For now, we'll just log the notification
+        logger.info(
+            f"Deposit confirmation for {user.email}: "
+            f"{transaction.net_amount} {transaction.currency} credited"
+        )
+        
+        # Example email sending (uncomment when email is configured)
+        # send_mail(
+        #     subject='Deposit Confirmed - TradeVision',
+        #     message=f'Your deposit of {transaction.amount} {transaction.currency} has been confirmed.',
+        #     from_email=settings.DEFAULT_FROM_EMAIL,
+        #     recipient_list=[user.email],
+        #     fail_silently=True
+        # )
+        
+        return {'status': 'sent', 'user_email': user.email}
+        
+    except Transaction.DoesNotExist:
+        logger.error(f"Transaction {transaction_id} not found for deposit confirmation")
+        return {'status': 'failed', 'error': 'Transaction not found'}
+    except Exception as e:
+        logger.error(f"Error sending deposit confirmation for {transaction_id}: {str(e)}")
+        return {'status': 'failed', 'error': str(e)}
+
+@shared_task
+def send_withdrawal_confirmation(transaction_id):
+    """
+    Send withdrawal confirmation notification to user.
+    """
+    try:
+        transaction = Transaction.objects.get(id=transaction_id)
+        user = transaction.user
+        
+        # Log the notification
+        logger.info(
+            f"Withdrawal confirmation for {user.email}: "
+            f"{transaction.net_amount} {transaction.currency} sent"
+        )
+        
+        # Example email sending (uncomment when email is configured)
+        # send_mail(
+        #     subject='Withdrawal Processed - TradeVision',
+        #     message=f'Your withdrawal of {transaction.amount} {transaction.currency} has been processed.',
+        #     from_email=settings.DEFAULT_FROM_EMAIL,
+        #     recipient_list=[user.email],
+        #     fail_silently=True
+        # )
+        
+        return {'status': 'sent', 'user_email': user.email}
+        
+    except Transaction.DoesNotExist:
+        logger.error(f"Transaction {transaction_id} not found for withdrawal confirmation")
+        return {'status': 'failed', 'error': 'Transaction not found'}
+    except Exception as e:
+        logger.error(f"Error sending withdrawal confirmation for {transaction_id}: {str(e)}")
+        return {'status': 'failed', 'error': str(e)}
 
 @shared_task
 def detect_suspicious_activity():
@@ -605,53 +919,3 @@ def detect_suspicious_activity():
             'status': 'failed',
             'error': str(e)
         }
-
-# Notification tasks
-@shared_task
-def send_deposit_confirmation(transaction_id):
-    """
-    Send deposit confirmation notification to user.
-    """
-    try:
-        transaction = Transaction.objects.get(id=transaction_id)
-        user = transaction.user
-        
-        # Here you would integrate with your notification service
-        # For now, we'll just log the notification
-        logger.info(
-            f"Deposit confirmation for {user.email}: "
-            f"{transaction.net_amount} {transaction.currency} credited"
-        )
-        
-        return {'status': 'sent', 'user_email': user.email}
-        
-    except Transaction.DoesNotExist:
-        logger.error(f"Transaction {transaction_id} not found for deposit confirmation")
-        return {'status': 'failed', 'error': 'Transaction not found'}
-    except Exception as e:
-        logger.error(f"Error sending deposit confirmation for {transaction_id}: {str(e)}")
-        return {'status': 'failed', 'error': str(e)}
-
-@shared_task
-def send_withdrawal_confirmation(transaction_id):
-    """
-    Send withdrawal confirmation notification to user.
-    """
-    try:
-        transaction = Transaction.objects.get(id=transaction_id)
-        user = transaction.user
-        
-        # Log the notification
-        logger.info(
-            f"Withdrawal confirmation for {user.email}: "
-            f"{transaction.net_amount} {transaction.currency} sent"
-        )
-        
-        return {'status': 'sent', 'user_email': user.email}
-        
-    except Transaction.DoesNotExist:
-        logger.error(f"Transaction {transaction_id} not found for withdrawal confirmation")
-        return {'status': 'failed', 'error': 'Transaction not found'}
-    except Exception as e:
-        logger.error(f"Error sending withdrawal confirmation for {transaction_id}: {str(e)}")
-        return {'status': 'failed', 'error': str(e)}
