@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load account %}
-{% load allauth %}
 
 {% block title %}{% trans "Confirm Email Address" %}{% endblock %}
 
@@ -162,7 +161,9 @@ body {
 
         <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
           {% csrf_token %}
-          {{ redirect_field }}
+          {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+          {% endif %}
           <button class="confirm-button" type="submit">{% trans "Confirm" %}</button>
         </form>
         
