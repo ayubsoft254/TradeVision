@@ -7,7 +7,7 @@ from decimal import Decimal
 from django.conf import settings
 from django.utils import timezone
 from django.db import transaction
-from .models import Transaction, Wallet
+from .models import Transaction, Wallet, PaymentMethod
 from apps.core.models import SystemLog
 
 class BinancePayAPI:
@@ -153,11 +153,16 @@ class BinancePaymentProcessor:
     def verify_payment(self, transaction_id):
         """Verify payment status and update transaction"""
         try:
+            # Get the Binance Pay payment method
+            binance_pay_method = PaymentMethod.objects.filter(name='binance_pay').first()
+            if not binance_pay_method:
+                return {"success": False, "error": "Binance Pay payment method not configured"}
+            
             # Get the transaction
             txn = Transaction.objects.select_for_update().get(
                 id=transaction_id,
                 transaction_type='deposit',
-                payment_method='binance_pay'
+                payment_method=binance_pay_method
             )
             
             if txn.status == 'completed':
@@ -337,10 +342,15 @@ def check_pending_binance_payments():
     """
     from datetime import timedelta
     
+    # Get the Binance Pay payment method
+    binance_pay_method = PaymentMethod.objects.filter(name='binance_pay').first()
+    if not binance_pay_method:
+        return "Binance Pay payment method not configured"
+    
     # Get pending Binance Pay transactions from last 24 hours
     cutoff_time = timezone.now() - timedelta(hours=24)
     pending_transactions = Transaction.objects.filter(
-        payment_method='binance_pay',
+        payment_method=binance_pay_method,
         status='pending',
         created_at__gte=cutoff_time
     )

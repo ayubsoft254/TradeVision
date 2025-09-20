@@ -11,7 +11,7 @@ import logging
 from datetime import timedelta
 
 from .models import (
-    Transaction, DepositRequest, WithdrawalRequest, Agent, P2PMerchant
+    Transaction, DepositRequest, WithdrawalRequest, Agent, P2PMerchant, PaymentMethod
 )
 from apps.core.models import SystemLog
 from apps.trading.models import ProfitHistory
@@ -111,10 +111,18 @@ def cleanup_old_pending_payments():
     try:
         logger.info("Starting cleanup of old pending Binance Pay payments")
         
+        # Get the Binance Pay payment method
+        binance_pay_method = PaymentMethod.objects.filter(name='binance_pay').first()
+        if not binance_pay_method:
+            return {
+                'status': 'failed',
+                'error': 'Binance Pay payment method not configured'
+            }
+        
         # Get transactions older than 24 hours that are still pending
         cutoff_time = timezone.now() - timedelta(hours=24)
         old_pending = Transaction.objects.filter(
-            payment_method='binance_pay',
+            payment_method=binance_pay_method,
             status='pending',
             created_at__lt=cutoff_time
         )
