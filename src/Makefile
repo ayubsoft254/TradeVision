@@ -107,7 +107,7 @@ app-restart:
 app-redeploy:
 	@echo -e "$(YELLOW)Redeploying application with fresh build...$(NC)"
 	@docker-compose build web
-	@docker-compose up -d --no-deps web celery_worker_critical celery_worker_default celery_beat
+	@docker-compose up -d --no-deps web celery_worker_critical celery_worker_general celery_beat
 	@docker-compose restart nginx
 	@echo -e "$(GREEN)Application redeployed$(NC)"
 
