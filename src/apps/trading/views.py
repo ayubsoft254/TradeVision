@@ -194,40 +194,36 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return streak
     
     def is_trading_allowed(self):
-        """Check if trading is currently allowed - DISABLED FOR TESTING"""
-        # TESTING MODE: Always allow trading
-        return True
+        """Check if trading is currently allowed based on time constraints"""
+        # Get current time in the configured timezone (Africa/Nairobi)
+        from django.conf import settings
+        from django.utils import timezone as tz
         
-        # ORIGINAL CODE (commented out for testing):
-        # # Get current time in the configured timezone (Africa/Nairobi)
-        # from django.conf import settings
-        # from django.utils import timezone as tz
-        # 
-        # # Get timezone-aware current time
-        # utc_now = timezone.now()
-        # 
-        # # Convert to local timezone
-        # if hasattr(tz, 'get_current_timezone'):
-        #     local_tz = tz.get_current_timezone()
-        # else:
-        #     import zoneinfo
-        #     local_tz = zoneinfo.ZoneInfo(settings.TIME_ZONE)
-        # 
-        # local_now = utc_now.astimezone(local_tz)
-        # 
-        # current_weekday = local_now.weekday()
-        # current_time = local_now.time()
-        # 
-        # # Check if it's a weekday (Monday=0 to Friday=4)
-        # if current_weekday >= 5:
-        #     return False
-        # 
-        # # Check trading hours (8 AM to 6 PM) in the local timezone
-        # from datetime import time
-        # trading_start = time(8, 0)  # 8:00 AM
-        # trading_end = time(18, 0)   # 6:00 PM
-        # 
-        # return trading_start <= current_time <= trading_end
+        # Get timezone-aware current time
+        utc_now = timezone.now()
+        
+        # Convert to local timezone
+        if hasattr(tz, 'get_current_timezone'):
+            local_tz = tz.get_current_timezone()
+        else:
+            import zoneinfo
+            local_tz = zoneinfo.ZoneInfo(settings.TIME_ZONE)
+        
+        local_now = utc_now.astimezone(local_tz)
+        
+        current_weekday = local_now.weekday()
+        current_time = local_now.time()
+        
+        # Check if it's a weekday (Monday=0 to Friday=4)
+        if current_weekday >= 5:
+            return False
+        
+        # Check trading hours (8 AM to 6 PM) in the local timezone
+        from datetime import time
+        trading_start = time(8, 0)  # 8:00 AM
+        trading_end = time(18, 0)   # 6:00 PM
+        
+        return trading_start <= current_time <= trading_end
 
 class PackagesView(LoginRequiredMixin, TemplateView):
     """Trading packages overview"""
@@ -597,40 +593,36 @@ class InitiateTradeView(LoginRequiredMixin, TemplateView):
             return self.render_to_response(self.get_context_data())
     
     def is_trading_allowed(self):
-        """Check if trading is currently allowed - DISABLED FOR TESTING"""
-        # TESTING MODE: Always allow trading
-        return True
+        """Check if trading is currently allowed based on time constraints"""
+        # Get current time in the configured timezone (Africa/Nairobi)
+        from django.conf import settings
+        from django.utils import timezone as tz
         
-        # ORIGINAL CODE (commented out for testing):
-        # # Get current time in the configured timezone (Africa/Nairobi)
-        # from django.conf import settings
-        # from django.utils import timezone as tz
-        # 
-        # # Get timezone-aware current time
-        # utc_now = timezone.now()
-        # 
-        # # Convert to local timezone
-        # if hasattr(tz, 'get_current_timezone'):
-        #     local_tz = tz.get_current_timezone()
-        # else:
-        #     import zoneinfo
-        #     local_tz = zoneinfo.ZoneInfo(settings.TIME_ZONE)
-        # 
-        # local_now = utc_now.astimezone(local_tz)
-        # 
-        # current_weekday = local_now.weekday()
-        # current_time = local_now.time()
-        # 
-        # # Check if it's a weekday (Monday=0 to Friday=4)
-        # if current_weekday >= 5:
-        #     return False
-        # 
-        # # Check trading hours (8 AM to 6 PM) in the local timezone
-        # from datetime import time
-        # trading_start = time(8, 0)  # 8:00 AM
-        # trading_end = time(18, 0)   # 6:00 PM
-        # 
-        # return trading_start <= current_time <= trading_end
+        # Get timezone-aware current time
+        utc_now = timezone.now()
+        
+        # Convert to local timezone
+        if hasattr(tz, 'get_current_timezone'):
+            local_tz = tz.get_current_timezone()
+        else:
+            import zoneinfo
+            local_tz = zoneinfo.ZoneInfo(settings.TIME_ZONE)
+        
+        local_now = utc_now.astimezone(local_tz)
+        
+        current_weekday = local_now.weekday()
+        current_time = local_now.time()
+        
+        # Check if it's a weekday (Monday=0 to Friday=4)
+        if current_weekday >= 5:
+            return False
+        
+        # Check trading hours (8 AM to 6 PM) in the local timezone
+        from datetime import time
+        trading_start = time(8, 0)  # 8:00 AM
+        trading_end = time(18, 0)   # 6:00 PM
+        
+        return trading_start <= current_time <= trading_end
 
 class TradeInitiationStatusView(LoginRequiredMixin, TemplateView):
     """Check trade initiation status"""
