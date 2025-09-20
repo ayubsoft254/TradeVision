@@ -25,6 +25,16 @@ def check_binance_payments_task(self):
     Runs every 5 minutes to ensure no payments are missed
     """
     try:
+        # Check if Binance Pay is configured
+        binance_pay_method = PaymentMethod.objects.filter(name='binance_pay').first()
+        if not binance_pay_method:
+            logger.info("Binance Pay not configured - skipping payment check")
+            return {
+                'status': 'skipped',
+                'message': 'Binance Pay payment method not configured',
+                'timestamp': timezone.now().isoformat()
+            }
+        
         logger.info("Starting automated Binance Pay payment check")
         result = check_pending_binance_payments()
         logger.info(f"Binance Pay check completed: {result}")
@@ -46,6 +56,15 @@ def check_binance_payments_task(self):
                 'retry_count': self.request.retries
             }
         )
+        
+        # Don't retry if it's a configuration error
+        if "not configured" in str(exc).lower():
+            logger.info("Skipping retries for configuration error")
+            return {
+                'status': 'failed',
+                'error': str(exc),
+                'timestamp': timezone.now().isoformat()
+            }
         
         # Retry the task
         if self.request.retries < self.max_retries:
@@ -114,9 +133,12 @@ def cleanup_old_pending_payments():
         # Get the Binance Pay payment method
         binance_pay_method = PaymentMethod.objects.filter(name='binance_pay').first()
         if not binance_pay_method:
+            logger.info("Binance Pay not configured - skipping cleanup")
             return {
-                'status': 'failed',
-                'error': 'Binance Pay payment method not configured'
+                'status': 'skipped',
+                'message': 'Binance Pay payment method not configured',
+                'cleaned_count': 0,
+                'timestamp': timezone.now().isoformat()
             }
         
         # Get transactions older than 24 hours that are still pending

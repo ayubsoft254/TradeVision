@@ -133,11 +133,12 @@ app.conf.beat_schedule = {
         }
     },
 
-    'check-binance-payments': {
-        'task': 'apps.payments.tasks.check_binance_payments_task',
-        'schedule': 300.0,  # 5 minutes
-        'options': {'queue': 'payments'}
-    },
+    # Disabled to prevent trading task failures
+    # 'check-binance-payments': {
+    #     'task': 'apps.payments.tasks.check_binance_payments_task',
+    #     'schedule': 300.0,  # 5 minutes
+    #     'options': {'queue': 'payments'}
+    # },
     
     'detect-suspicious-activity': {
         'task': 'apps.payments.tasks.detect_suspicious_activity',
@@ -175,12 +176,12 @@ app.conf.beat_schedule = {
     # SCHEDULED TASKS (Using Crontab)
     # =============================================================================
     
-    # Clean up old pending payments daily at 2 AM EAT (East Africa Time)
-    'cleanup-old-payments': {
-        'task': 'apps.payments.tasks.cleanup_old_pending_payments',
-        'schedule': crontab(hour=2, minute=0),
-        'options': {'queue': 'maintenance'}
-    },
+    # Disabled - depends on Binance Pay setup
+    # 'cleanup-old-payments': {
+    #     'task': 'apps.payments.tasks.cleanup_old_pending_payments',
+    #     'schedule': crontab(hour=2, minute=0),
+    #     'options': {'queue': 'maintenance'}
+    # },
     
     # Generate daily report at 11:59 PM EAT
     'daily-payment-report': {
