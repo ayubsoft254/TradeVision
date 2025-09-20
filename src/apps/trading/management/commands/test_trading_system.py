@@ -206,8 +206,7 @@ class Command(BaseCommand):
             user, created = User.objects.get_or_create(
                 email=user_email,
                 defaults={
-                    'first_name': 'Test',
-                    'last_name': 'User',
+                    'full_name': 'Test User',
                     'is_active': True,
                 }
             )
