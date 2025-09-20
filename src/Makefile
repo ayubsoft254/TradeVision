@@ -128,8 +128,7 @@ web-redeploy:
 # Safe redeploy - rebuilds everything except database services
 safe-redeploy:
 	@echo -e "$(YELLOW)Starting safe redeploy (preserving database)...$(NC)"
-	@echo -e "$(GREEN)Creating backup before redeploy...$(NC)"
-	@./scripts/backup.sh backup || echo -e "$(YELLOW)Backup script not available, continuing...$(NC)"
+	@echo -e "$(GREEN)Creating backup before redeploy...$(NC)"	
 	@echo -e "$(YELLOW)Stopping application services (keeping DB running)...$(NC)"
 	@docker-compose stop web celery_worker_critical celery_worker_general celery_beat redis flower || true
 	@echo -e "$(YELLOW)Pulling latest images...$(NC)"
