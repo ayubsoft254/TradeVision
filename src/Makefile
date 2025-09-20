@@ -100,7 +100,7 @@ restart:
 # Restart only application services (keeps DB and persistent services running)
 app-restart:
 	@echo -e "$(YELLOW)Restarting application services (keeping DB services running)...$(NC)"
-	@docker-compose restart web celery_worker_critical celery_worker_default celery_beat nginx redis
+	@docker-compose restart web celery_worker_critical celery_worker_general celery_beat nginx redis
 	@echo -e "$(GREEN)Application services restarted$(NC)"
 
 # Alternative version that rebuilds the web service for code changes
