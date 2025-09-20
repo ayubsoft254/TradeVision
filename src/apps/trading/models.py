@@ -30,7 +30,21 @@ class TradingPackage(models.Model):
     def __str__(self):
         return self.display_name
     
-    # No custom save method needed for TradingPackage
+    def get_random_profit_rate(self):
+        """Generate a random profit rate between min and max"""
+        min_rate = float(self.profit_min)
+        max_rate = float(self.profit_max)
+        return Decimal(str(round(random.uniform(min_rate, max_rate), 2)))
+    
+    @staticmethod
+    def is_weekend_trading_enabled():
+        """Check if weekend trading is enabled in site configuration"""
+        from apps.core.models import SiteConfiguration
+        try:
+            site_config = SiteConfiguration.objects.first()
+            return site_config.weekend_trading_enabled if site_config else False
+        except:
+            return False
 
 class Investment(models.Model):
     """User investment in a trading package"""
@@ -117,13 +131,25 @@ class Trade(models.Model):
     
     @property
     def is_ready_for_completion(self):
-        """Check if 24 hours have passed and it's a weekday"""
+        """Check if 24 hours have passed and trading is allowed"""
         if timezone.now() < self.end_time:
             return False
         
-        # Check if it's a weekday (Monday=0, Sunday=6)
-        current_weekday = timezone.now().weekday()
-        return current_weekday < 5  # Monday to Friday only
+        # Check site configuration for weekend trading
+        from apps.core.models import SiteConfiguration
+        try:
+            site_config = SiteConfiguration.objects.first()
+            weekend_trading_enabled = site_config.weekend_trading_enabled if site_config else False
+        except:
+            weekend_trading_enabled = False
+        
+        # If weekend trading is disabled, check if it's a weekday
+        if not weekend_trading_enabled:
+            current_weekday = timezone.now().weekday()
+            if current_weekday >= 5:  # Saturday=5, Sunday=6
+                return False
+        
+        return True
     
     @property
     def time_remaining(self):

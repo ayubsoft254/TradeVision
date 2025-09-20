@@ -39,8 +39,9 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
         }),
         ('Trading Settings', {
             'fields': (
-                'trading_start_time', 'trading_end_time', 'weekend_trading_enabled'
-            )
+                'weekend_trading_enabled', 'trading_start_time', 'trading_end_time',
+            ),
+            'description': 'Configure when trading operations are allowed. Weekend trading enables 7-day trading instead of weekdays only.'
         }),
         ('Platform Statistics', {
             'fields': (

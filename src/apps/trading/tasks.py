@@ -25,12 +25,20 @@ def process_completed_trades(self):
         now = timezone.now()
         current_weekday = now.weekday()
         
-        # Only process on weekdays (Monday=0 to Friday=4)
-        if current_weekday >= 5:
-            logger.info("Skipping trade processing - weekend")
+        # Check site configuration for weekend trading
+        from apps.core.models import SiteConfiguration
+        try:
+            site_config = SiteConfiguration.objects.first()
+            weekend_trading_enabled = site_config.weekend_trading_enabled if site_config else False
+        except:
+            weekend_trading_enabled = False
+        
+        # Only process on weekdays unless weekend trading is enabled
+        if current_weekday >= 5 and not weekend_trading_enabled:
+            logger.info("Skipping trade processing - weekend (weekend trading disabled)")
             return {
                 'status': 'skipped',
-                'reason': 'weekend',
+                'reason': 'weekend_disabled',
                 'processed_count': 0
             }
         
@@ -191,17 +199,30 @@ def auto_initiate_daily_trades(self):
         current_weekday = now.weekday()
         current_hour = now.hour
         
-        # Only run on weekdays between 8 AM and 6 PM
-        if current_weekday >= 5:
-            logger.info("Skipping auto trade initiation - weekend")
+        # Check site configuration for weekend trading and trading hours
+        from apps.core.models import SiteConfiguration
+        try:
+            site_config = SiteConfiguration.objects.first()
+            weekend_trading_enabled = site_config.weekend_trading_enabled if site_config else False
+            trading_start = site_config.trading_start_time.hour if site_config and site_config.trading_start_time else 8
+            trading_end = site_config.trading_end_time.hour if site_config and site_config.trading_end_time else 18
+        except:
+            weekend_trading_enabled = False
+            trading_start = 8
+            trading_end = 18
+        
+        # Only run on weekdays unless weekend trading is enabled
+        if current_weekday >= 5 and not weekend_trading_enabled:
+            logger.info("Skipping auto trade initiation - weekend (weekend trading disabled)")
             return {
                 'status': 'skipped',
-                'reason': 'weekend',
+                'reason': 'weekend_disabled',
                 'initiated_count': 0
             }
         
-        if current_hour < 8 or current_hour > 18:
-            logger.info(f"Skipping auto trade initiation - outside trading hours (current: {current_hour})")
+        # Check trading hours
+        if current_hour < trading_start or current_hour > trading_end:
+            logger.info(f"Skipping auto trade initiation - outside trading hours (current: {current_hour}, allowed: {trading_start}-{trading_end})")
             return {
                 'status': 'skipped',
                 'reason': 'outside_trading_hours',
