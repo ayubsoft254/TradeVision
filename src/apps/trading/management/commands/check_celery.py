@@ -2,7 +2,6 @@
 from django.core.management.base import BaseCommand
 from django.conf import settings
 import os
-import sys
 
 class Command(BaseCommand):
     help = 'Check Celery configuration and worker status'
@@ -53,7 +52,7 @@ class Command(BaseCommand):
         self.stdout.write('-' * 30)
         
         try:
-            from tradevision import celery_app
+            from tradevision.celery import app as celery_app
             
             # Check if Celery app exists
             self.stdout.write(f'✅ Celery app found: {celery_app.main}')
