@@ -48,11 +48,13 @@ help:
 	@echo "  django    - Run Django management commands [CMD=command]"
 	@echo "  flower    - Start Flower monitoring"
 	@echo
+	
 	@echo "Examples:"
 	@echo "  make deploy"
 	@echo "  make logs SERVICE=celery_worker_critical LINES=100"
 	@echo "  make backup"
 	@echo "  make django CMD='migrate'"
+
 	
 
 # Setup commands
