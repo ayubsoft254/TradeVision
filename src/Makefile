@@ -25,6 +25,11 @@ help:
 	@echo "  start     - Start all services"
 	@echo "  stop      - Stop all services"
 	@echo "  restart   - Restart all services"
+	@echo	
+	@echo "  app-restart  - Restart app services only (keeps DB running)"
+	@echo "  app-redeploy - Rebuild and restart app services"  
+	@echo "  web-restart  - Restart web service only (fastest)"
+	@echo "  web-redeploy - Rebuild and restart web service"
 	@echo
 	@echo "Monitoring:"
 	@echo "  status    - Show service status"
@@ -48,6 +53,7 @@ help:
 	@echo "  make logs SERVICE=celery_worker_critical LINES=100"
 	@echo "  make backup"
 	@echo "  make django CMD='migrate'"
+	
 
 # Setup commands
 setup:
@@ -90,6 +96,33 @@ restart:
 	@echo -e "$(YELLOW)Restarting TradeVision services...$(NC)"
 	@docker-compose restart
 	@echo -e "$(GREEN)Services restarted$(NC)"
+
+# Restart only application services (keeps DB and persistent services running)
+app-restart:
+	@echo -e "$(YELLOW)Restarting application services (keeping DB services running)...$(NC)"
+	@docker-compose restart web celery_worker_critical celery_worker_default celery_beat nginx redis
+	@echo -e "$(GREEN)Application services restarted$(NC)"
+
+# Alternative version that rebuilds the web service for code changes
+app-redeploy:
+	@echo -e "$(YELLOW)Redeploying application with fresh build...$(NC)"
+	@docker-compose build web
+	@docker-compose up -d --no-deps web celery_worker_critical celery_worker_default celery_beat
+	@docker-compose restart nginx
+	@echo -e "$(GREEN)Application redeployed$(NC)"
+
+# Restart only web service (fastest for template updates)
+web-restart:
+	@echo -e "$(YELLOW)Restarting web service only...$(NC)"
+	@docker-compose restart web
+	@echo -e "$(GREEN)Web service restarted$(NC)"
+
+# Restart web service with rebuild (for code changes)
+web-redeploy:
+	@echo -e "$(YELLOW)Rebuilding and restarting web service...$(NC)"
+	@docker-compose build web
+	@docker-compose up -d --no-deps web
+	@echo -e "$(GREEN)Web service rebuilt and restarted$(NC)"
 
 # Monitoring commands
 status:
