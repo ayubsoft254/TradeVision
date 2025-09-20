@@ -100,7 +100,7 @@ restart:
 # Restart only application services (keeps DB and persistent services running)
 app-restart:
 	@echo -e "$(YELLOW)Restarting application services (keeping DB services running)...$(NC)"
-	@docker-compose restart web celery_worker_critical celery_worker_general celery_beat nginx redis
+	@docker-compose restart web celery_worker_critical celery_worker_general celery_beat  redis
 	@echo -e "$(GREEN)Application services restarted$(NC)"
 
 # Alternative version that rebuilds the web service for code changes
@@ -108,7 +108,6 @@ app-redeploy:
 	@echo -e "$(YELLOW)Redeploying application with fresh build...$(NC)"
 	@docker-compose build web
 	@docker-compose up -d --no-deps web celery_worker_critical celery_worker_general celery_beat
-	@docker-compose restart nginx
 	@echo -e "$(GREEN)Application redeployed$(NC)"
 
 # Restart only web service (fastest for template updates)
@@ -123,6 +122,100 @@ web-redeploy:
 	@docker-compose build web
 	@docker-compose up -d --no-deps web
 	@echo -e "$(GREEN)Web service rebuilt and restarted$(NC)"
+
+# Safe redeploy - rebuilds everything except database services
+safe-redeploy:
+	@echo -e "$(YELLOW)Starting safe redeploy (preserving database)...$(NC)"
+	@echo -e "$(GREEN)Creating backup before redeploy...$(NC)"
+	@./scripts/backup.sh backup || echo -e "$(YELLOW)Backup script not available, continuing...$(NC)"
+	@echo -e "$(YELLOW)Stopping application services (keeping DB running)...$(NC)"
+	@docker-compose stop web celery_worker_critical celery_worker_general celery_beat redis flower || true
+	@echo -e "$(YELLOW)Pulling latest images...$(NC)"
+	@docker-compose pull web redis
+	@echo -e "$(YELLOW)Rebuilding application containers...$(NC)"
+	@docker-compose build --no-cache web
+	@echo -e "$(YELLOW)Starting services with fresh containers...$(NC)"
+	@docker-compose up -d --force-recreate web celery_worker_critical celery_worker_general celery_beat redis
+	@echo -e "$(GREEN)Running migrations (safe)...$(NC)"
+	@docker-compose exec web python manage.py migrate --noinput
+	@echo -e "$(GREEN)Collecting static files...$(NC)"
+	@docker-compose exec web python manage.py collectstatic --noinput --clear
+	@echo -e "$(GREEN)Safe redeploy completed! Database preserved.$(NC)"
+
+# Full redeploy with backup - safest option
+full-redeploy:
+	@echo -e "$(YELLOW)Starting full redeploy with backup...$(NC)"
+	@echo -e "$(GREEN)Creating full backup...$(NC)"
+	@./scripts/backup.sh backup
+	@echo -e "$(YELLOW)Stopping all application services...$(NC)"
+	@docker-compose stop web celery_worker_critical celery_worker_general celery_beat redis flower || true
+	@echo -e "$(YELLOW)Removing old containers (keeping volumes)...$(NC)"
+	@docker-compose rm -f web celery_worker_critical celery_worker_general celery_beat redis flower || true
+	@echo -e "$(YELLOW)Pulling latest images...$(NC)"
+	@docker-compose pull
+	@echo -e "$(YELLOW)Building fresh containers...$(NC)"
+	@docker-compose build --no-cache
+	@echo -e "$(YELLOW)Starting services with fresh containers...$(NC)"
+	@docker-compose up -d --force-recreate
+	@echo -e "$(GREEN)Running health checks...$(NC)"
+	@sleep 10
+	@./scripts/monitor.sh monitor || echo -e "$(YELLOW)Health check script not available$(NC)"
+	@echo -e "$(GREEN)Full redeploy completed! Database preserved.$(NC)"
+
+# Quick rebuild - fastest option for code changes
+quick-rebuild:
+	@echo -e "$(YELLOW)Quick rebuild of application...$(NC)"
+	@docker-compose build web
+	@docker-compose up -d --no-deps --force-recreate web celery_worker_critical celery_worker_general celery_beat
+	@echo -e "$(GREEN)Quick rebuild completed$(NC)"
+
+# Deploy with git pull - for production updates
+deploy-update:
+	@echo -e "$(GREEN)Deploying latest code...$(NC)"
+	@echo -e "$(YELLOW)Creating backup...$(NC)"
+	@./scripts/backup.sh backup || echo -e "$(YELLOW)Backup skipped$(NC)"
+	@echo -e "$(YELLOW)Pulling latest code...$(NC)"
+	@git pull origin main || echo -e "$(YELLOW)Git pull skipped$(NC)"
+	@echo -e "$(YELLOW)Rebuilding with latest code...$(NC)"
+	@docker-compose build --pull web
+	@docker-compose stop web celery_worker_critical celery_worker_general celery_beat
+	@docker-compose up -d --force-recreate web celery_worker_critical celery_worker_general celery_beat
+	@echo -e "$(GREEN)Running migrations...$(NC)"
+	@docker-compose exec web python manage.py migrate --noinput
+	@echo -e "$(GREEN)Collecting static files...$(NC)"
+	@docker-compose exec web python manage.py collectstatic --noinput --clear
+	@echo -e "$(GREEN)Update deployment completed$(NC)"
+
+# Zero-downtime redeploy (advanced)
+zero-downtime-redeploy:
+	@echo -e "$(GREEN)Starting zero-downtime redeploy...$(NC)"
+	@echo -e "$(YELLOW)Creating backup...$(NC)"
+	@./scripts/backup.sh backup || true
+	@echo -e "$(YELLOW)Building new containers...$(NC)"
+	@docker-compose build web
+	@echo -e "$(YELLOW)Starting new web container alongside old one...$(NC)"
+	@docker-compose up -d --no-deps --scale web=2 web
+	@echo -e "$(YELLOW)Waiting for new container to be ready...$(NC)"
+	@sleep 15
+	@echo -e "$(YELLOW)Scaling down to single container...$(NC)"
+	@docker-compose up -d --no-deps --scale web=1 --force-recreate web
+	@echo -e "$(YELLOW)Updating worker services...$(NC)"
+	@docker-compose up -d --no-deps --force-recreate celery_worker_critical celery_worker_general celery_beat
+	@echo -e "$(GREEN)Zero-downtime redeploy completed$(NC)"
+
+# Emergency rollback (if something goes wrong)
+rollback:
+	@if [ -z "$(BACKUP)" ]; then \
+		echo -e "$(RED)Please specify backup file: make rollback BACKUP=backup_file$(NC)"; \
+		echo -e "$(YELLOW)Available backups:$(NC)"; \
+		ls -la $(BACKUP_DIR)/ | tail -5; \
+		exit 1; \
+	fi
+	@echo -e "$(RED)EMERGENCY ROLLBACK - Rolling back to $(BACKUP)...$(NC)"
+	@docker-compose stop web celery_worker_critical celery_worker_general celery_beat
+	@./scripts/backup.sh restore $(BACKUP)
+	@docker-compose up -d
+	@echo -e "$(GREEN)Rollback completed$(NC)"
 
 # Monitoring commands
 status:
