@@ -9,6 +9,7 @@ from django.utils import timezone
 from decimal import Decimal
 from apps.payments.models import Transaction, DepositRequest, PaymentMethod, Wallet
 from apps.payments.tasks import auto_approve_small_deposits
+from apps.core.models import SystemLog
 import time
 import os
 
@@ -187,6 +188,130 @@ class Command(BaseCommand):
         self.stdout.write('   - Celery schedule: Check above') 
         self.stdout.write('   - All new deposits should remain pending')
         self.stdout.write('   - Manual admin approval required for all deposits')
+        self.stdout.write('='*60)
+
+    def check_auto_approval_logs(self):
+        """Check system logs and transaction history for auto-approved deposits"""
+        self.stdout.write(self.style.SUCCESS('📋 Checking logs for auto-approved deposits...\n'))
+        
+        # Check SystemLog for auto-approval messages
+        self.stdout.write('1. Checking SystemLog entries...')
+        try:
+            from django.utils import timezone
+            from datetime import timedelta
+            
+            # Look for auto-approval related logs in the last 30 days
+            thirty_days_ago = timezone.now() - timedelta(days=30)
+            
+            auto_approval_logs = SystemLog.objects.filter(
+                created_at__gte=thirty_days_ago,
+                message__icontains='auto'
+            ).filter(
+                message__icontains='approv'
+            ).order_by('-created_at')
+            
+            if auto_approval_logs.exists():
+                self.stdout.write(self.style.WARNING(f'   ⚠ Found {auto_approval_logs.count()} auto-approval related log entries:'))
+                for log in auto_approval_logs[:10]:  # Show first 10
+                    self.stdout.write(f'   - {log.created_at}: {log.message}')
+                if auto_approval_logs.count() > 10:
+                    self.stdout.write(f'   ... and {auto_approval_logs.count() - 10} more entries')
+            else:
+                self.stdout.write(self.style.SUCCESS('   ✓ No auto-approval logs found in SystemLog'))
+                
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f'   ⚠ Error checking SystemLog: {str(e)}'))
+        
+        # Check Transaction descriptions for auto-approval indicators
+        self.stdout.write('\n2. Checking transaction descriptions...')
+        try:
+            # Look for transactions with auto-approval indicators
+            auto_approved_transactions = Transaction.objects.filter(
+                transaction_type='deposit',
+                created_at__gte=thirty_days_ago
+            ).filter(
+                description__icontains='auto'
+            ).order_by('-created_at')
+            
+            if auto_approved_transactions.exists():
+                self.stdout.write(self.style.WARNING(f'   ⚠ Found {auto_approved_transactions.count()} transactions with "auto" in description:'))
+                for txn in auto_approved_transactions[:10]:
+                    self.stdout.write(f'   - {txn.created_at}: ${txn.amount} - {txn.description} (Status: {txn.status})')
+            else:
+                self.stdout.write(self.style.SUCCESS('   ✓ No transactions with auto-approval indicators found'))
+                
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f'   ⚠ Error checking transactions: {str(e)}'))
+        
+        # Check for deposits that were completed very quickly (potential auto-approval)
+        self.stdout.write('\n3. Checking for rapidly processed deposits...')
+        try:
+            # Find deposits that were completed within 5 minutes of creation (suspicious of auto-approval)
+            rapid_deposits = Transaction.objects.filter(
+                transaction_type='deposit',
+                status='completed',
+                created_at__gte=thirty_days_ago,
+                completed_at__isnull=False
+            ).extra(
+                where=["EXTRACT(EPOCH FROM (completed_at - created_at)) < 300"]  # Less than 5 minutes
+            ).order_by('-created_at')
+            
+            if rapid_deposits.exists():
+                self.stdout.write(self.style.WARNING(f'   ⚠ Found {rapid_deposits.count()} deposits completed within 5 minutes:'))
+                for txn in rapid_deposits[:10]:
+                    time_diff = (txn.completed_at - txn.created_at).total_seconds()
+                    self.stdout.write(f'   - {txn.created_at}: ${txn.amount} completed in {int(time_diff)}s (User: {txn.user.email})')
+                if rapid_deposits.count() > 10:
+                    self.stdout.write(f'   ... and {rapid_deposits.count() - 10} more rapid deposits')
+            else:
+                self.stdout.write(self.style.SUCCESS('   ✓ No unusually rapid deposit processing found'))
+                
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f'   ⚠ Error checking rapid deposits: {str(e)}'))
+        
+        # Check DepositRequest status changes
+        self.stdout.write('\n4. Checking DepositRequest processing patterns...')
+        try:
+            # Look at recent deposit requests and their processing times
+            recent_deposits = DepositRequest.objects.filter(
+                created_at__gte=thirty_days_ago
+            ).select_related('transaction').order_by('-created_at')
+            
+            auto_processed = 0
+            manual_processed = 0
+            still_pending = 0
+            
+            for deposit in recent_deposits[:50]:  # Check last 50
+                if deposit.processed_at and deposit.transaction:
+                    process_time = (deposit.processed_at - deposit.created_at).total_seconds()
+                    if process_time < 300:  # Less than 5 minutes
+                        auto_processed += 1
+                    else:
+                        manual_processed += 1
+                elif not deposit.processed_at:
+                    still_pending += 1
+            
+            self.stdout.write(f'   Recent deposit processing pattern (last 50):')
+            self.stdout.write(f'   - Rapidly processed (< 5 min): {auto_processed}')
+            self.stdout.write(f'   - Manually processed (> 5 min): {manual_processed}')
+            self.stdout.write(f'   - Still pending: {still_pending}')
+            
+            if auto_processed > 0:
+                self.stdout.write(self.style.WARNING(f'   ⚠ {auto_processed} deposits were processed very quickly'))
+            else:
+                self.stdout.write(self.style.SUCCESS('   ✓ All processed deposits show normal processing times'))
+                
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f'   ⚠ Error checking deposit patterns: {str(e)}'))
+        
+        # Summary
+        self.stdout.write('\n' + '='*60)
+        self.stdout.write(self.style.SUCCESS('📊 AUTO-APPROVAL LOG SUMMARY:'))
+        self.stdout.write('   - SystemLog entries: Check above')
+        self.stdout.write('   - Transaction descriptions: Check above') 
+        self.stdout.write('   - Rapid processing patterns: Check above')
+        self.stdout.write('   - Recent deposit patterns: Check above')
+        self.stdout.write('\n   💡 TIP: Rapid processing (< 5 min) may indicate past auto-approval')
         self.stdout.write('='*60)
 
     def disable_auto_approval(self):
