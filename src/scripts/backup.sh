@@ -76,16 +76,58 @@ backup_redis() {
         return 1
     fi
     
+    # Get current LASTSAVE timestamp before starting backup
+    local before_save=$(docker-compose exec -T redis redis-cli LASTSAVE)
+    log_info "Current LASTSAVE timestamp: $before_save"
+    
     # Create Redis backup
     docker-compose exec -T redis redis-cli BGSAVE
     
-    # Wait for background save to complete
-    while [ "$(docker-compose exec -T redis redis-cli LASTSAVE)" = "$(docker-compose exec -T redis redis-cli LASTSAVE)" ]; do
+    # Wait for background save to complete (with timeout)
+    local timeout=60  # 60 seconds timeout
+    local counter=0
+    
+    while [ $counter -lt $timeout ]; do
+        local current_save=$(docker-compose exec -T redis redis-cli LASTSAVE)
+        
+        # If LASTSAVE timestamp changed, backup is complete
+        if [ "$current_save" != "$before_save" ]; then
+            log_info "Redis background save completed"
+            break
+        fi
+        
+        # Check if BGSAVE is still running
+        local bgsave_status=$(docker-compose exec -T redis redis-cli BGSAVE 2>&1)
+        if echo "$bgsave_status" | grep -q "Background save already in progress"; then
+            log_info "Redis background save in progress... (${counter}s)"
+        else
+            log_warn "BGSAVE may have failed: $bgsave_status"
+            break
+        fi
+        
         sleep 1
+        counter=$((counter + 1))
     done
     
-    # Copy Redis dump
-    docker cp "$(docker-compose ps -q redis):/data/dump.rdb" "$BACKUP_PATH/redis_dump.rdb" || log_warn "Redis backup may have failed"
+    # Check if we timed out
+    if [ $counter -eq $timeout ]; then
+        log_error "Redis backup timed out after ${timeout} seconds"
+        return 1
+    fi
+    
+    # Copy Redis dump (with better error handling)
+    local redis_container=$(docker-compose ps -q redis)
+    if [ -n "$redis_container" ]; then
+        if docker cp "$redis_container:/data/dump.rdb" "$BACKUP_PATH/redis_dump.rdb"; then
+            log_info "Redis dump file copied successfully"
+        else
+            log_warn "Failed to copy Redis dump file"
+            return 1
+        fi
+    else
+        log_error "Could not find Redis container"
+        return 1
+    fi
     
     log_info "Redis backup completed"
 }
