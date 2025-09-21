@@ -29,6 +29,11 @@ class Command(BaseCommand):
             help='Disable auto-approval functionality',
         )
         parser.add_argument(
+            '--stop-running-tasks',
+            action='store_true',
+            help='Stop any currently running auto-approval tasks',
+        )
+        parser.add_argument(
             '--create-test-deposit',
             action='store_true',
             help='Create a test deposit to verify behavior',
@@ -43,11 +48,15 @@ class Command(BaseCommand):
         if options['disable']:
             self.disable_auto_approval()
             
-        if not options['test'] and not options['disable']:
-            self.stdout.write(self.style.WARNING('No action specified. Use --test or --disable'))
+        if options['stop_running_tasks']:
+            self.stop_running_auto_approval_tasks()
+            
+        if not options['test'] and not options['disable'] and not options['stop_running_tasks']:
+            self.stdout.write(self.style.WARNING('No action specified. Use --test, --disable, or --stop-running-tasks'))
             self.stdout.write('Usage examples:')
             self.stdout.write('  python manage.py disable_auto_approve --test')
             self.stdout.write('  python manage.py disable_auto_approve --disable')
+            self.stdout.write('  python manage.py disable_auto_approve --stop-running-tasks')
             self.stdout.write('  python manage.py disable_auto_approve --test --create-test-deposit')
 
     def test_auto_approval_status(self, create_test=False):
@@ -88,6 +97,45 @@ class Command(BaseCommand):
                 
         except Exception as e:
             self.stdout.write(self.style.WARNING(f'   ⚠ Could not check beat schedule: {str(e)}'))
+
+        # Test 2.5: Check active Celery workers and tasks
+        self.stdout.write('\n2.5. Checking active Celery tasks...')
+        try:
+            from tradevision.celery import app
+            inspect = app.control.inspect()
+            
+            # Check active tasks
+            active_tasks = inspect.active()
+            if active_tasks:
+                auto_approve_active = []
+                for worker, tasks in active_tasks.items():
+                    for task in tasks:
+                        if 'auto_approve' in task.get('name', '').lower():
+                            auto_approve_active.append(f"{worker}: {task['name']}")
+                
+                if auto_approve_active:
+                    self.stdout.write(self.style.ERROR(f'   ✗ Auto-approval tasks currently running: {auto_approve_active}'))
+                else:
+                    self.stdout.write(self.style.SUCCESS('   ✓ No auto-approval tasks currently active'))
+            else:
+                self.stdout.write(self.style.WARNING('   ⚠ Could not connect to Celery workers'))
+            
+            # Check scheduled tasks
+            scheduled_tasks = inspect.scheduled()
+            if scheduled_tasks:
+                auto_approve_scheduled = []
+                for worker, tasks in scheduled_tasks.items():
+                    for task in tasks:
+                        if 'auto_approve' in task.get('task', '').lower():
+                            auto_approve_scheduled.append(f"{worker}: {task['task']}")
+                
+                if auto_approve_scheduled:
+                    self.stdout.write(self.style.ERROR(f'   ✗ Auto-approval tasks scheduled: {auto_approve_scheduled}'))
+                else:
+                    self.stdout.write(self.style.SUCCESS('   ✓ No auto-approval tasks scheduled'))
+                    
+        except Exception as e:
+            self.stdout.write(self.style.WARNING(f'   ⚠ Could not check active tasks: {str(e)}'))
 
         # Test 3: Check existing deposits
         self.stdout.write('\n3. Checking existing deposits...')
@@ -317,3 +365,63 @@ def auto_approve_small_deposits(self):
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'   ✗ Error creating test deposit: {str(e)}'))
             return False
+
+    def stop_running_auto_approval_tasks(self):
+        """Stop any currently running auto-approval tasks"""
+        self.stdout.write(self.style.SUCCESS('🛑 Stopping running auto-approval tasks...\n'))
+        
+        try:
+            from tradevision.celery import app
+            inspect = app.control.inspect()
+            
+            # Get active tasks
+            active_tasks = inspect.active()
+            if not active_tasks:
+                self.stdout.write(self.style.WARNING('   ⚠ No active Celery workers found'))
+                return
+            
+            stopped_tasks = 0
+            for worker, tasks in active_tasks.items():
+                for task in tasks:
+                    task_name = task.get('name', '')
+                    task_id = task.get('id', '')
+                    
+                    if 'auto_approve' in task_name.lower():
+                        self.stdout.write(f'   Stopping task: {task_name} (ID: {task_id}) on {worker}')
+                        
+                        # Revoke the task
+                        app.control.revoke(task_id, terminate=True)
+                        stopped_tasks += 1
+            
+            if stopped_tasks > 0:
+                self.stdout.write(self.style.SUCCESS(f'   ✓ Stopped {stopped_tasks} auto-approval task(s)'))
+            else:
+                self.stdout.write(self.style.SUCCESS('   ✓ No auto-approval tasks were running'))
+            
+            # Also check and remove any scheduled auto-approval tasks
+            scheduled_tasks = inspect.scheduled()
+            if scheduled_tasks:
+                revoked_scheduled = 0
+                for worker, tasks in scheduled_tasks.items():
+                    for task in tasks:
+                        task_name = task.get('task', '')
+                        task_id = task.get('id', '')
+                        
+                        if 'auto_approve' in task_name.lower():
+                            self.stdout.write(f'   Revoking scheduled task: {task_name} (ID: {task_id})')
+                            app.control.revoke(task_id, terminate=True)
+                            revoked_scheduled += 1
+                
+                if revoked_scheduled > 0:
+                    self.stdout.write(self.style.SUCCESS(f'   ✓ Revoked {revoked_scheduled} scheduled auto-approval task(s)'))
+            
+            self.stdout.write('\n' + '='*60)
+            self.stdout.write(self.style.SUCCESS('✅ TASK CLEANUP COMPLETED'))
+            self.stdout.write('   - All running auto-approval tasks stopped')
+            self.stdout.write('   - All scheduled auto-approval tasks revoked')
+            self.stdout.write('   - System now fully manual approval only')
+            self.stdout.write('='*60)
+            
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f'❌ Error stopping tasks: {str(e)}'))
+            raise CommandError(f'Failed to stop running tasks: {str(e)}')
