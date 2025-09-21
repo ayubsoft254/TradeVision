@@ -215,3 +215,100 @@ body.admin {
     border-color: #28a745 !important;
     box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.15) !important;
 }
+
+/* Payment Methods Checkbox Selection Styling */
+.payment-methods-checkboxes,
+#id_payment_methods,
+ul#id_payment_methods {
+    list-style: none !important;
+    padding: 16px !important;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%) !important;
+    border: 2px solid #dee2e6 !important;
+    border-radius: 8px !important;
+    margin: 12px 0 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+.payment-methods-checkboxes li,
+#id_payment_methods li {
+    display: flex !important;
+    align-items: center !important;
+    padding: 10px 0 !important;
+    margin: 8px 0 !important;
+    border-bottom: 1px solid #e9ecef !important;
+    transition: all 0.2s ease !important;
+}
+
+.payment-methods-checkboxes li:last-child,
+#id_payment_methods li:last-child {
+    border-bottom: none !important;
+}
+
+.payment-methods-checkboxes li:hover,
+#id_payment_methods li:hover {
+    background: linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%) !important;
+    border-radius: 6px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+}
+
+.payment-methods-checkboxes input[type="checkbox"],
+#id_payment_methods input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+    margin-right: 12px !important;
+    transform: scale(1.2) !important;
+    cursor: pointer !important;
+    accent-color: #28a745 !important;
+}
+
+.payment-methods-checkboxes label,
+#id_payment_methods label {
+    cursor: pointer !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    color: #495057 !important;
+    flex: 1 !important;
+    margin: 0 !important;
+    line-height: 1.5 !important;
+}
+
+.payment-methods-checkboxes input[type="checkbox"]:checked + label,
+#id_payment_methods input[type="checkbox"]:checked + label {
+    color: #155724 !important;
+    font-weight: 600 !important;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 50%) !important;
+    padding: 4px 8px !important;
+    border-radius: 4px !important;
+}
+
+/* Enhanced visibility for selected checkboxes */
+.payment-methods-checkboxes input[type="checkbox"]:checked,
+#id_payment_methods input[type="checkbox"]:checked {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+}
+
+/* Focus states for better accessibility */
+.payment-methods-checkboxes input[type="checkbox"]:focus,
+#id_payment_methods input[type="checkbox"]:focus {
+    outline: 2px solid #28a745 !important;
+    outline-offset: 2px !important;
+}
+
+/* Field wrapper styling */
+.field-payment_methods {
+    background: #ffffff !important;
+    padding: 8px !important;
+    border-radius: 6px !important;
+    margin: 12px 0 !important;
+}
+
+.field-payment_methods .help {
+    background: #e9ecef !important;
+    padding: 8px 12px !important;
+    border-radius: 4px !important;
+    font-style: italic !important;
+    color: #6c757d !important;
+    margin-top: 8px !important;
+}

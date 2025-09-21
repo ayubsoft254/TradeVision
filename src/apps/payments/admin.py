@@ -1154,6 +1154,11 @@ class WithdrawalRequestAdmin(admin.ModelAdmin):
             self.message_user(request, f'{updated_count} withdrawals marked as processing.')
     
     mark_as_processing.short_description = '🔄 Mark as processing'
+    
+    class Media:
+        css = {
+            'all': ('admin/css/custom_admin.css',)
+        }
 
 @admin.register(Agent)
 class AgentAdmin(admin.ModelAdmin):
@@ -1213,35 +1218,21 @@ class P2PMerchantAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # Filter payment methods based on merchant's country
+        # Configure help text based on merchant's country
         if self.instance and self.instance.pk and self.instance.country:
-            # Show only payment methods available in the merchant's country
-            # Fix: Use Python filtering instead of JSONField query for SQLite compatibility
-            available_methods = []
-            for method in PaymentMethod.objects.filter(is_active=True):
-                if method.is_available_for_country(self.instance.country):
-                    available_methods.append(method)
-            
-            self.fields['payment_methods'].queryset = PaymentMethod.objects.filter(
-                id__in=[m.id for m in available_methods]
-            ).order_by('display_name')
-            
             self.fields['payment_methods'].help_text = (
                 f"Select payment methods available in {dict(P2PMerchant.COUNTRY_CHOICES)[self.instance.country]}. "
                 "Only active payment methods supported in this country are shown."
             )
         else:
-            # For new merchants, show all active payment methods
-            self.fields['payment_methods'].queryset = PaymentMethod.objects.filter(
-                is_active=True
-            ).order_by('display_name')
             self.fields['payment_methods'].help_text = (
                 "Select payment methods this merchant supports. "
                 "Save the merchant first to see country-specific options."
             )
         
-        # Use CheckboxSelectMultiple widget for better UX
-        self.fields['payment_methods'].widget = forms.CheckboxSelectMultiple()
+        # Add label for better UX
+        self.fields['payment_methods'].label = "Supported Payment Methods"
+        self.fields['payment_methods'].required = False
         
         # Hide the old supported_methods field - it's kept for backward compatibility
         self.fields['supported_methods'].widget = forms.HiddenInput()
@@ -1274,15 +1265,30 @@ class P2PMerchantAdmin(admin.ModelAdmin):
     list_filter = ['country', 'is_verified', 'is_active', 'payment_methods', 'created_at']
     search_fields = ['name', 'username', 'phone_number', 'email']
     readonly_fields = ['id', 'created_at', 'updated_at', 'payment_methods_info', 'available_methods_info']
-    filter_horizontal = ['payment_methods']
+    # Removed filter_horizontal to allow custom CheckboxSelectMultiple widget to work
+    
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == "payment_methods":
+            kwargs["widget"] = forms.CheckboxSelectMultiple()
+            kwargs["queryset"] = PaymentMethod.objects.filter(is_active=True).order_by('display_name')
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
     
     fieldsets = (
         ('Basic Information', {
             'fields': ('id', 'name', 'username', 'phone_number', 'email')
         }),
-        ('Location & Payment Methods', {
-            'fields': ('country', 'available_methods_info', 'payment_methods', 'payment_methods_info'),
-            'description': 'Select the country and payment methods this merchant supports'
+        ('Location', {
+            'fields': ('country', 'available_methods_info'),
+            'description': 'Select the merchant\'s country to see available payment methods'
+        }),
+        ('Payment Methods Selection', {
+            'fields': ('payment_methods',),
+            'description': 'Select the payment methods this merchant supports (checkboxes will appear below)'
+        }),
+        ('Selected Payment Methods Info', {
+            'fields': ('payment_methods_info',),
+            'description': 'Summary of selected payment methods',
+            'classes': ('collapse',)
         }),
         ('Mobile Money Payment Details', {
             'fields': ('mobile_money_provider', 'mobile_money_number', 'mobile_money_name'),
@@ -1450,3 +1456,9 @@ class P2PMerchantAdmin(admin.ModelAdmin):
         updated = queryset.update(is_active=False)
         self.message_user(request, f'{updated} merchants deactivated.')
     deactivate_merchants.short_description = 'Deactivate selected merchants'
+    
+    class Media:
+        css = {
+            'all': ('admin/css/custom_admin.css',)
+        }
+        js = ('admin/js/payment_methods_selector.js',)
