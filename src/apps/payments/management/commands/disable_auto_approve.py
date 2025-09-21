@@ -30,6 +30,11 @@ class Command(BaseCommand):
             help='Disable auto-approval functionality',
         )
         parser.add_argument(
+            '--check-logs',
+            action='store_true',
+            help='Check logs for any auto-approved deposits',
+        )
+        parser.add_argument(
             '--stop-running-tasks',
             action='store_true',
             help='Stop any currently running auto-approval tasks',
