@@ -3,8 +3,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView, ListView, DetailView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.http import JsonResponse, Http404
-from django.core.paginator import Paginator
+from django.http import JsonResponse
+
 from django.db.models import Q, Count
 from django.utils import timezone
 from django.conf import settings

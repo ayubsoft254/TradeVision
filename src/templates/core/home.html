@@ -132,27 +132,112 @@
 
 <!-- Announcements -->
 {% if announcements %}
-<section class="bg-blue-900/20 py-4 border-b border-blue-700/30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<section class="bg-gradient-to-r from-blue-600 to-indigo-700 py-3 relative overflow-hidden">
+    <!-- Background pattern for visual interest -->
+    <div class="absolute inset-0 bg-gradient-to-r from-blue-600/90 to-indigo-700/90"></div>
+    <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 left-0 w-20 h-20 bg-white rounded-full -translate-x-10 -translate-y-10"></div>
+        <div class="absolute top-0 right-0 w-32 h-32 bg-white rounded-full translate-x-16 -translate-y-16"></div>
+    </div>
+    
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center space-x-4">
-            <div class="flex-shrink-0 bg-blue-700 p-2 rounded-lg">
-                <i class="fas fa-bullhorn text-blue-300"></i>
+            <!-- Icon with better visibility -->
+            <div class="flex-shrink-0 bg-white/20 backdrop-blur-sm p-3 rounded-lg border border-white/30">
+                <i class="fas fa-bullhorn text-white text-lg"></i>
             </div>
+            
+            <!-- Announcement content -->
             <div class="flex-1 min-w-0">
-                <div class="text-sm text-blue-200 font-medium">
-                    <span class="text-blue-400 uppercase tracking-wider text-xs font-bold">Latest Updates:</span>
-                    {% for announcement in announcements %}
-                        <span class="mx-2">{{ announcement.title }}</span>
-                        {% if not forloop.last %}<span class="text-blue-600">•</span>{% endif %}
-                    {% endfor %}
+                <div class="text-white">
+                    <span class="text-yellow-300 uppercase tracking-wider text-xs font-bold bg-yellow-500/20 px-2 py-1 rounded-full border border-yellow-400/30">
+                        <i class="fas fa-star mr-1"></i>Latest Updates
+                    </span>
+                    <div class="mt-2">
+                        {% for announcement in announcements %}
+                            <div class="inline-block mr-4 mb-1">
+                                <span class="text-white font-medium text-sm">{{ announcement.title }}</span>
+                                {% if announcement.announcement_type == 'success' %}
+                                    <span class="ml-2 text-green-300 text-xs">
+                                        <i class="fas fa-check-circle"></i>
+                                    </span>
+                                {% elif announcement.announcement_type == 'warning' %}
+                                    <span class="ml-2 text-yellow-300 text-xs">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </span>
+                                {% elif announcement.announcement_type == 'danger' %}
+                                    <span class="ml-2 text-red-300 text-xs">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                    </span>
+                                {% else %}
+                                    <span class="ml-2 text-blue-200 text-xs">
+                                        <i class="fas fa-info-circle"></i>
+                                    </span>
+                                {% endif %}
+                                {% if not forloop.last %}<span class="text-white/60 mx-2">•</span>{% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
-            <div class="flex-shrink-0">
-                <a href="#" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View All</a>
+            
+            <!-- View all link with better visibility -->
+            <div class="flex-shrink-0 hidden sm:block">
+                <a href="#announcements-modal" 
+                   onclick="showAnnouncementsModal()" 
+                   class="bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-lg font-medium text-sm hover:bg-white/30 transition-all duration-200 border border-white/30 flex items-center">
+                    <span>View All</span>
+                    <i class="fas fa-arrow-right ml-2 text-xs"></i>
+                </a>
             </div>
         </div>
     </div>
 </section>
+
+<!-- Announcements Modal -->
+<div id="announcements-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl">
+        <div class="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-t-2xl">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-bold flex items-center">
+                    <i class="fas fa-bullhorn mr-3"></i>
+                    Platform Announcements
+                </h2>
+                <button onclick="hideAnnouncementsModal()" class="text-white/80 hover:text-white text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="p-6 space-y-4">
+            {% for announcement in announcements %}
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div class="flex items-start justify-between mb-2">
+                    <h3 class="font-semibold text-lg text-gray-900 flex items-center">
+                        {% if announcement.announcement_type == 'success' %}
+                            <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                        {% elif announcement.announcement_type == 'warning' %}
+                            <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                        {% elif announcement.announcement_type == 'danger' %}
+                            <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                        {% endif %}
+                        {{ announcement.title }}
+                    </h3>
+                    <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                        {{ announcement.priority|title }}
+                    </span>
+                </div>
+                <p class="text-gray-700 leading-relaxed">{{ announcement.message }}</p>
+                <div class="mt-3 text-xs text-gray-500">
+                    <i class="fas fa-calendar mr-1"></i>
+                    {{ announcement.created_at|date:"M d, Y" }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 {% endif %}
 
 <!-- Trading Packages Section -->
@@ -447,13 +532,54 @@
 
 {% block extra_js %}
 <script>
+// Announcement Modal Functions
+function showAnnouncementsModal() {
+    const modal = document.getElementById('announcements-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function hideAnnouncementsModal() {
+    const modal = document.getElementById('announcements-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Close modal when clicking outside
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('announcements-modal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                hideAnnouncementsModal();
+            }
+        });
+    }
+    
+    // Close modal with ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideAnnouncementsModal();
+        }
+    });
+});
+
 // Add smooth scrolling for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
-        document.querySelector(this.getAttribute('href')).scrollIntoView({
-            behavior: 'smooth'
-        });
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
     });
 });
 
