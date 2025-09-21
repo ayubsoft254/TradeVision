@@ -128,15 +128,16 @@ web-redeploy:
 # Safe redeploy - rebuilds everything except database services
 safe-redeploy:
 	@echo -e "$(YELLOW)Starting safe redeploy (preserving database)...$(NC)"
-	@echo -e "$(GREEN)Creating backup before redeploy...$(NC)"	
+	@echo -e "$(GREEN)Creating backup before redeploy...$(NC)"
+	@./scripts/backup.sh backup || echo -e "$(YELLOW)Backup script not available, continuing...$(NC)"
 	@echo -e "$(YELLOW)Stopping application services (keeping DB running)...$(NC)"
-	@docker-compose stop web celery_worker_critical celery_worker_general celery_beat redis flower || true
+	@docker-compose stop web celery_worker_critical celery_worker_default celery_beat nginx redis flower || true
 	@echo -e "$(YELLOW)Pulling latest images...$(NC)"
-	@docker-compose pull web redis
+	@docker-compose pull web nginx redis
 	@echo -e "$(YELLOW)Rebuilding application containers...$(NC)"
 	@docker-compose build --no-cache web
 	@echo -e "$(YELLOW)Starting services with fresh containers...$(NC)"
-	@docker-compose up -d --force-recreate web celery_worker_critical celery_worker_general celery_beat redis
+	@docker-compose up -d --force-recreate web celery_worker_critical celery_worker_default celery_beat nginx redis
 	@echo -e "$(GREEN)Running migrations (safe)...$(NC)"
 	@docker-compose exec web python manage.py migrate --noinput
 	@echo -e "$(GREEN)Collecting static files...$(NC)"
