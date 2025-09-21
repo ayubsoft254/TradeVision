@@ -261,68 +261,15 @@ def process_single_withdrawal(withdrawal_request):
 @shared_task(bind=True, max_retries=3)
 def auto_approve_small_deposits(self):
     """
-    Automatically approve small deposits under a certain threshold.
-    Runs every 15 minutes for low-risk deposit automation.
+    DISABLED: All deposits require manual admin approval.
+    No automatic approval regardless of amount.
     """
-    try:
-        # Define auto-approval threshold (configurable)
-        auto_approve_threshold = Decimal('1000')  # Auto-approve deposits under 1000
-        
-        # Get pending deposits under threshold with payment proof
-        auto_approve_deposits = DepositRequest.objects.filter(
-            transaction__status='pending',
-            transaction__amount__lte=auto_approve_threshold,
-            payment_proof__isnull=False
-        ).select_related('transaction', 'transaction__user')
-        
-        approved_count = 0
-        
-        for deposit_request in auto_approve_deposits:
-            try:
-                with db_transaction.atomic():
-                    # Move to processing status for automatic approval
-                    deposit_request.transaction.status = 'processing'
-                    deposit_request.transaction.save()
-                    
-                    # Log auto-approval
-                    SystemLog.objects.create(
-                        user=deposit_request.transaction.user,
-                        action_type='deposit',
-                        level='INFO',
-                        message=f'Deposit auto-approved: {deposit_request.transaction.amount} under threshold',
-                        metadata={
-                            'transaction_id': str(deposit_request.transaction.id),
-                            'amount': str(deposit_request.transaction.amount),
-                            'auto_approved': True
-                        }
-                    )
-                    
-                    approved_count += 1
-                    logger.info(f"Auto-approved deposit {deposit_request.transaction.id}")
-                    
-            except Exception as e:
-                logger.error(f"Error auto-approving deposit {deposit_request.id}: {str(e)}")
-        
-        logger.info(f"Auto-approval completed: {approved_count} deposits approved")
-        
-        return {
-            'status': 'completed',
-            'approved_count': approved_count,
-            'timestamp': timezone.now().isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"Critical error in auto_approve_small_deposits: {str(e)}")
-        
-        if self.request.retries < self.max_retries:
-            logger.info(f"Retrying auto_approve_small_deposits, attempt {self.request.retries + 1}")
-            raise self.retry(countdown=900, exc=e)
-        
-        return {
-            'status': 'failed',
-            'error': str(e),
-            'approved_count': 0
-        }
+    logger.info("Auto-approval is disabled. All deposits require manual admin review.")
+    return {
+        'status': 'disabled',
+        'approved_count': 0,
+        'message': 'Auto-approval disabled - manual review required for all deposits'
+    }
 
 @shared_task
 def check_failed_transactions():
@@ -576,7 +523,7 @@ def detect_suspicious_activity():
             status='pending'
         )
         
-        for withdrawal in large_withdrawals:
+        for withdrawal in large_withwithdrawals:
             # Flag for manual review
             SystemLog.objects.create(
                 user=withdrawal.user,

@@ -125,14 +125,6 @@ app.conf.beat_schedule = {
         }
     },
     
-    'auto-approve-small-deposits': {
-        'task': 'apps.payments.tasks.auto_approve_small_deposits',
-        'schedule': 900.0,  # Every 15 minutes
-        'options': {
-            'expires': 600,  # 10 minutes to complete
-        }
-    },
-
     # Disabled to prevent trading task failures
     # 'check-binance-payments': {
     #     'task': 'apps.payments.tasks.check_binance_payments_task',
@@ -283,10 +275,6 @@ app.conf.task_routes = {
     'apps.payments.tasks.process_withdrawal_requests': {
         'queue': 'payments',
         'priority': 8
-    },
-    'apps.payments.tasks.auto_approve_small_deposits': {
-        'queue': 'payments',
-        'priority': 6
     },
     
     # Security Tasks (High Priority)
