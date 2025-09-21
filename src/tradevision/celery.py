@@ -21,7 +21,7 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     
     # =============================================================================
-    # TRADING TASKS (Core Business Logic) - FIXED
+    # TRADING TASKS (Core Business Logic) - UNCHANGED
     # =============================================================================
     
     'process-completed-trades': {
@@ -37,7 +37,6 @@ app.conf.beat_schedule = {
             }
         }
     },
-    
     
     'auto-initiate-daily-trades': {
         'task': 'apps.trading.tasks.auto_initiate_daily_trades',
@@ -94,52 +93,59 @@ app.conf.beat_schedule = {
     },
     
     # =============================================================================
-    # PAYMENT TASKS (Financial Operations)
+    # PAYMENT TASKS (NOW MANUAL APPROVAL ONLY)
     # =============================================================================
     
-    'process-pending-deposits': {
-        'task': 'apps.payments.tasks.process_pending_deposits',
-        'schedule': 300.0,  # Every 5 minutes
-        'options': {
-            'expires': 240,  # 4 minutes to complete
-            'retry_policy': {
-                'max_retries': 3,
-                'interval_start': 60,
-                'interval_step': 60,
-                'interval_max': 180,
-            }
-        }
-    },
-    
-    'process-withdrawal-requests': {
-        'task': 'apps.payments.tasks.process_withdrawal_requests',
-        'schedule': 600.0,  # Every 10 minutes
-        'options': {
-            'expires': 480,  # 8 minutes to complete
-            'retry_policy': {
-                'max_retries': 3,
-                'interval_start': 120,
-                'interval_step': 120,
-                'interval_max': 360,
-            }
-        }
-    },
-    
-    # Disabled to prevent trading task failures
-    # 'check-binance-payments': {
-    #     'task': 'apps.payments.tasks.check_binance_payments_task',
-    #     'schedule': 300.0,  # 5 minutes
-    #     'options': {'queue': 'payments'}
+    # DISABLED: Automatic deposit processing - now requires manual admin approval
+    # 'process-pending-deposits': {
+    #     'task': 'apps.payments.tasks.process_pending_deposits',
+    #     'schedule': 300.0,
+    #     'options': {'expires': 240}
     # },
     
-    'detect-suspicious-activity': {
-        'task': 'apps.payments.tasks.detect_suspicious_activity',
-        'schedule': 3600.0,  # Every hour
+    # DISABLED: Automatic withdrawal processing - now requires manual admin approval
+    # 'process-withdrawal-requests': {
+    #     'task': 'apps.payments.tasks.process_withdrawal_requests',
+    #     'schedule': 600.0,
+    #     'options': {'expires': 480}
+    # },
+    
+    # Monitor pending payments for admin alerts (reporting only)
+    'monitor-pending-payments': {
+        'task': 'apps.payments.tasks.process_pending_deposits',
+        'schedule': 3600.0,  # Every hour - just for monitoring/reporting
         'options': {
-            'expires': 1800,  # 30 minutes to complete
+            'expires': 300,  # 5 minutes to complete
         }
     },
     
+    'monitor-pending-withdrawals': {
+        'task': 'apps.payments.tasks.process_withdrawal_requests',
+        'schedule': 3600.0,  # Every hour - just for monitoring/reporting
+        'options': {
+            'expires': 300,  # 5 minutes to complete
+        }
+    },
+    
+    # Admin notification for pending payments
+    'notify-admin-pending-payments': {
+        'task': 'apps.payments.tasks.notify_admin_pending_payments',
+        'schedule': 3600.0,  # Every hour
+        'options': {
+            'expires': 300,  # 5 minutes to complete
+        }
+    },
+    
+    # Security monitoring (enhanced for manual approval system)
+    'detect-suspicious-activity': {
+        'task': 'apps.payments.tasks.detect_suspicious_activity',
+        'schedule': 1800.0,  # Every 30 minutes (increased frequency)
+        'options': {
+            'expires': 1200,  # 20 minutes to complete
+        }
+    },
+    
+    # Cleanup old transactions (extended timeout for manual approval)
     'check-failed-transactions': {
         'task': 'apps.payments.tasks.check_failed_transactions',
         'schedule': 86400.0,  # Daily cleanup
@@ -156,9 +162,10 @@ app.conf.beat_schedule = {
         }
     },
     
+    # Enhanced payment reports for manual approval system
     'generate-payment-reports': {
         'task': 'apps.payments.tasks.generate_payment_reports',
-        'schedule': 86400.0,  # Daily reports
+        'schedule': 21600.0,  # Every 6 hours (increased frequency)
         'options': {
             'expires': 1800,  # 30 minutes to complete
         }
@@ -168,18 +175,18 @@ app.conf.beat_schedule = {
     # SCHEDULED TASKS (Using Crontab)
     # =============================================================================
     
-    # Disabled - depends on Binance Pay setup
-    # 'cleanup-old-payments': {
-    #     'task': 'apps.payments.tasks.cleanup_old_pending_payments',
-    #     'schedule': crontab(hour=2, minute=0),
-    #     'options': {'queue': 'maintenance'}
-    # },
-    
     # Generate daily report at 11:59 PM EAT
     'daily-payment-report': {
-        'task': 'apps.payments.tasks.generate_payment_report',
+        'task': 'apps.payments.tasks.generate_payment_reports',
         'schedule': crontab(hour=23, minute=59),
         'options': {'queue': 'reports'}
+    },
+    
+    # Daily admin summary at 8:00 AM EAT
+    'daily-admin-summary': {
+        'task': 'apps.payments.tasks.notify_admin_pending_payments',
+        'schedule': crontab(hour=8, minute=0),
+        'options': {'queue': 'notifications'}
     },
     
     # Monitor queue health every 30 minutes
@@ -231,23 +238,25 @@ app.conf.update(
     worker_send_task_events=True,
     task_send_sent_event=True,
     
-    # Rate Limiting
+    # Rate Limiting (adjusted for manual approval system)
     task_annotations={
         'apps.trading.tasks.process_completed_trades': {'rate_limit': '60/m'},  # Max 60 per minute
-        'apps.payments.tasks.process_pending_deposits': {'rate_limit': '20/m'},  # Max 20 per minute
-        'apps.payments.tasks.detect_suspicious_activity': {'rate_limit': '1/m'},  # Max 1 per minute
+        'apps.payments.tasks.detect_suspicious_activity': {'rate_limit': '2/m'},  # Increased from 1/m
+        'apps.payments.tasks.notify_admin_pending_payments': {'rate_limit': '1/m'},  # New task rate limit
+        'apps.payments.tasks.process_pending_deposits': {'rate_limit': '1/m'},  # Monitoring only
+        'apps.payments.tasks.process_withdrawal_requests': {'rate_limit': '1/m'},  # Monitoring only
     }
 )
 
 # Queue Configuration for Different Task Types
 app.conf.task_routes = {
-    # Critical Trading Tasks (Highest Priority)
+    # Critical Trading Tasks (Highest Priority) - UNCHANGED
     'apps.trading.tasks.process_completed_trades': {
         'queue': 'critical',
         'priority': 10
     },
     
-    # Trading Tasks (High Priority)
+    # Trading Tasks (High Priority) - UNCHANGED
     'apps.trading.tasks.auto_initiate_daily_trades': {
         'queue': 'trading', 
         'priority': 8
@@ -267,20 +276,26 @@ app.conf.task_routes = {
         'priority': 6
     },
     
-    # Payment Tasks (Medium Priority)
+    # Payment Tasks (NOW MONITORING/REPORTING ONLY)
     'apps.payments.tasks.process_pending_deposits': {
-        'queue': 'payments',
-        'priority': 8
+        'queue': 'monitoring',  # Changed from 'payments' to 'monitoring'
+        'priority': 4  # Reduced priority since it's monitoring only
     },
     'apps.payments.tasks.process_withdrawal_requests': {
-        'queue': 'payments',
-        'priority': 8
+        'queue': 'monitoring',  # Changed from 'payments' to 'monitoring'
+        'priority': 4  # Reduced priority since it's monitoring only
     },
     
-    # Security Tasks (High Priority)
+    # Admin notification tasks (High Priority)
+    'apps.payments.tasks.notify_admin_pending_payments': {
+        'queue': 'notifications',
+        'priority': 8  # High priority for admin alerts
+    },
+    
+    # Security Tasks (High Priority) - ENHANCED
     'apps.payments.tasks.detect_suspicious_activity': {
         'queue': 'security',
-        'priority': 9
+        'priority': 9  # Maintained high priority
     },
     
     # Maintenance Tasks (Low Priority)
@@ -297,14 +312,22 @@ app.conf.task_routes = {
         'priority': 2
     },
     'apps.payments.tasks.generate_payment_reports': {
-        'queue': 'maintenance',
-        'priority': 2
+        'queue': 'reports',  # Changed to dedicated reports queue
+        'priority': 5  # Increased priority for admin visibility
     },
     
     # Notification Tasks (Medium Priority)
     'apps.trading.tasks.send_profit_notifications': {
         'queue': 'notifications',
         'priority': 5
+    },
+    'apps.payments.tasks.send_deposit_confirmation': {
+        'queue': 'notifications',
+        'priority': 6  # Higher priority for payment confirmations
+    },
+    'apps.payments.tasks.send_withdrawal_confirmation': {
+        'queue': 'notifications',
+        'priority': 6  # Higher priority for payment confirmations
     },
 }
 
@@ -320,7 +343,8 @@ def debug_task(self):
     return {
         'status': 'healthy',
         'worker_id': self.request.id,
-        'timestamp': timezone.now().isoformat()
+        'timestamp': timezone.now().isoformat(),
+        'payment_mode': 'manual_approval_only'
     }
 
 # Performance Monitoring
@@ -345,6 +369,7 @@ def monitor_queue_health(self):
             'active_tasks': len(active_tasks) if active_tasks else 0,
             'scheduled_tasks': len(scheduled_tasks) if scheduled_tasks else 0,
             'workers': len(worker_stats) if worker_stats else 0,
+            'payment_processing': 'manual_approval_only',
             'timestamp': timezone.now().isoformat()
         }
         

@@ -2,7 +2,7 @@
 from celery import shared_task
 from django.utils import timezone
 from django.db import transaction as db_transaction
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Count, Q
 from decimal import Decimal
 import logging
 from datetime import timedelta
@@ -18,74 +18,32 @@ logger = logging.getLogger(__name__)
 @shared_task(bind=True, max_retries=3)
 def process_pending_deposits(self):
     """
-    Process approved deposit requests and update user wallets.
-    Runs every 5 minutes to handle approved deposits.
+    DISABLED: All deposits require manual admin approval.
+    This task no longer automatically processes deposits.
     """
-    try:
-        # Get approved deposits that haven't been processed
-        pending_deposits = DepositRequest.objects.filter(
-            transaction__status='processing'
-        ).select_related(
-            'transaction',
-            'transaction__user',
-            'transaction__user__wallet',
-            'transaction__payment_method'
-        )
-        
-        processed_count = 0
-        failed_count = 0
-        total_amount = Decimal('0')
-        
-        for deposit_request in pending_deposits:
-            try:
-                with db_transaction.atomic():
-                    transaction = deposit_request.transaction
-                    
-                    # Skip if already processed
-                    if transaction.status != 'processing':
-                        continue
-                    
-                    # Process the deposit
-                    result = process_single_deposit(deposit_request)
-                    
-                    if result['success']:
-                        processed_count += 1
-                        total_amount += result['amount']
-                        logger.info(f"Successfully processed deposit {transaction.id} - Amount: {result['amount']}")
-                    else:
-                        failed_count += 1
-                        logger.error(f"Failed to process deposit {transaction.id}: {result['error']}")
-                        
-            except Exception as e:
-                failed_count += 1
-                logger.error(f"Error processing deposit request {deposit_request.id}: {str(e)}")
-        
-        logger.info(f"Deposit processing completed: {processed_count} successful, {failed_count} failed")
-        
-        return {
-            'status': 'completed',
-            'processed_count': processed_count,
-            'failed_count': failed_count,
-            'total_amount': float(total_amount),
-            'timestamp': timezone.now().isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"Critical error in process_pending_deposits: {str(e)}")
-        
-        if self.request.retries < self.max_retries:
-            logger.info(f"Retrying process_pending_deposits, attempt {self.request.retries + 1}")
-            raise self.retry(countdown=300, exc=e)
-        
-        return {
-            'status': 'failed',
-            'error': str(e),
-            'processed_count': 0
-        }
+    logger.info("Automatic deposit processing is DISABLED. All deposits require manual admin approval.")
+    
+    # Count pending deposits for reporting only
+    pending_count = DepositRequest.objects.filter(
+        transaction__status='pending'
+    ).count()
+    
+    processing_count = DepositRequest.objects.filter(
+        transaction__status='processing'
+    ).count()
+    
+    return {
+        'status': 'disabled',
+        'message': 'Automatic processing disabled - manual admin approval required',
+        'pending_deposits': pending_count,
+        'processing_deposits': processing_count,
+        'timestamp': timezone.now().isoformat()
+    }
 
 def process_single_deposit(deposit_request):
     """
-    Process a single approved deposit request.
+    Process a single manually approved deposit request.
+    This function is now only called by admin actions, not automatically.
     """
     try:
         transaction = deposit_request.transaction
@@ -99,6 +57,7 @@ def process_single_deposit(deposit_request):
         
         # Update deposit request
         deposit_request.processed_at = timezone.now()
+        deposit_request.admin_approved = True
         deposit_request.save()
         
         # Credit user wallet
@@ -113,12 +72,13 @@ def process_single_deposit(deposit_request):
             user=user,
             action_type='deposit',
             level='INFO',
-            message=f'Deposit processed: {transaction.net_amount} {wallet.currency} credited to wallet',
+            message=f'Deposit manually approved and processed: {transaction.net_amount} {wallet.currency} credited to wallet',
             metadata={
                 'transaction_id': str(transaction.id),
                 'amount': str(transaction.amount),
                 'net_amount': str(transaction.net_amount),
-                'payment_method': transaction.payment_method.name if transaction.payment_method else 'unknown'
+                'payment_method': transaction.payment_method.name if transaction.payment_method else 'unknown',
+                'approved_by': 'admin'
             }
         )
         
@@ -132,7 +92,7 @@ def process_single_deposit(deposit_request):
         }
         
     except Exception as e:
-        logger.error(f"Error processing single deposit {deposit_request.id}: {str(e)}")
+        logger.error(f"Error processing manually approved deposit {deposit_request.id}: {str(e)}")
         return {
             'success': False,
             'error': str(e)
@@ -141,75 +101,33 @@ def process_single_deposit(deposit_request):
 @shared_task(bind=True, max_retries=3)
 def process_withdrawal_requests(self):
     """
-    Process approved withdrawal requests.
-    Runs every 10 minutes to handle approved withdrawals.
+    DISABLED: All withdrawals require manual admin approval.
+    This task no longer automatically processes withdrawals.
     """
-    try:
-        # Get approved withdrawals that haven't been processed
-        pending_withdrawals = WithdrawalRequest.objects.filter(
-            transaction__status='processing',
-            otp_verified=True
-        ).select_related(
-            'transaction',
-            'transaction__user',
-            'transaction__user__wallet',
-            'transaction__payment_method'
-        )
-        
-        processed_count = 0
-        failed_count = 0
-        total_amount = Decimal('0')
-        
-        for withdrawal_request in pending_withdrawals:
-            try:
-                with db_transaction.atomic():
-                    transaction = withdrawal_request.transaction
-                    
-                    # Skip if already processed
-                    if transaction.status != 'processing':
-                        continue
-                    
-                    # Process the withdrawal
-                    result = process_single_withdrawal(withdrawal_request)
-                    
-                    if result['success']:
-                        processed_count += 1
-                        total_amount += result['amount']
-                        logger.info(f"Successfully processed withdrawal {transaction.id} - Amount: {result['amount']}")
-                    else:
-                        failed_count += 1
-                        logger.error(f"Failed to process withdrawal {transaction.id}: {result['error']}")
-                        
-            except Exception as e:
-                failed_count += 1
-                logger.error(f"Error processing withdrawal request {withdrawal_request.id}: {str(e)}")
-        
-        logger.info(f"Withdrawal processing completed: {processed_count} successful, {failed_count} failed")
-        
-        return {
-            'status': 'completed',
-            'processed_count': processed_count,
-            'failed_count': failed_count,
-            'total_amount': float(total_amount),
-            'timestamp': timezone.now().isoformat()
-        }
-        
-    except Exception as e:
-        logger.error(f"Critical error in process_withdrawal_requests: {str(e)}")
-        
-        if self.request.retries < self.max_retries:
-            logger.info(f"Retrying process_withdrawal_requests, attempt {self.request.retries + 1}")
-            raise self.retry(countdown=600, exc=e)
-        
-        return {
-            'status': 'failed',
-            'error': str(e),
-            'processed_count': 0
-        }
+    logger.info("Automatic withdrawal processing is DISABLED. All withdrawals require manual admin approval.")
+    
+    # Count pending withdrawals for reporting only
+    pending_count = WithdrawalRequest.objects.filter(
+        transaction__status='pending'
+    ).count()
+    
+    processing_count = WithdrawalRequest.objects.filter(
+        transaction__status='processing',
+        otp_verified=True
+    ).count()
+    
+    return {
+        'status': 'disabled',
+        'message': 'Automatic processing disabled - manual admin approval required',
+        'pending_withdrawals': pending_count,
+        'processing_withdrawals': processing_count,
+        'timestamp': timezone.now().isoformat()
+    }
 
 def process_single_withdrawal(withdrawal_request):
     """
-    Process a single approved withdrawal request.
+    Process a single manually approved withdrawal request.
+    This function is now only called by admin actions, not automatically.
     """
     try:
         transaction = withdrawal_request.transaction
@@ -222,6 +140,7 @@ def process_single_withdrawal(withdrawal_request):
         
         # Update withdrawal request
         withdrawal_request.processed_at = timezone.now()
+        withdrawal_request.admin_approved = True
         withdrawal_request.save()
         
         # Note: Wallet balance was already debited when withdrawal was created
@@ -232,13 +151,14 @@ def process_single_withdrawal(withdrawal_request):
             user=user,
             action_type='withdrawal',
             level='INFO',
-            message=f'Withdrawal processed: {transaction.net_amount} {transaction.currency} sent to user',
+            message=f'Withdrawal manually approved and processed: {transaction.net_amount} {transaction.currency} sent to user',
             metadata={
                 'transaction_id': str(transaction.id),
                 'amount': str(transaction.amount),
                 'net_amount': str(transaction.net_amount),
                 'payment_method': transaction.payment_method.name if transaction.payment_method else 'unknown',
-                'withdrawal_address': withdrawal_request.withdrawal_address
+                'withdrawal_address': withdrawal_request.withdrawal_address,
+                'approved_by': 'admin'
             }
         )
         
@@ -252,7 +172,7 @@ def process_single_withdrawal(withdrawal_request):
         }
         
     except Exception as e:
-        logger.error(f"Error processing single withdrawal {withdrawal_request.id}: {str(e)}")
+        logger.error(f"Error processing manually approved withdrawal {withdrawal_request.id}: {str(e)}")
         return {
             'success': False,
             'error': str(e)
@@ -264,26 +184,33 @@ def auto_approve_small_deposits(self):
     DISABLED: All deposits require manual admin approval.
     No automatic approval regardless of amount.
     """
-    logger.info("Auto-approval is disabled. All deposits require manual admin review.")
+    logger.info("Auto-approval is PERMANENTLY DISABLED. All deposits require manual admin review.")
+    
+    # Count small deposits that would have been auto-approved before
+    small_deposits_count = DepositRequest.objects.filter(
+        transaction__status='pending',
+        transaction__amount__lt=100  # Small deposit threshold
+    ).count()
+    
     return {
         'status': 'disabled',
-        'approved_count': 0,
-        'message': 'Auto-approval disabled - manual review required for all deposits'
+        'small_deposits_pending': small_deposits_count,
+        'message': 'Auto-approval permanently disabled - manual review required for ALL deposits'
     }
 
 @shared_task
 def check_failed_transactions():
     """
     Check for transactions that have been pending too long and mark as failed.
-    Runs daily for cleanup.
+    Extended timeout to allow for manual admin review.
     """
     try:
         now = timezone.now()
         
-        # Find transactions pending for more than 24 hours
+        # Find transactions pending for more than 7 DAYS (extended for manual review)
         stale_transactions = Transaction.objects.filter(
             status='pending',
-            created_at__lt=now - timedelta(hours=24)
+            created_at__lt=now - timedelta(days=7)  # Changed from 24 hours to 7 days
         )
         
         failed_count = 0
@@ -316,18 +243,19 @@ def check_failed_transactions():
                         metadata={
                             'transaction_id': str(transaction.id),
                             'amount': str(transaction.amount),
-                            'reason': 'timeout_24h'
+                            'reason': 'timeout_7_days',
+                            'note': 'Extended timeout for manual admin review'
                         }
                     )
                     
                     failed_count += 1
-                    logger.warning(f"Marked stale transaction {transaction.id} as failed")
+                    logger.warning(f"Marked stale transaction {transaction.id} as failed (7-day timeout)")
                     
             except Exception as e:
                 logger.error(f"Error marking transaction {transaction.id} as failed: {str(e)}")
         
         if failed_count > 0:
-            logger.info(f"Marked {failed_count} stale transactions as failed")
+            logger.info(f"Marked {failed_count} stale transactions as failed (7-day timeout)")
         
         return {
             'status': 'completed',
@@ -432,7 +360,7 @@ def update_payment_provider_ratings():
 def generate_payment_reports():
     """
     Generate daily payment reports for admin monitoring.
-    Runs daily to provide payment system insights.
+    Enhanced to include pending transactions requiring manual approval.
     """
     try:
         yesterday = timezone.now().date() - timedelta(days=1)
@@ -445,6 +373,7 @@ def generate_payment_reports():
                 'total_amount': Decimal('0'),
                 'completed': 0,
                 'pending': 0,
+                'processing': 0,
                 'failed': 0
             },
             'withdrawals': {
@@ -452,7 +381,12 @@ def generate_payment_reports():
                 'total_amount': Decimal('0'),
                 'completed': 0,
                 'pending': 0,
+                'processing': 0,
                 'failed': 0
+            },
+            'admin_action_required': {
+                'pending_deposits': 0,
+                'pending_withdrawals': 0
             }
         }
         
@@ -467,7 +401,8 @@ def generate_payment_reports():
             total=Sum('amount')
         )['total'] or Decimal('0')
         daily_stats['deposits']['completed'] = deposits.filter(status='completed').count()
-        daily_stats['deposits']['pending'] = deposits.filter(status__in=['pending', 'processing']).count()
+        daily_stats['deposits']['pending'] = deposits.filter(status='pending').count()
+        daily_stats['deposits']['processing'] = deposits.filter(status='processing').count()
         daily_stats['deposits']['failed'] = deposits.filter(status='failed').count()
         
         # Get withdrawal statistics
@@ -481,11 +416,29 @@ def generate_payment_reports():
             total=Sum('amount')
         )['total'] or Decimal('0')
         daily_stats['withdrawals']['completed'] = withdrawals.filter(status='completed').count()
-        daily_stats['withdrawals']['pending'] = withdrawals.filter(status__in=['pending', 'processing']).count()
+        daily_stats['withdrawals']['pending'] = withdrawals.filter(status='pending').count()
+        daily_stats['withdrawals']['processing'] = withdrawals.filter(status='processing').count()
         daily_stats['withdrawals']['failed'] = withdrawals.filter(status='failed').count()
         
-        # Log the daily report
+        # Get current pending transactions requiring admin action
+        daily_stats['admin_action_required']['pending_deposits'] = Transaction.objects.filter(
+            transaction_type='deposit',
+            status='pending'
+        ).count()
+        
+        daily_stats['admin_action_required']['pending_withdrawals'] = Transaction.objects.filter(
+            transaction_type='withdrawal',
+            status='pending'
+        ).count()
+        
+        # Log the daily report with admin action alerts
         logger.info(f"Daily payment report: {daily_stats}")
+        
+        if daily_stats['admin_action_required']['pending_deposits'] > 0:
+            logger.warning(f"ADMIN ACTION REQUIRED: {daily_stats['admin_action_required']['pending_deposits']} deposits awaiting approval")
+        
+        if daily_stats['admin_action_required']['pending_withdrawals'] > 0:
+            logger.warning(f"ADMIN ACTION REQUIRED: {daily_stats['admin_action_required']['pending_withdrawals']} withdrawals awaiting approval")
         
         return {
             'status': 'completed',
@@ -503,19 +456,32 @@ def generate_payment_reports():
 def detect_suspicious_activity():
     """
     Detect suspicious payment patterns and flag for review.
-    Runs hourly for fraud detection.
+    Enhanced monitoring since all payments require manual approval.
     """
     try:
         now = timezone.now()
         suspicious_count = 0
         
-        # Check for multiple deposits from same IP in short time
-        recent_transactions = Transaction.objects.filter(
+        # Check for multiple deposits from same user in short time
+        recent_deposits = Transaction.objects.filter(
             created_at__gte=now - timedelta(hours=1),
             transaction_type='deposit'
-        )
+        ).values('user').annotate(count=Count('id')).filter(count__gte=3)
         
-        # Check for unusual withdrawal patterns
+        for user_deposits in recent_deposits:
+            SystemLog.objects.create(
+                user_id=user_deposits['user'],
+                action_type='security',
+                level='WARNING',
+                message=f'Multiple deposits detected from same user: {user_deposits["count"]} deposits in 1 hour',
+                metadata={
+                    'deposit_count': user_deposits['count'],
+                    'flagged_reason': 'multiple_deposits_short_time'
+                }
+            )
+            suspicious_count += 1
+        
+        # Check for large withdrawal requests
         large_withdrawals = Transaction.objects.filter(
             transaction_type='withdrawal',
             amount__gte=10000,  # Large withdrawal threshold
@@ -523,7 +489,7 @@ def detect_suspicious_activity():
             status='pending'
         )
         
-        for withdrawal in large_withwithdrawals:
+        for withdrawal in large_withdrawals:
             # Flag for manual review
             SystemLog.objects.create(
                 user=withdrawal.user,
@@ -538,8 +504,30 @@ def detect_suspicious_activity():
             )
             suspicious_count += 1
         
+        # Check for rapid deposit-withdrawal patterns
+        rapid_patterns = Transaction.objects.filter(
+            created_at__gte=now - timedelta(hours=2)
+        ).values('user').annotate(
+            deposit_count=Count('id', filter=Q(transaction_type='deposit')),
+            withdrawal_count=Count('id', filter=Q(transaction_type='withdrawal'))
+        ).filter(deposit_count__gte=1, withdrawal_count__gte=1)
+        
+        for pattern in rapid_patterns:
+            SystemLog.objects.create(
+                user_id=pattern['user'],
+                action_type='security',
+                level='WARNING',
+                message='Rapid deposit-withdrawal pattern detected',
+                metadata={
+                    'deposits': pattern['deposit_count'],
+                    'withdrawals': pattern['withdrawal_count'],
+                    'flagged_reason': 'rapid_deposit_withdrawal'
+                }
+            )
+            suspicious_count += 1
+        
         if suspicious_count > 0:
-            logger.warning(f"Flagged {suspicious_count} suspicious transactions for review")
+            logger.warning(f"Flagged {suspicious_count} suspicious activities for admin review")
         
         return {
             'status': 'completed',
@@ -567,7 +555,7 @@ def send_deposit_confirmation(transaction_id):
         # For now, we'll just log the notification
         logger.info(
             f"Deposit confirmation for {user.email}: "
-            f"{transaction.net_amount} {transaction.currency} credited"
+            f"{transaction.net_amount} {transaction.currency} credited (Admin Approved)"
         )
         
         return {'status': 'sent', 'user_email': user.email}
@@ -591,7 +579,7 @@ def send_withdrawal_confirmation(transaction_id):
         # Log the notification
         logger.info(
             f"Withdrawal confirmation for {user.email}: "
-            f"{transaction.net_amount} {transaction.currency} sent"
+            f"{transaction.net_amount} {transaction.currency} sent (Admin Approved)"
         )
         
         return {'status': 'sent', 'user_email': user.email}
@@ -601,4 +589,41 @@ def send_withdrawal_confirmation(transaction_id):
         return {'status': 'failed', 'error': 'Transaction not found'}
     except Exception as e:
         logger.error(f"Error sending withdrawal confirmation for {transaction_id}: {str(e)}")
+        return {'status': 'failed', 'error': str(e)}
+
+# Admin notification tasks
+@shared_task
+def notify_admin_pending_payments():
+    """
+    Notify admins about payments requiring approval.
+    Runs every hour to alert admins of pending payments.
+    """
+    try:
+        pending_deposits = Transaction.objects.filter(
+            transaction_type='deposit',
+            status='pending'
+        ).count()
+        
+        pending_withdrawals = Transaction.objects.filter(
+            transaction_type='withdrawal',
+            status='pending'
+        ).count()
+        
+        if pending_deposits > 0 or pending_withdrawals > 0:
+            logger.warning(
+                f"ADMIN ALERT: {pending_deposits} deposits and {pending_withdrawals} withdrawals "
+                f"require manual approval"
+            )
+            
+            # Here you would send actual notifications to admins
+            # Email, Slack, SMS, etc.
+        
+        return {
+            'status': 'completed',
+            'pending_deposits': pending_deposits,
+            'pending_withdrawals': pending_withdrawals
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in notify_admin_pending_payments: {str(e)}")
         return {'status': 'failed', 'error': str(e)}
