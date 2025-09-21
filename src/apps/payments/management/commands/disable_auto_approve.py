@@ -443,8 +443,7 @@ def auto_approve_small_deposits(self):
                 email='test_auto_approve@tradevision.test',
                 defaults={
                     'username': 'test_auto_approve_user',
-                    'first_name': 'Test',
-                    'last_name': 'AutoApprove'
+                    'full_name': 'Test AutoApprove User'
                 }
             )
             
