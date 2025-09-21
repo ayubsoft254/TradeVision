@@ -359,15 +359,24 @@ class NewsUpdateAdmin(admin.ModelAdmin):
     )
     list_filter = ('is_published', 'publish_date', 'author', 'created_at')
     search_fields = ('title', 'content', 'excerpt', 'author__email')
-    readonly_fields = ('id', 'slug', 'view_count', 'created_at', 'updated_at', 'get_image_preview')
+    readonly_fields = ('id', 'view_count', 'created_at', 'updated_at', 'get_image_preview', 'get_slug_info')
     prepopulated_fields = {'slug': ('title',)}
     date_hierarchy = 'publish_date'
     
     fieldsets = (
         ('Article Content', {
             'fields': (
-                'title', 'slug', 'excerpt', 'content', 
-                'get_image_preview', 'featured_image'
+                'title', 
+                'slug',
+                'excerpt', 
+                'content'
+            ),
+            'description': 'Leave slug empty to auto-generate from title. Excerpt will be auto-generated if not provided.'
+        }),
+        ('Media', {
+            'fields': (
+                'get_image_preview', 
+                'featured_image'
             )
         }),
         ('Publishing', {
@@ -375,14 +384,15 @@ class NewsUpdateAdmin(admin.ModelAdmin):
         }),
         ('SEO', {
             'fields': ('meta_description',),
-            'classes': ('collapse',)
+            'classes': ('collapse',),
+            'description': 'Search Engine Optimization settings'
         }),
         ('Statistics', {
             'fields': ('view_count',),
             'classes': ('collapse',)
         }),
         ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
+            'fields': ('created_at', 'updated_at', 'get_slug_info'),
             'classes': ('collapse',)
         }),
     )
@@ -398,6 +408,24 @@ class NewsUpdateAdmin(admin.ModelAdmin):
             )
         return 'No image'
     get_image_preview.short_description = 'Featured Image Preview'
+    
+    def get_slug_preview(self, obj):
+        """Display current slug"""
+        if obj.slug:
+            return format_html('<code>{}</code>', obj.slug)
+        return 'Auto-generated on save'
+    get_slug_preview.short_description = 'Current Slug'
+    
+    def get_slug_info(self, obj):
+        """Display slug information"""
+        if obj.slug:
+            return format_html(
+                '<strong>Current:</strong> <code>{}</code><br>'
+                '<small>Leave slug field empty to auto-generate from title</small>',
+                obj.slug
+            )
+        return 'Will be auto-generated from title on save'
+    get_slug_info.short_description = 'Slug Information'
     
     def save_model(self, request, obj, form, change):
         if not change:  # Only set author on creation
