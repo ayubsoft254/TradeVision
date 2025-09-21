@@ -40,11 +40,6 @@ class Command(BaseCommand):
             help='Stop any currently running auto-approval tasks',
         )
         parser.add_argument(
-            '--check-logs',
-            action='store_true',
-            help='Check system logs for auto-approved deposits',
-        )
-        parser.add_argument(
             '--create-test-deposit',
             action='store_true',
             help='Create a test deposit to verify behavior',
