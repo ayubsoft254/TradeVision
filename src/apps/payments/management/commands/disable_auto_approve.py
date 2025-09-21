@@ -34,6 +34,11 @@ class Command(BaseCommand):
             help='Stop any currently running auto-approval tasks',
         )
         parser.add_argument(
+            '--check-logs',
+            action='store_true',
+            help='Check system logs for auto-approved deposits',
+        )
+        parser.add_argument(
             '--create-test-deposit',
             action='store_true',
             help='Create a test deposit to verify behavior',
@@ -45,16 +50,20 @@ class Command(BaseCommand):
         if options['test']:
             self.test_auto_approval_status(options['create_test_deposit'])
         
+        if options['check_logs']:
+            self.check_auto_approval_logs()
+        
         if options['disable']:
             self.disable_auto_approval()
             
         if options['stop_running_tasks']:
             self.stop_running_auto_approval_tasks()
             
-        if not options['test'] and not options['disable'] and not options['stop_running_tasks']:
-            self.stdout.write(self.style.WARNING('No action specified. Use --test, --disable, or --stop-running-tasks'))
+        if not any([options['test'], options['disable'], options['stop_running_tasks'], options['check_logs']]):
+            self.stdout.write(self.style.WARNING('No action specified.'))
             self.stdout.write('Usage examples:')
             self.stdout.write('  python manage.py disable_auto_approve --test')
+            self.stdout.write('  python manage.py disable_auto_approve --check-logs')
             self.stdout.write('  python manage.py disable_auto_approve --disable')
             self.stdout.write('  python manage.py disable_auto_approve --stop-running-tasks')
             self.stdout.write('  python manage.py disable_auto_approve --test --create-test-deposit')
