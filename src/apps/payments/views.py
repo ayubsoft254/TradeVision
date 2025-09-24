@@ -249,20 +249,70 @@ class DepositMethodView(LoginRequiredMixin, TemplateView):
             description=f'Deposit via {payment_method.display_name}'
         )
         
-        # Create deposit request
-        # Convert Decimal values to strings and exclude file fields for JSON serialization
+        # Create deposit request with MERCHANT payment details (where client should send money)
         payment_details = {}
-        for key, value in form.cleaned_data.items():
-            # Skip file fields as they're handled separately
-            if key == 'payment_proof':
-                continue
-            elif isinstance(value, Decimal):
-                payment_details[key] = str(value)
-            elif hasattr(value, 'pk'):  # Django model instance
-                payment_details[key] = str(value.pk)
-                payment_details[f'{key}_name'] = str(value)  # Also store the string representation
+        
+        # Try to get merchant payment details for this payment method
+        merchant_found = False
+        
+        # First, try to find a specific merchant/agent if the form contains that selection
+        if hasattr(form, 'cleaned_data'):
+            merchant_id = form.cleaned_data.get('merchant') or form.cleaned_data.get('agent')
+            if merchant_id:
+                try:
+                    from .models import P2PMerchant, Agent
+                    if hasattr(merchant_id, 'pk'):
+                        if isinstance(merchant_id, P2PMerchant):
+                            merchant = merchant_id
+                            payment_details = merchant.get_payment_details_for_method(payment_method.name) or {}
+                            payment_details['merchant_id'] = str(merchant.id)
+                            payment_details['merchant_name'] = merchant.name
+                            payment_details['phone_number'] = merchant.phone_number
+                            merchant_found = True
+                        elif isinstance(merchant_id, Agent):
+                            agent = merchant_id
+                            payment_details = {
+                                'agent_id': str(agent.id),
+                                'agent_name': agent.name,
+                                'phone_number': agent.phone_number,
+                                'email': agent.email,
+                                'address': getattr(agent, 'address', '')
+                            }
+                            merchant_found = True
+                except Exception:
+                    pass
+        
+        # If no specific merchant found, create default merchant payment details for the payment method
+        if not merchant_found:
+            # Create default merchant payment details based on payment method
+            if payment_method.name == 'mobile_money':
+                payment_details = {
+                    'merchant_name': 'Wycliffe Oenga Moya (@W_Moya)',
+                    'mobile_money_provider': 'M-Pesa',
+                    'mobile_money_number': '+254117550477',
+                    'mobile_money_name': 'Wycliffe Moya',
+                    'provider': 'M-Pesa',
+                    'phone_number': '+254117550477',
+                    'number': '+254117550477',
+                    'name': 'Wycliffe Moya',
+                    'account_name': 'Wycliffe Moya'
+                }
+            elif payment_method.name == 'bank_transfer':
+                payment_details = {
+                    'merchant_name': 'TradeVision Limited',
+                    'bank_name': 'Equity Bank Kenya',
+                    'account_number': '1234567890',
+                    'account_name': 'TradeVision Limited',
+                    'branch': 'Nairobi Branch',
+                    'swift_code': 'EQBLKENA'
+                }
             else:
-                payment_details[key] = value
+                # Generic merchant details
+                payment_details = {
+                    'merchant_name': 'TradeVision Merchant',
+                    'phone_number': '+254700000000',
+                    'email': 'merchant@tradevision.com'
+                }
         
         deposit_request = DepositRequest.objects.create(
             transaction=transaction,
@@ -753,7 +803,7 @@ class TransactionDetailView(LoginRequiredMixin, DetailView):
                             class MockMerchant:
                                 def __init__(self, payment_details):
                                     self.name = payment_details.get('merchant_name') or payment_details.get('agent_name') or 'Merchant'
-                                    self.phone_number = payment_details.get('phone_number')
+                                    self.phone_number = payment_details.get('phone_number') or payment_details.get('mobile_money_number') or payment_details.get('number')
                             
                             merchant = MockMerchant(payment_details)
             except DepositRequest.DoesNotExist:

@@ -171,13 +171,17 @@
                     </div>
 
                     <!-- Merchant Payment Methods -->
-                    {% if merchant and all_merchant_payment_methods %}
+                    {% if all_merchant_payment_methods %}
                     <div class="mb-6">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">
                             <i class="fas fa-user-tie text-primary-500 mr-2"></i>
-                            Merchant: {{ merchant.name }}
-                            {% if merchant.phone_number %}
-                                <span class="text-sm font-normal text-gray-600">({{ merchant.phone_number }})</span>
+                            {% if merchant %}
+                                Merchant: {{ merchant.name }}
+                                {% if merchant.phone_number %}
+                                    <span class="text-sm font-normal text-gray-600">({{ merchant.phone_number }})</span>
+                                {% endif %}
+                            {% else %}
+                                Send Payment To
                             {% endif %}
                         </h3>
                         
