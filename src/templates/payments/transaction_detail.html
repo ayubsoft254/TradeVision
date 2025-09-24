@@ -162,7 +162,25 @@
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <h2 class="text-lg font-semibold text-gray-900 mb-6">Deposit Request Details</h2>
                     
-                    <!-- Payment Details -->
+                    <!-- Merchant Payment Details for Pending Deposits -->
+                    {% if transaction.status == 'pending' and merchant and merchant_payment_details %}
+                    <div class="mb-6">
+                        <h3 class="text-md font-bold text-success-700 mb-3">How to Pay the Merchant</h3>
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div class="mb-2 text-gray-900 font-semibold">Merchant: {{ merchant.name }}{% if merchant.phone_number %} ({{ merchant.phone_number }}){% endif %}</div>
+                            <div class="mb-2 text-gray-700 text-sm">Please use the payment details below to complete your deposit. After payment, upload your proof for faster processing.</div>
+                            <div class="space-y-2">
+                                {% for key, value in merchant_payment_details.items %}
+                                <div class="flex justify-between py-1 border-b border-gray-100 last:border-b-0">
+                                    <span class="text-sm font-medium text-gray-600">{{ key|title }}:</span>
+                                    <span class="text-sm text-gray-900">{{ value }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <!-- Fallback: Show deposit_request.payment_details if present -->
                     {% if deposit_request.payment_details %}
                     <div class="mb-6">
                         <h3 class="text-md font-medium text-gray-900 mb-3">Payment Information</h3>

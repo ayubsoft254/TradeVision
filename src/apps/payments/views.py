@@ -852,3 +852,55 @@ def withdraw_profit(request):
         return JsonResponse({'success': True})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+@login_required
+@require_POST
+def upload_payment_proof(request, transaction_id):
+    """Upload payment proof for a deposit transaction"""
+    try:
+        # Get the transaction
+        transaction = get_object_or_404(Transaction, id=transaction_id, user=request.user)
+        
+        # Check if it's a deposit transaction
+        if transaction.transaction_type != 'deposit':
+            messages.error(request, 'Payment proof can only be uploaded for deposit transactions.')
+            return redirect('payments:transaction_detail', transaction_id=transaction_id)
+        
+        # Check if transaction is still pending
+        if transaction.status not in ['pending', 'processing']:
+            messages.error(request, 'Payment proof can only be uploaded for pending transactions.')
+            return redirect('payments:transaction_detail', transaction_id=transaction_id)
+        
+        # Get or create deposit request
+        deposit_request, created = DepositRequest.objects.get_or_create(
+            transaction=transaction,
+            defaults={'payment_details': {}}
+        )
+        
+        # Check if proof file was uploaded
+        if 'payment_proof' not in request.FILES:
+            messages.error(request, 'Please select a payment proof file to upload.')
+            return redirect('payments:transaction_detail', transaction_id=transaction_id)
+        
+        # Update the deposit request with the new proof
+        deposit_request.payment_proof = request.FILES['payment_proof']
+        deposit_request.save()
+        
+        # Log the upload
+        SystemLog.objects.create(
+            user=request.user,
+            action='payment_proof_uploaded',
+            description=f'Payment proof uploaded for transaction {transaction.id}',
+            metadata={
+                'transaction_id': str(transaction.id),
+                'amount': float(transaction.amount),
+                'payment_method': transaction.payment_method.display_name if transaction.payment_method else 'Unknown'
+            }
+        )
+        
+        messages.success(request, 'Payment proof uploaded successfully! Your deposit will be processed shortly.')
+        return redirect('payments:transaction_detail', transaction_id=transaction_id)
+        
+    except Exception as e:
+        messages.error(request, f'Error uploading payment proof: {str(e)}')
+        return redirect('payments:transaction_detail', transaction_id=transaction_id)
