@@ -306,7 +306,7 @@
                             <div class="space-y-2">
                                 {% for key, value in deposit_request.payment_details.items %}
                                 <div class="flex justify-between text-sm">
-                                    <span class="font-medium text-gray-600">{{ key|title|replace:"_":" " }}:</span>
+                                    <span class="font-medium text-gray-600">{{ key|title }}:</span>
                                     <span class="text-gray-900 font-mono">{{ value }}</span>
                                 </div>
                                 {% endfor %}
