@@ -717,6 +717,45 @@ class TransactionDetailView(LoginRequiredMixin, DetailView):
                             'method': 'Cash/Local Agent',
                             'details': merchant_payment_details
                         })
+                    elif deposit_request.payment_details:
+                        # If no merchant object found, check if payment_details contains merchant payment info
+                        payment_details = deposit_request.payment_details
+                        
+                        # Create a mock merchant object from payment_details if it contains merchant info
+                        if (payment_details.get('mobile_money_provider') or payment_details.get('provider') or 
+                            payment_details.get('bank_name') or payment_details.get('merchant_name')):
+                            
+                            # Create merchant-like structure for mobile money
+                            if payment_details.get('mobile_money_provider') or payment_details.get('provider'):
+                                all_merchant_payment_methods.append({
+                                    'method': 'Mobile Money',
+                                    'details': {
+                                        'provider': payment_details.get('mobile_money_provider') or payment_details.get('provider'),
+                                        'number': payment_details.get('mobile_money_number') or payment_details.get('phone_number') or payment_details.get('number'),
+                                        'name': payment_details.get('mobile_money_name') or payment_details.get('account_name') or payment_details.get('name'),
+                                    }
+                                })
+                            
+                            # Create merchant-like structure for bank transfer
+                            if payment_details.get('bank_name'):
+                                all_merchant_payment_methods.append({
+                                    'method': 'Bank Transfer',
+                                    'details': {
+                                        'bank_name': payment_details.get('bank_name'),
+                                        'account_number': payment_details.get('account_number') or payment_details.get('bank_account_number'),
+                                        'account_name': payment_details.get('account_name') or payment_details.get('bank_account_name'),
+                                        'branch': payment_details.get('branch') or payment_details.get('bank_branch'),
+                                        'swift_code': payment_details.get('swift_code') or payment_details.get('bank_swift_code'),
+                                    }
+                                })
+                            
+                            # Create a mock merchant object
+                            class MockMerchant:
+                                def __init__(self, payment_details):
+                                    self.name = payment_details.get('merchant_name') or payment_details.get('agent_name') or 'Merchant'
+                                    self.phone_number = payment_details.get('phone_number')
+                            
+                            merchant = MockMerchant(payment_details)
             except DepositRequest.DoesNotExist:
                 pass
         elif self.object.transaction_type == 'withdrawal':
