@@ -259,77 +259,100 @@
                         <h3 class="text-lg font-semibold text-gray-900 mb-3">Payment Details</h3>
                         {% endif %}
                         
-                        <!-- Organized payment method display -->
-                        {% if deposit_request.payment_details.mobile_money_provider or deposit_request.payment_details.bank_name %}
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <!-- Mobile Money Details -->
-                            {% if deposit_request.payment_details.mobile_money_provider %}
-                            <div class="bg-white border border-gray-200 rounded-lg p-4">
-                                <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
-                                    <i class="fas fa-mobile-alt text-green-500 mr-2"></i>
-                                    Mobile Money
-                                </h4>
-                                <div class="space-y-2">
-                                    {% if deposit_request.payment_details.mobile_money_provider %}
-                                    <div class="flex justify-between text-sm">
-                                        <span class="font-medium text-gray-600">Provider:</span>
-                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.mobile_money_provider }}</span>
+                        <!-- Payment Methods & Details in list format -->
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                            <h4 class="text-sm font-medium text-gray-700 mb-3">Payment Methods & Details:</h4>
+                            
+                            <!-- Mobile Money Method -->
+                            {% if deposit_request.payment_details.mobile_money_provider or deposit_request.payment_details.provider %}
+                            <div class="mb-4">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-mobile-alt text-blue-500 mr-2"></i>
+                                    <span class="font-medium text-blue-600">Mobile Money</span>
+                                    <span class="ml-auto text-xs text-gray-500">1-30 minutes</span>
+                                </div>
+                                <div class="ml-6 space-y-1 text-sm">
+                                    {% if deposit_request.payment_details.mobile_money_provider or deposit_request.payment_details.provider %}
+                                    <div class="flex">
+                                        <span class="text-gray-600 w-20">Provider:</span>
+                                        <span class="text-gray-900">{{ deposit_request.payment_details.mobile_money_provider|default:deposit_request.payment_details.provider }}</span>
                                     </div>
                                     {% endif %}
-                                    {% if deposit_request.payment_details.mobile_money_number %}
-                                    <div class="flex justify-between text-sm">
-                                        <span class="font-medium text-gray-600">Number:</span>
-                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.mobile_money_number }}</span>
+                                    {% if deposit_request.payment_details.mobile_money_number or deposit_request.payment_details.phone_number or deposit_request.payment_details.number %}
+                                    <div class="flex">
+                                        <span class="text-gray-600 w-20">Number:</span>
+                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.mobile_money_number|default:deposit_request.payment_details.phone_number|default:deposit_request.payment_details.number }}</span>
                                     </div>
                                     {% endif %}
-                                    {% if deposit_request.payment_details.mobile_money_name %}
-                                    <div class="flex justify-between text-sm">
-                                        <span class="font-medium text-gray-600">Name:</span>
-                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.mobile_money_name }}</span>
+                                    {% if deposit_request.payment_details.mobile_money_name or deposit_request.payment_details.account_name or deposit_request.payment_details.name %}
+                                    <div class="flex">
+                                        <span class="text-gray-600 w-20">Name:</span>
+                                        <span class="text-gray-900">{{ deposit_request.payment_details.mobile_money_name|default:deposit_request.payment_details.account_name|default:deposit_request.payment_details.name }}</span>
                                     </div>
                                     {% endif %}
                                 </div>
                             </div>
                             {% endif %}
                             
-                            <!-- Bank Transfer Details -->
+                            <!-- Bank Transfer Method -->
                             {% if deposit_request.payment_details.bank_name %}
-                            <div class="bg-white border border-gray-200 rounded-lg p-4">
-                                <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
-                                    <i class="fas fa-university text-blue-500 mr-2"></i>
-                                    Bank Transfer
-                                </h4>
-                                <div class="space-y-2">
+                            <div class="mb-4">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-university text-green-500 mr-2"></i>
+                                    <span class="font-medium text-green-600">Bank Transfer</span>
+                                    <span class="ml-auto text-xs text-gray-500">30 minutes - 24 hours</span>
+                                </div>
+                                <div class="ml-6 space-y-1 text-sm">
                                     {% if deposit_request.payment_details.bank_name %}
-                                    <div class="flex justify-between text-sm">
-                                        <span class="font-medium text-gray-600">Bank:</span>
-                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.bank_name }}</span>
+                                    <div class="flex">
+                                        <span class="text-gray-600 w-20">Bank:</span>
+                                        <span class="text-gray-900">{{ deposit_request.payment_details.bank_name }}</span>
                                     </div>
                                     {% endif %}
-                                    {% if deposit_request.payment_details.account_number %}
-                                    <div class="flex justify-between text-sm">
-                                        <span class="font-medium text-gray-600">Account Number:</span>
-                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.account_number }}</span>
+                                    {% if deposit_request.payment_details.account_number or deposit_request.payment_details.bank_account_number %}
+                                    <div class="flex">
+                                        <span class="text-gray-600 w-20">Account:</span>
+                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.account_number|default:deposit_request.payment_details.bank_account_number }}</span>
                                     </div>
                                     {% endif %}
-                                    {% if deposit_request.payment_details.account_name %}
-                                    <div class="flex justify-between text-sm">
-                                        <span class="font-medium text-gray-600">Account Name:</span>
-                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.account_name }}</span>
+                                    {% if deposit_request.payment_details.account_name or deposit_request.payment_details.bank_account_name %}
+                                    <div class="flex">
+                                        <span class="text-gray-600 w-20">Name:</span>
+                                        <span class="text-gray-900">{{ deposit_request.payment_details.account_name|default:deposit_request.payment_details.bank_account_name }}</span>
                                     </div>
                                     {% endif %}
-                                    {% if deposit_request.payment_details.branch %}
-                                    <div class="flex justify-between text-sm">
-                                        <span class="font-medium text-gray-600">Branch:</span>
-                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.branch }}</span>
+                                    {% if deposit_request.payment_details.branch or deposit_request.payment_details.bank_branch %}
+                                    <div class="flex">
+                                        <span class="text-gray-600 w-20">Branch:</span>
+                                        <span class="text-gray-900">{{ deposit_request.payment_details.branch|default:deposit_request.payment_details.bank_branch }}</span>
                                     </div>
                                     {% endif %}
-                                    {% if deposit_request.payment_details.swift_code %}
-                                    <div class="flex justify-between text-sm">
-                                        <span class="font-medium text-gray-600">Swift Code:</span>
-                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.swift_code }}</span>
+                                    {% if deposit_request.payment_details.swift_code or deposit_request.payment_details.bank_swift_code %}
+                                    <div class="flex">
+                                        <span class="text-gray-600 w-20">SWIFT:</span>
+                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.swift_code|default:deposit_request.payment_details.bank_swift_code }}</span>
                                     </div>
                                     {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Show other payment methods if they don't match the structured ones above -->
+                            {% if not deposit_request.payment_details.mobile_money_provider and not deposit_request.payment_details.provider and not deposit_request.payment_details.bank_name %}
+                            <div class="mb-4">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-credit-card text-purple-500 mr-2"></i>
+                                    <span class="font-medium text-purple-600">Payment Details</span>
+                                </div>
+                                <div class="ml-6 space-y-1 text-sm">
+                                    {% for key, value in deposit_request.payment_details.items %}
+                                    {% if key != 'merchant_id' and key != 'agent_id' %}
+                                    <div class="flex">
+                                        <span class="text-gray-600 w-20">{{ key|title }}:</span>
+                                        <span class="text-gray-900 {% if 'number' in key or 'account' in key %}font-mono{% endif %}">{{ value }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
                                 </div>
                             </div>
                             {% endif %}
