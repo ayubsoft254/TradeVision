@@ -922,10 +922,11 @@ def withdraw_profit(request):
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
 
+"""
 @login_required
 @require_POST
 def upload_payment_proof(request, transaction_id):
-    """Upload payment proof for a deposit transaction"""
+    # Upload payment proof for a deposit transaction
     try:
         # Get the transaction
         transaction = get_object_or_404(Transaction, id=transaction_id, user=request.user)
@@ -973,3 +974,4 @@ def upload_payment_proof(request, transaction_id):
     except Exception as e:
         messages.error(request, f'Error uploading payment proof: {str(e)}')
         return redirect('payments:transaction_detail', transaction_id=transaction_id)
+"""

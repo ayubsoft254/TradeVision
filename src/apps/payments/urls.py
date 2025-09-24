@@ -18,7 +18,7 @@ urlpatterns = [
     # Transaction Management
     path('transactions/', views.TransactionHistoryView.as_view(), name='transactions'),
     path('transaction/<uuid:transaction_id>/', views.TransactionDetailView.as_view(), name='transaction_detail'),
-    path('transaction/<uuid:transaction_id>/upload-proof/', views.upload_payment_proof, name='upload_payment_proof'),
+    # path('transaction/<uuid:transaction_id>/upload-proof/', views.upload_payment_proof, name='upload_payment_proof'),
     
     # Payment Networks
     path('agents/', views.AgentsView.as_view(), name='agents'),
