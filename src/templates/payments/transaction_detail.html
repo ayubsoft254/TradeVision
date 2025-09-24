@@ -674,7 +674,7 @@ function completePayment() {
         // Here you would typically make an AJAX call to your backend
         // Example:
         /*
-        fetch('{% url "payments:complete_payment" transaction.id %}', {
+        fetch('/payments/complete-payment/' + '{{ transaction.id }}/', {
             method: 'POST',
             headers: {
                 'X-CSRFToken': '{{ csrf_token }}',
