@@ -223,6 +223,36 @@
                     </div>
                     {% endif %}
 
+                    <!-- Complete Payment Button Section -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 mt-6">
+                        <div class="text-center mb-4">
+                            <p class="text-gray-700 font-medium mb-2">
+                                <i class="fas fa-mouse-pointer text-primary-500 mr-2"></i>
+                                Click below button after making payment to complete payment
+                            </p>
+                        </div>
+                        
+                        <div class="flex justify-center">
+                            <button id="complete-payment-btn" 
+                                    onclick="completePayment()"
+                                    class="bg-green-600 text-white py-3 px-8 rounded-lg font-semibold hover:bg-green-700 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                <span id="button-text">Complete Payment</span>
+                                <span id="button-loading" class="hidden">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Processing...
+                                </span>
+                            </button>
+                        </div>
+                        
+                        <div id="payment-status" class="mt-4 text-center hidden">
+                            <div class="flex items-center justify-center text-green-600">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                <span class="font-medium">Wait for payment verification</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">Your payment proof has been submitted and is under review</p>
+                        </div>
+                    </div>
+
                     <!-- Upload Proof Button -->
                     <!-- 
                     <div class="bg-white border border-gray-200 rounded-lg p-4">
@@ -621,6 +651,58 @@ function copyTransactionId() {
         document.body.removeChild(textArea);
         alert('Transaction ID copied to clipboard!');
     });
+}
+
+// Complete Payment Function
+function completePayment() {
+    const button = document.getElementById('complete-payment-btn');
+    const buttonText = document.getElementById('button-text');
+    const buttonLoading = document.getElementById('button-loading');
+    const paymentStatus = document.getElementById('payment-status');
+    
+    // Show loading state
+    buttonText.classList.add('hidden');
+    buttonLoading.classList.remove('hidden');
+    button.disabled = true;
+    
+    // Simulate API call (replace with actual API call)
+    setTimeout(function() {
+        // Hide button and show status
+        button.classList.add('hidden');
+        paymentStatus.classList.remove('hidden');
+        
+        // Here you would typically make an AJAX call to your backend
+        // Example:
+        /*
+        fetch('{% url "payments:complete_payment" transaction.id %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                button.classList.add('hidden');
+                paymentStatus.classList.remove('hidden');
+            } else {
+                // Handle error
+                buttonText.classList.remove('hidden');
+                buttonLoading.classList.add('hidden');
+                button.disabled = false;
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            buttonText.classList.remove('hidden');
+            buttonLoading.classList.add('hidden');
+            button.disabled = false;
+            alert('An error occurred. Please try again.');
+        });
+        */
+    }, 2000); // Simulate 2 second delay
 }
 
 // Upload proof modal functions
