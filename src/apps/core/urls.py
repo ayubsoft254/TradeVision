@@ -27,6 +27,9 @@ urlpatterns = [
     # Search
     path('search/', views.search_view, name='search'),
     
+    # Referral redirect
+    path('refer/', views.referral_redirect, name='referral_redirect'),
+    
     # System Pages
     path('maintenance/', views.maintenance_view, name='maintenance'),
     path('health/', views.health_check, name='health_check'),

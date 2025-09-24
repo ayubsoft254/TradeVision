@@ -75,13 +75,16 @@ class HomeView(TemplateView):
             'stats': stats,
         })
         
-        # Handle referral code from URL
-        referral_code = self.request.GET.get('ref')
-        if referral_code:
-            context['referral_code'] = referral_code
-            self.request.session['referral_code'] = referral_code
-        
         return context
+    
+    def get(self, request, *args, **kwargs):
+        """Handle GET requests, redirect referral codes to signup"""
+        referral_code = request.GET.get('ref')
+        if referral_code:
+            # Redirect to the dedicated referral handler
+            return redirect(f"/refer/?ref={referral_code}")
+        
+        return super().get(request, *args, **kwargs)
 
 class AboutView(TemplateView):
     """About us page"""
@@ -514,6 +517,35 @@ def faq_vote(request):
             pass
     
     return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+def referral_redirect(request):
+    """Handle referral links and redirect to signup page"""
+    referral_code = request.GET.get('ref')
+    
+    if referral_code:
+        # Validate referral code exists
+        from apps.accounts.models import Referral
+        if Referral.objects.filter(referral_code=referral_code).exists():
+            # Store referral code in session
+            request.session['referral_code'] = referral_code
+            
+            # Log referral activity
+            log_system_activity(
+                request,
+                action_type='referral_click',
+                message=f"Referral code {referral_code} clicked",
+                metadata={'referral_code': referral_code}
+            )
+            
+            # Redirect to signup page
+            return redirect('/accounts/signup/')
+        else:
+            # Invalid referral code, redirect to home with message
+            messages.warning(request, 'Invalid referral code. Please check the link and try again.')
+            return redirect('core:home')
+    else:
+        # No referral code, redirect to signup page normally
+        return redirect('/accounts/signup/')
 
 def log_system_activity(request, action_type, message, level='INFO', metadata=None):
     """Utility function to log system activities"""

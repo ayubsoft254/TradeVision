@@ -239,9 +239,9 @@ class ReferralView(LoginRequiredMixin, TemplateView):
         page_number = self.request.GET.get('page')
         referrals_page = paginator.get_page(page_number)
         
-        # Referral link
+        # Referral link - direct to signup page
         referral_link = self.request.build_absolute_uri(
-            f"/?ref={referral_code}"
+            f"/refer/?ref={referral_code}"
         )
         
         context.update({
