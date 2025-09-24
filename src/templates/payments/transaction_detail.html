@@ -207,19 +207,112 @@
                         </div>
                     </div>
                     {% elif deposit_request.payment_details %}
-                    <!-- Fallback payment details -->
+                    <!-- Enhanced payment details with merchant-style display -->
                     <div class="mb-6">
+                        {% if deposit_request.payment_details.merchant_name or deposit_request.payment_details.agent_name %}
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-user-tie text-primary-500 mr-2"></i>
+                            {% if deposit_request.payment_details.merchant_name %}
+                                Merchant: {{ deposit_request.payment_details.merchant_name }}
+                            {% else %}
+                                Agent: {{ deposit_request.payment_details.agent_name }}
+                            {% endif %}
+                            {% if deposit_request.payment_details.phone_number %}
+                                <span class="text-sm font-normal text-gray-600">({{ deposit_request.payment_details.phone_number }})</span>
+                            {% endif %}
+                        </h3>
+                        {% else %}
                         <h3 class="text-lg font-semibold text-gray-900 mb-3">Payment Details</h3>
+                        {% endif %}
+                        
+                        <!-- Organized payment method display -->
+                        {% if deposit_request.payment_details.mobile_money_provider or deposit_request.payment_details.bank_name %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Mobile Money Details -->
+                            {% if deposit_request.payment_details.mobile_money_provider %}
+                            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
+                                    <i class="fas fa-mobile-alt text-green-500 mr-2"></i>
+                                    Mobile Money
+                                </h4>
+                                <div class="space-y-2">
+                                    {% if deposit_request.payment_details.mobile_money_provider %}
+                                    <div class="flex justify-between text-sm">
+                                        <span class="font-medium text-gray-600">Provider:</span>
+                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.mobile_money_provider }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if deposit_request.payment_details.mobile_money_number %}
+                                    <div class="flex justify-between text-sm">
+                                        <span class="font-medium text-gray-600">Number:</span>
+                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.mobile_money_number }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if deposit_request.payment_details.mobile_money_name %}
+                                    <div class="flex justify-between text-sm">
+                                        <span class="font-medium text-gray-600">Name:</span>
+                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.mobile_money_name }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Bank Transfer Details -->
+                            {% if deposit_request.payment_details.bank_name %}
+                            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
+                                    <i class="fas fa-university text-blue-500 mr-2"></i>
+                                    Bank Transfer
+                                </h4>
+                                <div class="space-y-2">
+                                    {% if deposit_request.payment_details.bank_name %}
+                                    <div class="flex justify-between text-sm">
+                                        <span class="font-medium text-gray-600">Bank:</span>
+                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.bank_name }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if deposit_request.payment_details.account_number %}
+                                    <div class="flex justify-between text-sm">
+                                        <span class="font-medium text-gray-600">Account Number:</span>
+                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.account_number }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if deposit_request.payment_details.account_name %}
+                                    <div class="flex justify-between text-sm">
+                                        <span class="font-medium text-gray-600">Account Name:</span>
+                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.account_name }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if deposit_request.payment_details.branch %}
+                                    <div class="flex justify-between text-sm">
+                                        <span class="font-medium text-gray-600">Branch:</span>
+                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.branch }}</span>
+                                    </div>
+                                    {% endif %}
+                                    {% if deposit_request.payment_details.swift_code %}
+                                    <div class="flex justify-between text-sm">
+                                        <span class="font-medium text-gray-600">Swift Code:</span>
+                                        <span class="text-gray-900 font-mono">{{ deposit_request.payment_details.swift_code }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <!-- Generic payment details fallback -->
                         <div class="bg-white border border-gray-200 rounded-lg p-4">
                             <div class="space-y-2">
                                 {% for key, value in deposit_request.payment_details.items %}
                                 <div class="flex justify-between text-sm">
-                                    <span class="font-medium text-gray-600">{{ key|title }}:</span>
+                                    <span class="font-medium text-gray-600">{{ key|title|replace:"_":" " }}:</span>
                                     <span class="text-gray-900 font-mono">{{ value }}</span>
                                 </div>
                                 {% endfor %}
                             </div>
                         </div>
+                        {% endif %}
                     </div>
                     {% endif %}
 
