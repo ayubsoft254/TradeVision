@@ -647,10 +647,76 @@ class TransactionDetailView(LoginRequiredMixin, DetailView):
         # Get related request details
         deposit_request = None
         withdrawal_request = None
+        merchant = None
+        merchant_payment_details = {}
+        all_merchant_payment_methods = []
         
         if self.object.transaction_type == 'deposit':
             try:
                 deposit_request = DepositRequest.objects.get(transaction=self.object)
+                # Try to get merchant if available (P2P or agent)
+                if self.object.payment_method:
+                    # Check for P2P merchant
+                    from .models import P2PMerchant, Agent
+                    merchant = None
+                    # Try to find a P2PMerchant or Agent related to this transaction
+                    # (Assume metadata or payment_details may have merchant_id or agent_id)
+                    merchant_id = None
+                    agent_id = None
+                    if deposit_request.payment_details:
+                        merchant_id = deposit_request.payment_details.get('merchant_id')
+                        agent_id = deposit_request.payment_details.get('agent_id')
+                    if merchant_id:
+                        try:
+                            merchant = P2PMerchant.objects.get(id=merchant_id)
+                        except P2PMerchant.DoesNotExist:
+                            merchant = None
+                    elif agent_id:
+                        try:
+                            merchant = Agent.objects.get(id=agent_id)
+                        except Agent.DoesNotExist:
+                            merchant = None
+                    # If not found by id, optionally try to find by email/phone if present
+                    if not merchant and deposit_request.payment_details:
+                        email = deposit_request.payment_details.get('merchant_email')
+                        if email:
+                            try:
+                                merchant = P2PMerchant.objects.filter(email=email).first() or Agent.objects.filter(email=email).first()
+                            except Exception:
+                                merchant = None
+                    
+                    # Get all payment details for the merchant
+                    if merchant and hasattr(merchant, 'get_mobile_money_details'):
+                        # This is a P2PMerchant
+                        mobile_money = merchant.get_mobile_money_details()
+                        bank_transfer = merchant.get_bank_transfer_details()
+                        
+                        if mobile_money:
+                            all_merchant_payment_methods.append({
+                                'method': 'Mobile Money',
+                                'details': mobile_money
+                            })
+                        if bank_transfer:
+                            all_merchant_payment_methods.append({
+                                'method': 'Bank Transfer',
+                                'details': bank_transfer
+                            })
+                        
+                        # Get payment details for the specific method used
+                        if self.object.payment_method:
+                            merchant_payment_details = merchant.get_payment_details_for_method(self.object.payment_method.name) or {}
+                    elif merchant:
+                        # This is an Agent - show basic contact info
+                        merchant_payment_details = {
+                            'name': merchant.name,
+                            'phone': merchant.phone_number,
+                            'email': merchant.email,
+                            'address': merchant.address
+                        }
+                        all_merchant_payment_methods.append({
+                            'method': 'Cash/Local Agent',
+                            'details': merchant_payment_details
+                        })
             except DepositRequest.DoesNotExist:
                 pass
         elif self.object.transaction_type == 'withdrawal':
@@ -662,6 +728,9 @@ class TransactionDetailView(LoginRequiredMixin, DetailView):
         context.update({
             'deposit_request': deposit_request,
             'withdrawal_request': withdrawal_request,
+            'merchant': merchant,
+            'merchant_payment_details': merchant_payment_details,
+            'all_merchant_payment_methods': all_merchant_payment_methods,
         })
         
         return context

@@ -157,43 +157,102 @@
                     {% endif %}
                 </div>
 
-                <!-- Deposit Request Details -->
-                {% if deposit_request %}
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-6">Deposit Request Details</h2>
-                    
-                    <!-- Merchant Payment Details for Pending Deposits -->
-                    {% if transaction.status == 'pending' and merchant and merchant_payment_details %}
+                <!-- How to Pay Instructions for Pending Deposits -->
+                {% if transaction.status == 'pending' and transaction.transaction_type == 'deposit' %}
+                <div class="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-lg p-6 mb-8">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-info-circle text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-green-800">Complete Your Payment</h2>
+                            <p class="text-green-700">Your deposit request is pending. Please make payment using the details below.</p>
+                        </div>
+                    </div>
+
+                    <!-- Merchant Payment Methods -->
+                    {% if merchant and all_merchant_payment_methods %}
                     <div class="mb-6">
-                        <h3 class="text-md font-bold text-success-700 mb-3">How to Pay the Merchant</h3>
-                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <div class="mb-2 text-gray-900 font-semibold">Merchant: {{ merchant.name }}{% if merchant.phone_number %} ({{ merchant.phone_number }}){% endif %}</div>
-                            <div class="mb-2 text-gray-700 text-sm">Please use the payment details below to complete your deposit. After payment, upload your proof for faster processing.</div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-user-tie text-primary-500 mr-2"></i>
+                            Merchant: {{ merchant.name }}
+                            {% if merchant.phone_number %}
+                                <span class="text-sm font-normal text-gray-600">({{ merchant.phone_number }})</span>
+                            {% endif %}
+                        </h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for payment_method in all_merchant_payment_methods %}
+                            <div class="bg-white border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
+                                    {% if payment_method.method == 'Mobile Money' %}
+                                        <i class="fas fa-mobile-alt text-green-500 mr-2"></i>
+                                    {% elif payment_method.method == 'Bank Transfer' %}
+                                        <i class="fas fa-university text-blue-500 mr-2"></i>
+                                    {% else %}
+                                        <i class="fas fa-handshake text-orange-500 mr-2"></i>
+                                    {% endif %}
+                                    {{ payment_method.method }}
+                                </h4>
+                                <div class="space-y-2">
+                                    {% for key, value in payment_method.details.items %}
+                                    <div class="flex justify-between text-sm">
+                                        <span class="font-medium text-gray-600">{{ key|title }}:</span>
+                                        <span class="text-gray-900 font-mono">{{ value }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% elif deposit_request.payment_details %}
+                    <!-- Fallback payment details -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Payment Details</h3>
+                        <div class="bg-white border border-gray-200 rounded-lg p-4">
                             <div class="space-y-2">
-                                {% for key, value in merchant_payment_details.items %}
-                                <div class="flex justify-between py-1 border-b border-gray-100 last:border-b-0">
-                                    <span class="text-sm font-medium text-gray-600">{{ key|title }}:</span>
-                                    <span class="text-sm text-gray-900">{{ value }}</span>
+                                {% for key, value in deposit_request.payment_details.items %}
+                                <div class="flex justify-between text-sm">
+                                    <span class="font-medium text-gray-600">{{ key|title }}:</span>
+                                    <span class="text-gray-900 font-mono">{{ value }}</span>
                                 </div>
                                 {% endfor %}
                             </div>
                         </div>
                     </div>
                     {% endif %}
-                    <!-- Fallback: Show deposit_request.payment_details if present -->
-                    {% if deposit_request.payment_details %}
-                    <div class="mb-6">
-                        <h3 class="text-md font-medium text-gray-900 mb-3">Payment Information</h3>
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            {% for key, value in deposit_request.payment_details.items %}
-                            <div class="flex justify-between py-2 border-b border-gray-200 last:border-b-0">
-                                <span class="text-sm font-medium text-gray-600">{{ key|title }}:</span>
-                                <span class="text-sm text-gray-900">{{ value }}</span>
+
+                    <!-- Upload Proof Button -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="font-semibold text-gray-900 mb-1">After Making Payment</h4>
+                                <p class="text-gray-600 text-sm">Upload your payment receipt or screenshot for quick processing</p>
                             </div>
-                            {% endfor %}
+                            <button onclick="openUploadProofModal()" 
+                                    class="bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-upload mr-2"></i>
+                                {% if deposit_request.payment_proof %}Update Proof{% else %}Upload Proof{% endif %}
+                            </button>
                         </div>
+                        
+                        {% if deposit_request.payment_proof %}
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <div class="flex items-center text-green-600">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                <span class="text-sm font-medium">Payment proof uploaded - Under review</span>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Deposit Request Details -->
+                {% if deposit_request %}
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-6">Deposit Request Details</h2>
                     
                     <!-- Payment Proof -->
                     {% if deposit_request.payment_proof %}
@@ -378,11 +437,6 @@
                     </h3>
                     <div class="space-y-3">
                         {% if transaction.status == 'pending' and transaction.transaction_type == 'deposit' %}
-                        <button onclick="openUploadProofModal()" 
-                                class="w-full bg-success-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-success-700 transition-colors duration-200">
-                            <i class="fas fa-upload mr-2"></i>
-                            {% if deposit_request.payment_proof %}Update Payment Proof{% else %}Upload Payment Proof{% endif %}
-                        </button>
                         <button onclick="copyTransactionId()" 
                                 class="w-full bg-primary-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors duration-200">
                             <i class="fas fa-copy mr-2"></i>
