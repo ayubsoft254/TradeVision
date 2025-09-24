@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.generic import TemplateView, UpdateView, CreateView
 from django.urls import reverse_lazy
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
@@ -46,11 +46,24 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         
         # Get referral information
         try:
-            referral = Referral.objects.get(referrer=user)
-            referral_code = referral.referral_code
-            referral_earnings = referral.commission_earned
-            referred_users = Referral.objects.filter(referrer=user).count()
-        except Referral.DoesNotExist:
+            # Get the user's own referral code (from any referral record where they are the referrer or referred)
+            referral = Referral.objects.filter(
+                Q(referrer=user) | Q(referred=user)
+            ).first()
+            
+            if referral:
+                referral_code = referral.referral_code
+            else:
+                referral_code = self.generate_referral_code(user)
+            
+            # Get commission earned from referrals where user is the referrer
+            referral_earnings = Referral.objects.filter(referrer=user).aggregate(
+                total=Sum('commission_earned')
+            )['total'] or 0
+            
+            # Count referred users (excluding self-referrals)
+            referred_users = Referral.objects.filter(referrer=user).exclude(referred=user).count()
+        except Exception:
             referral_code = self.generate_referral_code(user)
             referral_earnings = 0
             referred_users = 0
@@ -72,16 +85,28 @@ class ProfileView(LoginRequiredMixin, TemplateView):
     def generate_referral_code(self, user):
         """Generate referral code for user if not exists"""
         try:
-            referral = Referral.objects.get(referrer=user)
-            return referral.referral_code
+            # Try to find existing referral code for this user
+            referral = Referral.objects.filter(
+                Q(referrer=user) | Q(referred=user)
+            ).first()
+            
+            if referral:
+                return referral.referral_code
+                
         except Referral.DoesNotExist:
-            code = Referral.generate_referral_code(user)
-            Referral.objects.create(
-                referrer=user,
-                referred=user,  # Self-referral for code generation
-                referral_code=code
-            )
-            return code
+            pass
+        
+        # Generate new code and create a placeholder referral record
+        code = Referral.generate_referral_code(user)
+        # Create a referral record for the user to store their referral code
+        # We'll use the user as both referrer and referred initially
+        # This will be updated when they actually refer someone
+        Referral.objects.create(
+            referrer=user,
+            referred=user,  # Temporary self-referral for code storage
+            referral_code=code
+        )
+        return code
 
 class EditProfileView(LoginRequiredMixin, UpdateView):
     """Edit user profile information"""
@@ -180,13 +205,20 @@ class ReferralView(LoginRequiredMixin, TemplateView):
         
         # Get or create referral code
         try:
-            user_referral = Referral.objects.get(referrer=user)
-            referral_code = user_referral.referral_code
+            user_referral = Referral.objects.filter(
+                Q(referrer=user) | Q(referred=user)
+            ).first()
+            
+            if user_referral:
+                referral_code = user_referral.referral_code
+            else:
+                raise Referral.DoesNotExist
+                
         except Referral.DoesNotExist:
             referral_code = Referral.generate_referral_code(user)
             Referral.objects.create(
                 referrer=user,
-                referred=user,  # Placeholder
+                referred=user,  # Temporary self-referral
                 referral_code=referral_code
             )
         

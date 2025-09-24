@@ -157,6 +157,12 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 
 ACCOUNT_EMAIL_SUBJECT_PREFIX="[TRADEVISION] "
 
+# Custom allauth forms and adapter
+ACCOUNT_ADAPTER = 'apps.accounts.adapters.CustomAccountAdapter'
+ACCOUNT_FORMS = {
+    'login': 'apps.accounts.forms.CustomLoginForm',
+}
+
 # Login/Logout URLs
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'

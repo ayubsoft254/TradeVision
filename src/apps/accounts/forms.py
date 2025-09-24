@@ -47,6 +47,8 @@ class CustomSignupForm(SignupForm):
     )
     
     def __init__(self, *args, **kwargs):
+        # Get request from kwargs if available
+        self.request = kwargs.pop('request', None)
         super().__init__(*args, **kwargs)
         
         # Customize existing fields
@@ -70,8 +72,20 @@ class CustomSignupForm(SignupForm):
         
         # Limit country choices to supported countries
         supported_countries = ['KE', 'UG', 'TZ', 'CD', 'ZM']
-        country_choices = [(code, name) for code, name in self.fields['country'].choices if code in supported_countries or code == '']
-        self.fields['country'].choices = country_choices
+        try:
+            # Only filter choices if they are available
+            if hasattr(self.fields['country'], 'choices') and self.fields['country'].choices:
+                country_choices = [(code, name) for code, name in self.fields['country'].choices if code in supported_countries or code == '']
+                self.fields['country'].choices = country_choices
+        except (AttributeError, TypeError):
+            # Skip country filtering if there's an issue
+            pass
+        
+        # Pre-populate referral code from session if available
+        if self.request and hasattr(self.request, 'session'):
+            session_referral_code = self.request.session.get('referral_code')
+            if session_referral_code and not self.data.get('referral_code'):
+                self.fields['referral_code'].initial = session_referral_code
     
     def clean_full_name(self):
         full_name = self.cleaned_data.get('full_name')
@@ -111,17 +125,29 @@ class CustomSignupForm(SignupForm):
         user.country = self.cleaned_data['country']
         user.save()
         
-        # Handle referral if provided
+        # Handle referral if provided (check form field first, then session)
         referral_code = self.cleaned_data.get('referral_code')
+        if not referral_code and hasattr(request, 'session'):
+            referral_code = request.session.get('referral_code')
+        
         if referral_code:
             from .models import Referral
             try:
+                # Find the referrer by referral code
                 referrer_referral = Referral.objects.get(referral_code=referral_code)
+                referrer = referrer_referral.referrer
+                
+                # Create referral relationship for the new user
                 Referral.objects.create(
-                    referrer=referrer_referral.referrer,
+                    referrer=referrer,
                     referred=user,
                     referral_code=Referral.generate_referral_code(user)
                 )
+                
+                # Clear the referral code from session after successful use
+                if hasattr(request, 'session') and 'referral_code' in request.session:
+                    del request.session['referral_code']
+                    
             except Referral.DoesNotExist:
                 pass  # Invalid referral code, ignore
         
