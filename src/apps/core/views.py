@@ -524,8 +524,8 @@ def referral_redirect(request):
     
     if referral_code:
         # Validate referral code exists
-        from apps.accounts.models import Referral
-        if Referral.objects.filter(referral_code=referral_code).exists():
+        from apps.accounts.models import UserReferralCode
+        if UserReferralCode.objects.filter(referral_code=referral_code).exists():
             # Store referral code in session
             request.session['referral_code'] = referral_code
             

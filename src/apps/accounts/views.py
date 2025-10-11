@@ -45,28 +45,24 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         recent_investments = Investment.objects.filter(user=user).order_by('-created_at')[:3]
         
         # Get referral information
-        try:
-            # Get the user's own referral code (from any referral record where they are the referrer or referred)
-            referral = Referral.objects.filter(
-                Q(referrer=user) | Q(referred=user)
-            ).first()
-            
-            if referral:
-                referral_code = referral.referral_code
-            else:
-                referral_code = self.generate_referral_code(user)
-            
-            # Get commission earned from referrals where user is the referrer
-            referral_earnings = Referral.objects.filter(referrer=user).aggregate(
-                total=Sum('commission_earned')
-            )['total'] or 0
-            
-            # Count referred users (excluding self-referrals)
-            referred_users = Referral.objects.filter(referrer=user).exclude(referred=user).count()
-        except Exception:
-            referral_code = self.generate_referral_code(user)
-            referral_earnings = 0
-            referred_users = 0
+        from .models import UserReferralCode
+        
+        # Get user's own referral code
+        referral_code = UserReferralCode.get_or_create_for_user(user)
+        
+        # Get commission earned from referrals where user is the referrer
+        referral_earnings = Referral.objects.filter(
+            referrer=user,
+            is_active=True
+        ).aggregate(
+            total=Sum('commission_earned')
+        )['total'] or 0
+        
+        # Count referred users (people who signed up using this user's referral code)
+        referred_users = Referral.objects.filter(
+            referrer=user,
+            is_active=True
+        ).count()
         
         context.update({
             'profile': profile,
@@ -82,31 +78,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         
         return context
     
-    def generate_referral_code(self, user):
-        """Generate referral code for user if not exists"""
-        try:
-            # Try to find existing referral code for this user
-            referral = Referral.objects.filter(
-                Q(referrer=user) | Q(referred=user)
-            ).first()
-            
-            if referral:
-                return referral.referral_code
-                
-        except Referral.DoesNotExist:
-            pass
-        
-        # Generate new code and create a placeholder referral record
-        code = Referral.generate_referral_code(user)
-        # Create a referral record for the user to store their referral code
-        # We'll use the user as both referrer and referred initially
-        # This will be updated when they actually refer someone
-        Referral.objects.create(
-            referrer=user,
-            referred=user,  # Temporary self-referral for code storage
-            referral_code=code
-        )
-        return code
+    # Remove the old generate_referral_code method as it's no longer needed
 
 class EditProfileView(LoginRequiredMixin, UpdateView):
     """Edit user profile information"""
@@ -203,27 +175,16 @@ class ReferralView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         
-        # Get or create referral code
-        try:
-            user_referral = Referral.objects.filter(
-                Q(referrer=user) | Q(referred=user)
-            ).first()
-            
-            if user_referral:
-                referral_code = user_referral.referral_code
-            else:
-                raise Referral.DoesNotExist
-                
-        except Referral.DoesNotExist:
-            referral_code = Referral.generate_referral_code(user)
-            Referral.objects.create(
-                referrer=user,
-                referred=user,  # Temporary self-referral
-                referral_code=referral_code
-            )
+        from .models import UserReferralCode
         
-        # Get referred users
-        referred_users = Referral.objects.filter(referrer=user).exclude(referred=user)
+        # Get user's referral code
+        referral_code = UserReferralCode.get_or_create_for_user(user)
+        
+        # Get referred users (people who used this user's referral code)
+        referred_users = Referral.objects.filter(
+            referrer=user,
+            is_active=True
+        ).select_related('referred')
         
         # Get referral statistics
         total_referrals = referred_users.count()
@@ -367,26 +328,34 @@ def generate_new_referral_code(request):
     """AJAX view to generate new referral code"""
     if request.method == 'POST':
         try:
-            # Get existing referral or create new one
-            referral, created = Referral.objects.get_or_create(
-                referrer=request.user,
-                defaults={'referred': request.user}
+            from .models import UserReferralCode
+            
+            # Get or create user's referral code object
+            code_obj, created = UserReferralCode.objects.get_or_create(
+                user=request.user,
+                defaults={'referral_code': UserReferralCode.generate_unique_code()}
             )
             
-            # Generate new code
-            new_code = Referral.generate_referral_code(request.user)
-            referral.referral_code = new_code
-            referral.save()
+            if not created:
+                # Update with new code
+                new_code = UserReferralCode.generate_unique_code()
+                code_obj.referral_code = new_code
+                code_obj.save()
+                
+                # Update all existing referral relationships with the new code
+                Referral.objects.filter(referrer=request.user).update(
+                    referral_code=new_code
+                )
             
             return JsonResponse({
                 'success': True,
-                'new_code': new_code,
+                'new_code': code_obj.referral_code,
                 'message': 'New referral code generated successfully!'
             })
         except Exception as e:
             return JsonResponse({
                 'success': False,
-                'message': 'Error generating new code. Please try again.'
+                'message': f'Error generating new code: {str(e)}'
             })
     
     return JsonResponse({'success': False, 'message': 'Invalid request method'})

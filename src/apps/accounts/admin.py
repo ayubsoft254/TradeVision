@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from .models import User, UserProfile, Referral
+from .models import User, UserProfile, Referral, UserReferralCode
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
@@ -279,6 +279,67 @@ class UserProfileInline(admin.StackedInline):
 
 # Update UserAdmin to include UserProfile inline
 UserAdmin.inlines = [UserProfileInline]
+
+@admin.register(UserReferralCode)
+class UserReferralCodeAdmin(admin.ModelAdmin):
+    """User Referral Code Admin"""
+    list_display = ('get_user_email', 'referral_code', 'created_at', 'get_referral_count')
+    search_fields = ('user__email', 'user__full_name', 'referral_code')
+    readonly_fields = ('created_at', 'get_user_info', 'get_referral_stats')
+    ordering = ('-created_at',)
+    
+    fieldsets = (
+        ('User Information', {
+            'fields': ('get_user_info',)
+        }),
+        ('Referral Code', {
+            'fields': ('referral_code', 'created_at')
+        }),
+        ('Statistics', {
+            'fields': ('get_referral_stats',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_user_email(self, obj):
+        """Get user email with link"""
+        url = reverse('admin:accounts_user_change', args=[obj.user.pk])
+        return format_html('<a href="{}">{}</a>', url, obj.user.email)
+    get_user_email.short_description = 'User Email'
+    get_user_email.admin_order_field = 'user__email'
+    
+    def get_user_info(self, obj):
+        """Display user information"""
+        return format_html(
+            '<strong>Email:</strong> {}<br>'
+            '<strong>Name:</strong> {}<br>'
+            '<strong>Country:</strong> {}',
+            obj.user.email,
+            obj.user.full_name or 'Not provided',
+            obj.user.country.name if obj.user.country else 'Not provided'
+        )
+    get_user_info.short_description = 'User Information'
+    
+    def get_referral_count(self, obj):
+        """Get number of successful referrals"""
+        count = Referral.objects.filter(referrer=obj.user, is_active=True).count()
+        return format_html('<strong>{}</strong>', count)
+    get_referral_count.short_description = 'Referrals'
+    
+    def get_referral_stats(self, obj):
+        """Display referral statistics"""
+        from django.db.models import Sum
+        referrals = Referral.objects.filter(referrer=obj.user, is_active=True)
+        count = referrals.count()
+        total_earned = referrals.aggregate(total=Sum('commission_earned'))['total'] or 0
+        
+        return format_html(
+            '<strong>Total Referrals:</strong> {}<br>'
+            '<strong>Total Earnings:</strong> ${:.2f}',
+            count,
+            float(total_earned)
+        )
+    get_referral_stats.short_description = 'Referral Statistics'
 
 # Custom admin site header and title
 admin.site.site_header = "TradeVision Administration"

@@ -120,21 +120,18 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.email} - Profile"
 
-class Referral(models.Model):
-    """Referral system"""
-    referrer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='referrals_made')
-    referred = models.OneToOneField(User, on_delete=models.CASCADE, related_name='referral')
-    referral_code = models.CharField(max_length=20, unique=True)
-    commission_earned = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    is_active = models.BooleanField(default=True)
+class UserReferralCode(models.Model):
+    """Store each user's unique referral code"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='referral_code_obj')
+    referral_code = models.CharField(max_length=20, unique=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"{self.referrer.email} referred {self.referred.email}"
+        return f"{self.user.email} - Code: {self.referral_code}"
     
     @classmethod
-    def generate_referral_code(cls, user):
-        """Generate unique referral code for user"""
+    def generate_unique_code(cls):
+        """Generate a unique referral code"""
         import random
         import string
         
@@ -142,12 +139,45 @@ class Referral(models.Model):
             code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
             if not cls.objects.filter(referral_code=code).exists():
                 return code
+    
+    @classmethod
+    def get_or_create_for_user(cls, user):
+        """Get or create a referral code for a user"""
+        obj, created = cls.objects.get_or_create(
+            user=user,
+            defaults={'referral_code': cls.generate_unique_code()}
+        )
+        return obj.referral_code
 
-# Signal to create user profile
+class Referral(models.Model):
+    """Referral relationships - tracks who referred whom"""
+    referrer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='referrals_made')
+    referred = models.OneToOneField(User, on_delete=models.CASCADE, related_name='referral')
+    referral_code = models.CharField(max_length=20, db_index=True)  # The code used for this referral
+    commission_earned = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.referrer.email} referred {self.referred.email}"
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['referrer', 'is_active']),
+            models.Index(fields=['referred']),
+        ]
+
+# Signal to create user profile and referral code
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
+def create_user_profile_and_referral_code(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance)
+        # Create user profile
+        UserProfile.objects.get_or_create(user=instance)
+        # Create unique referral code for the user
+        UserReferralCode.objects.get_or_create(
+            user=instance,
+            defaults={'referral_code': UserReferralCode.generate_unique_code()}
+        )

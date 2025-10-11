@@ -113,8 +113,8 @@ class CustomSignupForm(SignupForm):
     def clean_referral_code(self):
         referral_code = self.cleaned_data.get('referral_code')
         if referral_code:
-            from .models import Referral
-            if not Referral.objects.filter(referral_code=referral_code).exists():
+            from .models import UserReferralCode
+            if not UserReferralCode.objects.filter(referral_code=referral_code).exists():
                 raise ValidationError('Invalid referral code.')
         return referral_code
     
@@ -131,24 +131,26 @@ class CustomSignupForm(SignupForm):
             referral_code = request.session.get('referral_code')
         
         if referral_code:
-            from .models import Referral
+            from .models import Referral, UserReferralCode
             try:
                 # Find the referrer by referral code
-                referrer_referral = Referral.objects.get(referral_code=referral_code)
-                referrer = referrer_referral.referrer
+                referrer_code_obj = UserReferralCode.objects.get(referral_code=referral_code)
+                referrer = referrer_code_obj.user
                 
-                # Create referral relationship for the new user
-                Referral.objects.create(
-                    referrer=referrer,
-                    referred=user,
-                    referral_code=Referral.generate_referral_code(user)
-                )
+                # Don't allow self-referral
+                if referrer != user:
+                    # Create referral relationship for the new user
+                    Referral.objects.create(
+                        referrer=referrer,
+                        referred=user,
+                        referral_code=referral_code
+                    )
                 
-                # Clear the referral code from session after successful use
+                # Clear the referral code from session after processing
                 if hasattr(request, 'session') and 'referral_code' in request.session:
                     del request.session['referral_code']
                     
-            except Referral.DoesNotExist:
+            except UserReferralCode.DoesNotExist:
                 pass  # Invalid referral code, ignore
         
         return user
@@ -390,7 +392,7 @@ class ReferralCodeForm(forms.Form):
     def clean_referral_code(self):
         referral_code = self.cleaned_data.get('referral_code')
         if referral_code:
-            from .models import Referral
-            if not Referral.objects.filter(referral_code=referral_code).exists():
+            from .models import UserReferralCode
+            if not UserReferralCode.objects.filter(referral_code=referral_code).exists():
                 raise ValidationError('Invalid referral code.')
         return referral_code
