@@ -5,7 +5,8 @@ Management command to fix referral system data
 - Clean up duplicate referral relationships
 """
 from django.core.management.base import BaseCommand
-from django.db.models import Count
+from django.db.models import Count, Sum, Q, F
+from django.db import models
 from apps.accounts.models import User, UserReferralCode, Referral
 
 
@@ -47,7 +48,7 @@ class Command(BaseCommand):
         
         # Step 2: Remove self-referrals (where referrer == referred)
         self.stdout.write('\n2. Removing self-referrals...')
-        self_referrals = Referral.objects.filter(referrer=models.F('referred'))
+        self_referrals = Referral.objects.filter(referrer=F('referred'))
         self_referral_count = self_referrals.count()
         
         if self_referral_count > 0:
@@ -120,10 +121,9 @@ class Command(BaseCommand):
         self.stdout.write('TOP 5 REFERRERS:')
         self.stdout.write('-'*60)
         
-        from django.db.models import Count, Sum
         top_referrers = User.objects.annotate(
-            referral_count=Count('referrals_made', filter=models.Q(referrals_made__is_active=True)),
-            total_earned=Sum('referrals_made__commission_earned', filter=models.Q(referrals_made__is_active=True))
+            referral_count=Count('referrals_made', filter=Q(referrals_made__is_active=True)),
+            total_earned=Sum('referrals_made__commission_earned', filter=Q(referrals_made__is_active=True))
         ).filter(referral_count__gt=0).order_by('-referral_count')[:5]
         
         for user in top_referrers:
@@ -140,7 +140,3 @@ class Command(BaseCommand):
                     '✓ Dry run completed. Run without --dry-run to apply changes.'
                 )
             )
-
-
-# Import models at module level for F expression
-from django.db import models
