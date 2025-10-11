@@ -1040,12 +1040,9 @@ class WithdrawalRequestAdmin(admin.ModelAdmin):
                     user = withdrawal_request.transaction.user
                     wallet = user.wallet
                     
-                    # For withdrawals, check profit_balance
-                    if wallet.profit_balance < withdrawal_request.transaction.amount:
-                        failed_count += 1
-                        withdrawal_request.admin_notes += f"\nFailed to approve: Insufficient profit balance"
-                        withdrawal_request.save()
-                        continue
+                    # NOTE: For withdrawals, the balance was already deducted when the request was created
+                    # We're just changing the status to 'completed' here
+                    # No need to deduct again - just verify it was deducted properly
                     
                     # Update transaction status
                     withdrawal_request.transaction.status = 'completed'
@@ -1057,10 +1054,6 @@ class WithdrawalRequestAdmin(admin.ModelAdmin):
                     withdrawal_request.processed_at = timezone.now()
                     withdrawal_request.admin_notes += f"\nApproved by {request.user.username} on {timezone.now()}"
                     withdrawal_request.save()
-                    
-                    # Update user wallet - deduct from profit balance
-                    wallet.profit_balance -= withdrawal_request.transaction.amount
-                    wallet.save()
                     
                     # Log the approval
                     from apps.core.models import SystemLog
@@ -1093,39 +1086,78 @@ class WithdrawalRequestAdmin(admin.ModelAdmin):
     approve_withdrawals.short_description = '✅ Approve selected withdrawals'
     
     def reject_withdrawals(self, request, queryset):
-        """Manually reject selected withdrawal requests"""
+        """Manually reject selected withdrawal requests and refund the money"""
         from django.utils import timezone
+        from django.db import transaction as db_transaction
         
         rejected_count = 0
         
         for withdrawal_request in queryset:
             if withdrawal_request.transaction.status not in ['completed']:
-                # Update transaction status
-                withdrawal_request.transaction.status = 'failed'
-                withdrawal_request.transaction.save()
-                
-                # Update withdrawal request
-                withdrawal_request.processed_by = request.user
-                withdrawal_request.processed_at = timezone.now()
-                withdrawal_request.admin_notes += f"\nRejected by {request.user.username} on {timezone.now()}"
-                withdrawal_request.save()
-                
-                # Log the rejection
-                from apps.core.models import SystemLog
-                SystemLog.objects.create(
-                    user=withdrawal_request.transaction.user,
-                    action_type='withdrawal',
-                    level='WARNING',
-                    message=f'Withdrawal rejected by admin: {withdrawal_request.transaction.amount} {withdrawal_request.transaction.currency}',
-                    ip_address=request.META.get('REMOTE_ADDR'),
-                    metadata={
-                        'transaction_id': str(withdrawal_request.transaction.id),
-                        'rejected_by': request.user.username,
-                        'admin_rejection': True
-                    }
-                )
-                
-                rejected_count += 1
+                try:
+                    with db_transaction.atomic():
+                        # Get user wallet
+                        wallet = withdrawal_request.transaction.user.wallet
+                        
+                        # Refund the amount back to profit balance
+                        # (money was deducted when withdrawal was requested)
+                        wallet.profit_balance += withdrawal_request.transaction.amount
+                        wallet.save()
+                        
+                        # Mark profits as not withdrawn
+                        from apps.trading.models import ProfitHistory
+                        withdrawn_profits = ProfitHistory.objects.filter(
+                            user=withdrawal_request.transaction.user,
+                            is_withdrawn=True
+                        ).order_by('-date_earned')
+                        
+                        remaining_amount = withdrawal_request.transaction.amount
+                        for profit in withdrawn_profits:
+                            if remaining_amount <= 0:
+                                break
+                            if profit.amount <= remaining_amount:
+                                profit.is_withdrawn = False
+                                profit.save()
+                                remaining_amount -= profit.amount
+                        
+                        # Update transaction status
+                        withdrawal_request.transaction.status = 'failed'
+                        withdrawal_request.transaction.metadata = withdrawal_request.transaction.metadata or {}
+                        withdrawal_request.transaction.metadata['refunded'] = True
+                        withdrawal_request.transaction.metadata['refund_reason'] = 'Admin rejection'
+                        withdrawal_request.transaction.save()
+                        
+                        # Update withdrawal request
+                        withdrawal_request.processed_by = request.user
+                        withdrawal_request.processed_at = timezone.now()
+                        withdrawal_request.admin_notes += f"\nRejected by {request.user.username} on {timezone.now()} - Amount refunded to user"
+                        withdrawal_request.save()
+                        
+                        # Log the rejection and refund
+                        from apps.core.models import SystemLog
+                        SystemLog.objects.create(
+                            user=withdrawal_request.transaction.user,
+                            action_type='withdrawal',
+                            level='WARNING',
+                            message=f'Withdrawal rejected by admin and refunded: {withdrawal_request.transaction.amount} {withdrawal_request.transaction.currency}',
+                            ip_address=request.META.get('REMOTE_ADDR'),
+                            metadata={
+                                'transaction_id': str(withdrawal_request.transaction.id),
+                                'rejected_by': request.user.username,
+                                'admin_rejection': True,
+                                'refunded': True,
+                                'refund_amount': str(withdrawal_request.transaction.amount)
+                            }
+                        )
+                        
+                        rejected_count += 1
+                        
+                except Exception as e:
+                    self.message_user(
+                        request, 
+                        f'Error rejecting withdrawal {withdrawal_request.transaction.id}: {str(e)}', 
+                        level='ERROR'
+                    )
         
         if rejected_count > 0:
             self.message_user(request, f'{rejected_count} withdrawals rejected.', level='WARNING')

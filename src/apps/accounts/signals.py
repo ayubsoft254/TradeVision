@@ -1,5 +1,5 @@
 # apps/accounts/signals.py
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.conf import settings
 from decimal import Decimal
@@ -174,3 +174,120 @@ def award_investment_referral_bonus(sender, instance, created, **kwargs):
         
     except Exception as e:
         logger.error(f"Error awarding investment referral bonus: {e}", exc_info=True)
+
+
+@receiver(pre_save, sender=Transaction)
+def track_transaction_status_change(sender, instance, **kwargs):
+    """
+    Track transaction status changes before save.
+    This captures the old status so we can compare it in post_save.
+    """
+    if instance.pk:
+        try:
+            old_instance = Transaction.objects.get(pk=instance.pk)
+            instance._old_status = old_instance.status
+        except Transaction.DoesNotExist:
+            instance._old_status = None
+    else:
+        instance._old_status = None
+
+
+@receiver(post_save, sender=Transaction)
+def handle_cancelled_transaction_refund(sender, instance, created, **kwargs):
+    """
+    Refund money to user's wallet when a transaction is cancelled or failed.
+    
+    For withdrawals:
+    - If cancelled/failed, refund the amount back to profit_balance
+    - The money was deducted when the withdrawal was requested
+    
+    For deposits:
+    - No refund needed as money was never added
+    """
+    # Skip if this is a new transaction
+    if created:
+        return
+    
+    # Check if status changed to cancelled or failed
+    old_status = getattr(instance, '_old_status', None)
+    new_status = instance.status
+    
+    # Only process if status changed to cancelled or failed
+    if old_status == new_status:
+        return
+    
+    if new_status not in ['cancelled', 'failed']:
+        return
+    
+    # Only refund for withdrawals (deposits never took money)
+    if instance.transaction_type != 'withdrawal':
+        return
+    
+    # Check if already refunded (prevent double refunds)
+    refund_metadata = instance.metadata or {}
+    if refund_metadata.get('refunded'):
+        logger.info(f"Transaction {instance.id} already refunded, skipping")
+        return
+    
+    try:
+        # Get user wallet
+        wallet = Wallet.objects.get(user=instance.user)
+        
+        # Refund the amount back to profit balance
+        refund_amount = instance.amount
+        wallet.profit_balance += refund_amount
+        wallet.save(update_fields=['profit_balance', 'updated_at'])
+        
+        # Mark profits as not withdrawn
+        from apps.trading.models import ProfitHistory
+        withdrawn_profits = ProfitHistory.objects.filter(
+            user=instance.user,
+            is_withdrawn=True
+        ).order_by('-date_earned')
+        
+        remaining_amount = refund_amount
+        for profit in withdrawn_profits:
+            if remaining_amount <= 0:
+                break
+            if profit.amount <= remaining_amount:
+                profit.is_withdrawn = False
+                profit.save(update_fields=['is_withdrawn'])
+                remaining_amount -= profit.amount
+        
+        # Update metadata to mark as refunded
+        if not instance.metadata:
+            instance.metadata = {}
+        instance.metadata['refunded'] = True
+        instance.metadata['refund_amount'] = str(refund_amount)
+        instance.metadata['refund_reason'] = f'Transaction {new_status}'
+        instance.metadata['original_status'] = old_status
+        
+        # Save without triggering signals again
+        Transaction.objects.filter(pk=instance.pk).update(metadata=instance.metadata)
+        
+        logger.info(
+            f"Refunded {refund_amount} {instance.currency} to {instance.user.email} "
+            f"for {new_status} withdrawal transaction {instance.id}"
+        )
+        
+        # Create a transaction record for the refund
+        Transaction.objects.create(
+            user=instance.user,
+            transaction_type='bonus',  # Using 'bonus' type for refunds
+            amount=refund_amount,
+            currency=instance.currency,
+            status='completed',
+            description=f'Refund for {new_status} withdrawal (Transaction #{instance.id})',
+            net_amount=refund_amount,
+            metadata={
+                'refund_for_transaction': str(instance.id),
+                'refund_reason': f'Withdrawal {new_status}',
+                'original_amount': str(instance.amount),
+                'is_refund': True
+            }
+        )
+        
+    except Wallet.DoesNotExist:
+        logger.error(f"Wallet not found for user {instance.user.email}, cannot refund transaction {instance.id}")
+    except Exception as e:
+        logger.error(f"Error refunding cancelled/failed transaction {instance.id}: {e}", exc_info=True)
