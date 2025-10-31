@@ -307,7 +307,7 @@ def auto_initiate_daily_trades(self):
 @shared_task(bind=True, max_retries=3)
 def check_investment_maturity(self):
     """
-    Check for investments that have reached maturity (365 days) and unlock principal.
+    Check for investments that have reached maturity (based on package duration_days) and unlock principal.
     Runs daily to process matured investments.
     """
     try:

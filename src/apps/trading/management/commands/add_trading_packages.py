@@ -56,8 +56,8 @@ class Command(BaseCommand):
         parser.add_argument(
             '--duration-days',
             type=int,
-            default=365,
-            help='Package duration in days (default: 365)',
+            default=7,
+            help='Package duration in days (default: 7 days - 1 week)',
         )
         
         parser.add_argument(
@@ -126,7 +126,7 @@ class Command(BaseCommand):
                 'profit_min': Decimal('2.50'),
                 'profit_max': Decimal('5.00'),
                 'welcome_bonus': Decimal('10.00'),
-                'duration_days': 365,
+                'duration_days': 7,
             },
             {
                 'name': 'standard',
@@ -135,7 +135,7 @@ class Command(BaseCommand):
                 'profit_min': Decimal('3.50'),
                 'profit_max': Decimal('7.50'),
                 'welcome_bonus': Decimal('15.00'),
-                'duration_days': 365,
+                'duration_days': 7,
             },
             {
                 'name': 'premium',
@@ -144,7 +144,7 @@ class Command(BaseCommand):
                 'profit_min': Decimal('5.00'),
                 'profit_max': Decimal('10.00'),
                 'welcome_bonus': Decimal('20.00'),
-                'duration_days': 365,
+                'duration_days': 7,
             },
         ]
         

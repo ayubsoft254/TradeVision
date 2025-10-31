@@ -22,7 +22,7 @@ class TradingPackage(models.Model):
     profit_min = models.DecimalField(max_digits=5, decimal_places=2)  # Minimum daily profit %
     profit_max = models.DecimalField(max_digits=5, decimal_places=2)  # Maximum daily profit %
     welcome_bonus = models.DecimalField(max_digits=5, decimal_places=2)  # Welcome bonus %
-    duration_days = models.IntegerField(default=365)
+    duration_days = models.IntegerField(default=7)  # Changed from 365 to 7 days (1 week)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

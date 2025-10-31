@@ -243,7 +243,7 @@ class Command(BaseCommand):
                     'profit_min': Decimal('2.50'),
                     'profit_max': Decimal('5.00'),
                     'welcome_bonus': Decimal('10.00'),
-                    'duration_days': 365,
+                    'duration_days': 7,
                     'is_active': True,
                 }
             )
@@ -260,7 +260,7 @@ class Command(BaseCommand):
                 defaults={
                     'principal_amount': Decimal('100.00'),
                     'status': 'active',
-                    'maturity_date': timezone.now() + timedelta(days=365),
+                    'maturity_date': timezone.now() + timedelta(days=7),
                 }
             )
             
