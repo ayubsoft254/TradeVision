@@ -16,104 +16,91 @@ REFERRAL_COMMISSION_RATE = Decimal('5.0')  # 5% commission on deposits
 REFERRAL_MIN_DEPOSIT = Decimal('10.0')  # Minimum deposit to earn commission
 
 
-@receiver(post_save, sender=User)
-def process_pending_referral_on_email_confirmation(sender, instance, created, **kwargs):
-    """
-    Process pending referral code after user confirms their email.
-    This is called whenever a user is saved (including email confirmation).
-    """
-    # Only process on email confirmation (when user becomes verified and has email_verified_at)
-    if created:
-        return  # Skip on user creation
-    
-    # Check if user already has a referral (only process once)
-    if hasattr(instance, '_referral_processed'):
-        return
-    
-    # Check if user already has a referral relationship
-    if Referral.objects.filter(referred=instance).exists():
-        return
-    
-    try:
-        # Try to get pending referral code from any session data
-        # Since we can't access session here, we look for it via allauth's email confirmation
-        from allauth.account.models import EmailAddress
-        
-        # Check if email is now confirmed
-        email_obj = EmailAddress.objects.filter(user=instance, verified=True).first()
-        if not email_obj:
-            return
-        
-        # Check for pending referral in user attributes (if set during signup)
-        pending_code = getattr(instance, '_pending_referral_code', None)
-        if pending_code:
-            from .models import UserReferralCode
-            try:
-                referrer_code_obj = UserReferralCode.objects.get(referral_code=pending_code)
-                referrer = referrer_code_obj.user
-                
-                if referrer != instance:
-                    Referral.objects.create(
-                        referrer=referrer,
-                        referred=instance,
-                        referral_code=pending_code
-                    )
-                    logger.info(f"Processed referral code {pending_code} for user {instance.email}")
-            except UserReferralCode.DoesNotExist:
-                logger.warning(f"Invalid referral code {pending_code} for user {instance.email}")
-    except Exception as e:
-        logger.error(f"Error processing pending referral for user {instance.email}: {e}", exc_info=True)
 
+# ==================== REFERRAL PROCESSING ====================
 
-# Try to connect to allauth's email_confirmed signal if available
 try:
     from allauth.account.signals import email_confirmed
     
     @receiver(email_confirmed)
     def handle_referral_on_email_confirmed(sender, request, email_address, **kwargs):
         """
-        Process pending referral code after email confirmation.
+        Process referral code after email confirmation.
         This is called when user confirms their email address.
+        
+        Checks both user model (backup) and session (primary) for referral code.
         """
         user = email_address.user
         
         try:
-            # Get pending referral code from session
-            pending_code = request.session.get('pending_referral_code')
+            # Skip if already processed
+            if user.referral_code_processed:
+                logger.debug(f"Referral already processed for user {user.email}")
+                return
+            
+            # Check if user already has a referral relationship (prevent duplicates)
+            if Referral.objects.filter(referred=user).exists():
+                logger.debug(f"User {user.email} already has a referral relationship")
+                user.referral_code_processed = True
+                user.save(update_fields=['referral_code_processed'])
+                return
+            
+            # Get referral code from BOTH sources
+            # Priority: user model (more reliable) > session (may expire)
+            pending_code = user.pending_referral_code or (
+                request.session.get('pending_referral_code') if hasattr(request, 'session') else None
+            )
             
             if not pending_code:
+                logger.debug(f"No pending referral code for user {user.email}")
+                user.referral_code_processed = True
+                user.save(update_fields=['referral_code_processed'])
                 return
             
-            # Check if user already has a referral
-            if Referral.objects.filter(referred=user).exists():
-                return
-            
+            # Validate and process referral code
             from .models import UserReferralCode
             try:
                 referrer_code_obj = UserReferralCode.objects.get(referral_code=pending_code)
                 referrer = referrer_code_obj.user
                 
-                # Don't allow self-referral
-                if referrer != user:
-                    Referral.objects.create(
-                        referrer=referrer,
-                        referred=user,
-                        referral_code=pending_code
-                    )
-                    logger.info(f"Successfully processed referral code {pending_code} for user {user.email}")
+                # Prevent self-referral
+                if referrer == user:
+                    logger.warning(f"Self-referral attempt for user {user.email} with code {pending_code}")
+                    user.referral_code_processed = True
+                    user.save(update_fields=['referral_code_processed'])
+                    return
                 
-                # Clear from session
-                if 'pending_referral_code' in request.session:
-                    del request.session['pending_referral_code']
-                    
+                # Create referral relationship
+                Referral.objects.create(
+                    referrer=referrer,
+                    referred=user,
+                    referral_code=pending_code
+                )
+                
+                logger.info(
+                    f"✅ Successfully processed referral: {referrer.email} → {user.email} "
+                    f"(code: {pending_code})"
+                )
+                
             except UserReferralCode.DoesNotExist:
-                logger.warning(f"Invalid referral code {pending_code} provided during email confirmation")
+                logger.warning(f"Invalid referral code '{pending_code}' for user {user.email}")
+            
+            finally:
+                # Mark as processed and clear user data
+                user.pending_referral_code = None
+                user.referral_code_processed = True
+                user.save(update_fields=['pending_referral_code', 'referral_code_processed'])
+                
+                # Clear from session if available
+                if hasattr(request, 'session') and 'pending_referral_code' in request.session:
+                    del request.session['pending_referral_code']
         
         except Exception as e:
-            logger.error(f"Error processing referral on email confirmation: {e}", exc_info=True)
+            logger.error(f"Error processing referral for user {user.email}: {e}", exc_info=True)
 
 except ImportError:
-    logger.debug("allauth email_confirmed signal not available, using fallback method")
+    logger.debug("allauth email_confirmed signal not available")
+
 
 @receiver(post_save, sender=Transaction)
 def award_referral_commission(sender, instance, created, **kwargs):

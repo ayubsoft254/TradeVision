@@ -54,6 +54,20 @@ class User(AbstractUser):
     phone_number = PhoneNumberField(blank=True, null=True)
     country = CountryField(blank=True, null=True)
     is_verified = models.BooleanField(default=False)
+    
+    # Referral code tracking (stores pending referral code during signup)
+    pending_referral_code = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text='Referral code entered during signup, processed after email confirmation'
+    )
+    referral_code_processed = models.BooleanField(
+        default=False,
+        help_text='Whether the pending referral code has been processed'
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

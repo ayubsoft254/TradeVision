@@ -128,21 +128,19 @@ class CustomSignupForm(SignupForm):
     
     def save(self, request):
         """Save the user and handle referral code"""
-        # Store referral code for later processing
+        # Get referral code from form or session
         referral_code = self.cleaned_data.get('referral_code')
-        if not referral_code and hasattr(request, 'session'):
+        if not referral_code and request and hasattr(request, 'session'):
             referral_code = request.session.get('referral_code')
         
-        # Store in session for post-email confirmation processing
-        if referral_code and hasattr(request, 'session'):
+        # Store referral code in session for post-email confirmation processing
+        if referral_code and request and hasattr(request, 'session'):
             request.session['pending_referral_code'] = referral_code
         
         # Call parent save - this handles the actual user creation and email verification flow
         user = super().save(request)
         
-        # Set custom user fields if user object is valid
-        # The adapter's pre_save_user method should have already set these,
-        # but we ensure they're set here as a fallback
+        # Set custom user fields and store referral code in user model as backup
         if user and isinstance(user, User):
             try:
                 if not user.full_name:
@@ -151,7 +149,24 @@ class CustomSignupForm(SignupForm):
                     user.phone_number = self.cleaned_data.get('phone_number')
                 if not user.country:
                     user.country = self.cleaned_data.get('country')
+                
+                # IMPORTANT: Store referral code in user model as backup
+                # This prevents loss if session expires during email verification
+                if referral_code:
+                    user.pending_referral_code = referral_code
+                    user.referral_code_processed = False
+                    logger.info(f"Stored pending referral code '{referral_code}' for user {user.email}")
+                
                 user.save()
+                
+                # Log signup for audit trail
+                logger.info(
+                    f"New user signup: email={user.email} | "
+                    f"full_name={self.cleaned_data.get('full_name')} | "
+                    f"phone={self.cleaned_data.get('phone_number')} | "
+                    f"country={self.cleaned_data.get('country')} | "
+                    f"referral_code={referral_code or 'None'}"
+                )
             except Exception as e:
                 logger.error(f"Error saving user fields after signup: {e}")
         

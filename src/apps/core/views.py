@@ -4,6 +4,7 @@ from django.views.generic import TemplateView, ListView, DetailView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http import JsonResponse
+from django.urls import reverse
 
 from django.db.models import Q, Count
 from django.utils import timezone
@@ -537,15 +538,15 @@ def referral_redirect(request):
                 metadata={'referral_code': referral_code}
             )
             
-            # Redirect to signup page
-            return redirect('/accounts/signup/')
+            # Redirect to signup page using URL reversal
+            return redirect(reverse('account_signup'))
         else:
             # Invalid referral code, redirect to home with message
             messages.warning(request, 'Invalid referral code. Please check the link and try again.')
             return redirect('core:home')
     else:
         # No referral code, redirect to signup page normally
-        return redirect('/accounts/signup/')
+        return redirect(reverse('account_signup'))
 
 def log_system_activity(request, action_type, message, level='INFO', metadata=None):
     """Utility function to log system activities"""
