@@ -372,11 +372,19 @@
                                 <span>Profit: {{ trade.profit_rate }}%</span>
                             </div>
                             {% if trade.status == 'running' %}
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs text-gray-400">Time Remaining:</span>
-                                <span class="countdown-timer" data-end-time="{{ trade.expected_completion_time|date:'c' }}">
-                                    --:--:--
-                                </span>
+                            <div class="space-y-3 border-t border-gray-200 pt-3 mt-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-gray-400">Time Remaining:</span>
+                                    <span class="countdown-timer" data-end-time="{{ trade.expected_completion_time|date:'c' }}">
+                                        --:--:--
+                                    </span>
+                                </div>
+                                <button type="button" 
+                                        class="w-full btn btn-sm btn-danger stop-trade-btn"
+                                        data-trade-id="{{ trade.id }}"
+                                        data-csrf-token="{% csrf_token %}">
+                                    <i class="fas fa-stop-circle mr-1"></i> Stop Trade
+                                </button>
                             </div>
                             {% endif %}
                         </div>
@@ -656,5 +664,57 @@
     
     setInterval(updateCountdowns, 1000);
     updateCountdowns();
+
+    // Stop Trade functionality
+    document.querySelectorAll('.stop-trade-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tradeId = this.dataset.tradeId;
+            const csrfToken = this.dataset.csrfToken;
+            
+            // Confirm action
+            if (!confirm('Are you sure you want to stop this trade? You will receive a pro-rata profit based on the time elapsed.')) {
+                return;
+            }
+            
+            // Disable button and show loading state
+            this.disabled = true;
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Stopping...';
+            
+            // Make AJAX request
+            fetch(`/dashboard/stop-trade/${tradeId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    const message = `Trade stopped successfully! You earned ${data.profit_amount} in pro-rata profit.`;
+                    alert(message);
+                    
+                    // Reload the dashboard to reflect changes
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    // Show error message
+                    alert(`Error: ${data.error || 'Failed to stop trade'}`);
+                    this.disabled = false;
+                    this.innerHTML = originalHTML;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while stopping the trade. Please try again.');
+                this.disabled = false;
+                this.innerHTML = originalHTML;
+            });
+        });
+    });
 </script>
 {% endblock %}
