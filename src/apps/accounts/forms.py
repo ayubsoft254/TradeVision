@@ -15,6 +15,7 @@ class CustomSignupForm(SignupForm):
     
     full_name = forms.CharField(
         max_length=255,
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
             'placeholder': 'Enter your full name',
@@ -24,6 +25,7 @@ class CustomSignupForm(SignupForm):
     )
     
     phone_number = PhoneNumberField(
+        required=True,
         widget=forms.TextInput(attrs={
             'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500',
             'placeholder': '+254700000000',
@@ -33,6 +35,7 @@ class CustomSignupForm(SignupForm):
     )
     
     country = CountryField().formfield(
+        required=True,
         widget=forms.Select(attrs={
             'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500'
         }),

@@ -366,6 +366,30 @@
                     {% endif %}
                 </div>
 
+                <!-- Full Name -->
+                {% if form.full_name %}
+                <div class="form-group">
+                    <label for="{{ form.full_name.id_for_label }}" class="form-label">
+                        Full Name
+                    </label>
+                    <input type="text" 
+                           name="{{ form.full_name.name }}" 
+                           id="{{ form.full_name.id_for_label }}" 
+                           class="form-input" 
+                           placeholder="Enter your full name"
+                           value="{{ form.full_name.value|default:'' }}"
+                           required
+                           autocomplete="name">
+                    {% if form.full_name.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.full_name.errors.0 }}
+                        </div>
+                    {% endif %}
+                    <p class="form-help">Your legal full name as it appears on your ID</p>
+                </div>
+                {% endif %}
+
                 <!-- Phone Number -->
                 <div class="form-group">
                     <label for="{{ form.phone_number.id_for_label }}" class="form-label">
@@ -387,6 +411,34 @@
                     {% endif %}
                     <p class="form-help">Include country code (e.g., +254700000000)</p>
                 </div>
+
+                <!-- Country -->
+                {% if form.country %}
+                <div class="form-group">
+                    <label for="{{ form.country.id_for_label }}" class="form-label">
+                        Country
+                    </label>
+                    <select name="{{ form.country.name }}" 
+                            id="{{ form.country.id_for_label }}" 
+                            class="form-input"
+                            required>
+                        <option value="">Select your country</option>
+                        {% for value, label in form.country.field.choices %}
+                            {% if value %}
+                                <option value="{{ value }}" {% if form.country.value == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    {% if form.country.errors %}
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            {{ form.country.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
 
                 <!-- Referral Code -->
                 {% if form.referral_code %}
