@@ -79,7 +79,7 @@ def test_referral_system():
         factory = RequestFactory()
         request = factory.post('/accounts/signup/', {
             'email': 'ref_test_2@test.com',
-            'full_name': 'Test Referred User',
+            'full_name': 'John Doe',  # Fixed: use valid name without numbers
             'password1': 'testpass123',
             'password2': 'testpass123',
             'phone_number': '+254700000001',
@@ -111,7 +111,7 @@ def test_referral_system():
         print(f"\n{BLUE}1.5 Testing direct referral code entry...{RESET}")
         request2 = factory.post('/accounts/signup/', {
             'email': 'ref_test_3@test.com',
-            'full_name': 'Test Referred User 2',
+            'full_name': 'Jane Smith',  # Fixed: use valid name without numbers
             'password1': 'testpass123',
             'password2': 'testpass123',
             'phone_number': '+254700000002',
