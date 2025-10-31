@@ -101,6 +101,7 @@ class Trade(models.Model):
         ('pending', 'Pending'),
         ('running', 'Running'),
         ('completed', 'Completed'),
+        ('stopped', 'Stopped'),
         ('failed', 'Failed'),
     ]
     
@@ -159,6 +160,93 @@ class Trade(models.Model):
         
         remaining = self.end_time - timezone.now()
         return remaining if remaining.total_seconds() > 0 else timedelta(0)
+    
+    def stop_trade(self, refund_amount=None):
+        """
+        Stop a running trade and handle profit/loss calculation.
+        
+        Args:
+            refund_amount: Optional custom refund amount. If not provided, 
+                          calculates based on time elapsed.
+        
+        Returns:
+            dict with status and details
+        """
+        from decimal import Decimal
+        from apps.payments.models import Wallet, Transaction
+        
+        if self.status != 'running':
+            return {
+                'success': False,
+                'message': f'Can only stop running trades. Current status: {self.status}'
+            }
+        
+        try:
+            user = self.investment.user
+            wallet = Wallet.objects.get(user=user)
+            
+            # Calculate profit based on time elapsed (pro-rata)
+            if refund_amount is None:
+                time_elapsed = timezone.now() - self.start_time
+                time_total = self.end_time - self.start_time
+                
+                if time_total.total_seconds() > 0:
+                    elapsed_ratio = time_elapsed.total_seconds() / time_total.total_seconds()
+                    # Cap at 1.0 to not exceed full profit
+                    elapsed_ratio = min(elapsed_ratio, Decimal('1.0'))
+                else:
+                    elapsed_ratio = Decimal('0')
+                
+                refund_amount = self.profit_amount * Decimal(str(elapsed_ratio))
+            else:
+                refund_amount = Decimal(str(refund_amount))
+            
+            # Update trade status
+            self.status = 'stopped'
+            self.completed_at = timezone.now()
+            self.profit_amount = refund_amount
+            self.save()
+            
+            # Add profit to user's wallet
+            wallet.profit_balance += refund_amount
+            wallet.save()
+            
+            # Create transaction record
+            Transaction.objects.create(
+                user=user,
+                transaction_type='trade_profit',
+                amount=refund_amount,
+                currency=wallet.currency,
+                status='completed',
+                description=f'Profit from stopped trade {self.id}',
+                net_amount=refund_amount,
+                metadata={
+                    'trade_id': str(self.id),
+                    'stopped_by_user': True,
+                    'profit_rate': str(self.profit_rate)
+                }
+            )
+            
+            return {
+                'success': True,
+                'message': f'Trade stopped successfully. Profit: {refund_amount} {wallet.currency}',
+                'profit_amount': float(refund_amount),
+                'currency': wallet.currency
+            }
+        
+        except Wallet.DoesNotExist:
+            return {
+                'success': False,
+                'message': 'User wallet not found'
+            }
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error stopping trade {self.id}: {str(e)}")
+            return {
+                'success': False,
+                'message': f'Error stopping trade: {str(e)}'
+            }
 
 class ProfitHistory(models.Model):
     """Track all profit distributions"""

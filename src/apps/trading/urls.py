@@ -20,6 +20,7 @@ urlpatterns = [
     path('trades/<uuid:trade_id>/', views.TradeDetailView.as_view(), name='trade_detail'),
     path('initiate-trade/', views.InitiateTradeView.as_view(), name='initiate_trade'),
     path('trade-status/', views.TradeInitiationStatusView.as_view(), name='trade_initiation_status'),
+    path('stop-trade/<uuid:trade_id>/', views.stop_trade, name='stop_trade'),
     
     # Profit Management
     path('profits/', views.ProfitHistoryView.as_view(), name='profits'),

@@ -919,3 +919,64 @@ def trading_statistics(request):
         'profit_data': profit_data,
         'trade_data': trade_data
     })
+
+@login_required
+@require_http_methods(["POST"])
+def stop_trade(request, trade_id):
+    """
+    Stop a running trade and calculate pro-rata profits.
+    AJAX endpoint to handle user-initiated trade stopping.
+    """
+    try:
+        trade = Trade.objects.get(id=trade_id, investment__user=request.user)
+        
+        # Check if trade is running
+        if trade.status != 'running':
+            return JsonResponse({
+                'success': False,
+                'error': f'Cannot stop {trade.status} trade. Only running trades can be stopped.'
+            }, status=400)
+        
+        # Call the trade's stop_trade method
+        result = trade.stop_trade()
+        
+        if result['success']:
+            # Log the activity
+            SystemLog.objects.create(
+                user=request.user,
+                action_type='trade_stopped',
+                level='INFO',
+                message=f'User stopped trade {trade.id}',
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                request_path=request.path,
+                metadata={
+                    'trade_id': str(trade.id),
+                    'profit_amount': str(result.get('profit_amount', 0)),
+                    'currency': result.get('currency', 'N/A')
+                }
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': result['message'],
+                'profit_amount': result['profit_amount'],
+                'currency': result['currency']
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': result['message']
+            }, status=400)
+    
+    except Trade.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Trade not found or unauthorized'
+        }, status=404)
+    except Exception as e:
+        logger.error(f"Error stopping trade {trade_id}: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Error stopping trade: {str(e)}'
+        }, status=500)
