@@ -6,6 +6,9 @@ from django_countries.fields import CountryField
 from phonenumber_field.formfields import PhoneNumberField
 from .models import User, UserProfile
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 class CustomSignupForm(SignupForm):
     """Custom registration form with additional fields"""
@@ -110,7 +113,8 @@ class CustomSignupForm(SignupForm):
         phone_number = self.cleaned_data.get('phone_number')
         if phone_number:
             # Check if phone number already exists
-            if User.objects.filter(phone_number=phone_number).exists():
+            existing = User.objects.filter(phone_number=phone_number).exists()
+            if existing:
                 raise ValidationError('A user with this phone number already exists.')
         return phone_number
     
@@ -123,39 +127,33 @@ class CustomSignupForm(SignupForm):
         return referral_code
     
     def save(self, request):
-        user = super().save(request)
-        user.full_name = self.cleaned_data['full_name']
-        user.phone_number = self.cleaned_data['phone_number']
-        user.country = self.cleaned_data['country']
-        user.save()
-        
-        # Handle referral if provided (check form field first, then session)
+        """Save the user and handle referral code"""
+        # Store referral code for later processing
         referral_code = self.cleaned_data.get('referral_code')
         if not referral_code and hasattr(request, 'session'):
             referral_code = request.session.get('referral_code')
         
-        if referral_code:
-            from .models import Referral, UserReferralCode
+        # Store in session for post-email confirmation processing
+        if referral_code and hasattr(request, 'session'):
+            request.session['pending_referral_code'] = referral_code
+        
+        # Call parent save - this handles the actual user creation and email verification flow
+        user = super().save(request)
+        
+        # Set custom user fields if user object is valid
+        # The adapter's pre_save_user method should have already set these,
+        # but we ensure they're set here as a fallback
+        if user and isinstance(user, User):
             try:
-                # Find the referrer by referral code
-                referrer_code_obj = UserReferralCode.objects.get(referral_code=referral_code)
-                referrer = referrer_code_obj.user
-                
-                # Don't allow self-referral
-                if referrer != user:
-                    # Create referral relationship for the new user
-                    Referral.objects.create(
-                        referrer=referrer,
-                        referred=user,
-                        referral_code=referral_code
-                    )
-                
-                # Clear the referral code from session after processing
-                if hasattr(request, 'session') and 'referral_code' in request.session:
-                    del request.session['referral_code']
-                    
-            except UserReferralCode.DoesNotExist:
-                pass  # Invalid referral code, ignore
+                if not user.full_name:
+                    user.full_name = self.cleaned_data.get('full_name', '')
+                if not user.phone_number:
+                    user.phone_number = self.cleaned_data.get('phone_number')
+                if not user.country:
+                    user.country = self.cleaned_data.get('country')
+                user.save()
+            except Exception as e:
+                logger.error(f"Error saving user fields after signup: {e}")
         
         return user
 

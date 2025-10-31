@@ -1,6 +1,7 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from allauth.account.forms import SignupForm
 from django.urls import reverse
+from django.core.exceptions import ValidationError
 
 class CustomAccountAdapter(DefaultAccountAdapter):
     """Custom allauth adapter to handle referral codes and other custom logic"""
@@ -12,6 +13,12 @@ class CustomAccountAdapter(DefaultAccountAdapter):
     
     def pre_save_user(self, request, form, user):
         """Called before the user is saved during signup"""
+        # Set custom fields before saving
+        if hasattr(form, 'cleaned_data'):
+            user.full_name = form.cleaned_data.get('full_name', user.email.split('@')[0])
+            user.phone_number = form.cleaned_data.get('phone_number')
+            user.country = form.cleaned_data.get('country')
+        
         return super().pre_save_user(request, form, user)
     
     def save_user(self, request, sociallogin, form):
