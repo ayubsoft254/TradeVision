@@ -161,6 +161,7 @@ ACCOUNT_EMAIL_SUBJECT_PREFIX="[TRADEVISION] "
 ACCOUNT_ADAPTER = 'apps.accounts.adapters.CustomAccountAdapter'
 ACCOUNT_FORMS = {
     'login': 'apps.accounts.forms.CustomLoginForm',
+    'signup': 'apps.accounts.forms.CustomSignupForm',
 }
 
 # Login/Logout URLs

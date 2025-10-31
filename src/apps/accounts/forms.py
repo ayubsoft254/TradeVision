@@ -82,10 +82,14 @@ class CustomSignupForm(SignupForm):
             pass
         
         # Pre-populate referral code from session if available
-        if self.request and hasattr(self.request, 'session'):
-            session_referral_code = self.request.session.get('referral_code')
-            if session_referral_code and not self.data.get('referral_code'):
-                self.fields['referral_code'].initial = session_referral_code
+        if not self.request:
+            # Try to get request from the form's parent if available
+            pass
+        else:
+            if hasattr(self.request, 'session'):
+                session_referral_code = self.request.session.get('referral_code')
+                if session_referral_code and not self.data.get('referral_code'):
+                    self.fields['referral_code'].initial = session_referral_code
     
     def clean_full_name(self):
         full_name = self.cleaned_data.get('full_name')

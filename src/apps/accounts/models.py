@@ -166,6 +166,11 @@ class Referral(models.Model):
             models.Index(fields=['referrer', 'is_active']),
             models.Index(fields=['referred']),
         ]
+    
+    @classmethod
+    def generate_referral_code(cls, user):
+        """Generate a referral code for a user"""
+        return UserReferralCode.get_or_create_for_user(user)
 
 # Signal to create user profile and referral code
 from django.db.models.signals import post_save

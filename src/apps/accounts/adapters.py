@@ -8,14 +8,15 @@ class CustomAccountAdapter(DefaultAccountAdapter):
     def get_signup_form_class(self, request):
         """Return custom signup form with request object"""
         from .forms import CustomSignupForm
-        
-        # Create a wrapper class that passes request to the form
-        class CustomSignupFormWithRequest(CustomSignupForm):
-            def __init__(self, *args, **kwargs):
-                kwargs['request'] = request
-                super().__init__(*args, **kwargs)
-        
-        return CustomSignupFormWithRequest
+        return CustomSignupForm
+    
+    def pre_save_user(self, request, form, user):
+        """Called before the user is saved during signup"""
+        return super().pre_save_user(request, form, user)
+    
+    def save_user(self, request, sociallogin, form):
+        """Called to save a user instance"""
+        return super().save_user(request, sociallogin, form)
     
     def get_login_redirect_url(self, request):
         """Redirect to dashboard after login"""
@@ -24,17 +25,6 @@ class CustomAccountAdapter(DefaultAccountAdapter):
     def get_logout_redirect_url(self, request):
         """Redirect to home after logout"""
         return reverse('core:home')
-    
-    def save_user(self, request, user, form, commit=True):
-        """Custom user saving logic"""
-        user = super().save_user(request, user, form, commit=False)
-        
-        # The CustomSignupForm already handles referral logic in its save method
-        # so we don't need to duplicate it here
-        
-        if commit:
-            user.save()
-        return user
     
     def is_open_for_signup(self, request):
         """Control whether new signups are allowed"""

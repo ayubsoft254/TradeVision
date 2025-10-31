@@ -12,7 +12,7 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tradevision.settings')
 django.setup()
 
-from apps.accounts.models import User, Referral
+from apps.accounts.models import User, Referral, UserReferralCode
 from django.test import RequestFactory
 from django.contrib.sessions.middleware import SessionMiddleware
 from apps.accounts.forms import CustomSignupForm
@@ -21,7 +21,7 @@ def test_referral_functionality():
     print("🔍 Testing Referral Functionality...")
     
     # Clean up any existing test users
-    User.objects.filter(email__in=['referrer@test.com', 'referred@test.com']).delete()
+    User.objects.filter(email__in=['referrer@test.com', 'referred@test.com', 'referred2@test.com']).delete()
     
     print("\n1. Creating referrer user...")
     # Create a referrer user
@@ -31,13 +31,8 @@ def test_referral_functionality():
         password='testpass123'
     )
     
-    # Generate referral code for referrer
-    referral_code = Referral.generate_referral_code(referrer)
-    referral_record = Referral.objects.create(
-        referrer=referrer,
-        referred=referrer,  # Self-referral for code storage
-        referral_code=referral_code
-    )
+    # Generate referral code for referrer (this creates UserReferralCode automatically via signal)
+    referral_code = UserReferralCode.get_or_create_for_user(referrer)
     
     print(f"✅ Referrer created with referral code: {referral_code}")
     
@@ -95,7 +90,7 @@ def test_referral_functionality():
             print("❌ FAILED: Referral relationship NOT created")
             
         # Print referral stats
-        total_referrals = Referral.objects.filter(referrer=referrer).exclude(referred=referrer).count()
+        total_referrals = Referral.objects.filter(referrer=referrer).count()
         print(f"📊 Total referrals for {referrer.email}: {total_referrals}")
         
     else:
@@ -142,13 +137,12 @@ def test_referral_functionality():
     print(f"\n📊 Final Statistics:")
     print(f"Total users: {User.objects.count()}")
     print(f"Total referrals: {Referral.objects.count()}")
-    print(f"Active referrals for {referrer.email}: {Referral.objects.filter(referrer=referrer).exclude(referred=referrer).count()}")
+    print(f"Active referrals for {referrer.email}: {Referral.objects.filter(referrer=referrer).count()}")
     
     # List all referrals
     print(f"\n📋 All Referrals:")
     for ref in Referral.objects.all():
-        ref_type = "Self-referral (code storage)" if ref.referrer == ref.referred else "Active referral"
-        print(f"  {ref.referrer.email} -> {ref.referred.email} ({ref_type}) [Code: {ref.referral_code}]")
+        print(f"  {ref.referrer.email} -> {ref.referred.email} [Code: {ref.referral_code}]")
 
 if __name__ == "__main__":
     test_referral_functionality()
