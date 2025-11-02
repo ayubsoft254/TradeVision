@@ -18,6 +18,7 @@ from .models import User, UserProfile, Referral
 from .forms import UserProfileForm, ProfileUpdateForm, SecuritySettingsForm
 from apps.trading.models import Investment, ProfitHistory
 from apps.payments.models import Transaction, Wallet
+from apps.core.models import Announcement
 
 class ProfileView(LoginRequiredMixin, TemplateView):
     """User profile dashboard"""
@@ -64,6 +65,15 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             is_active=True
         ).count()
         
+        # Get active announcements for dashboard
+        announcements = Announcement.objects.filter(
+            is_active=True,
+            show_on_dashboard=True,
+            start_date__lte=timezone.now()
+        ).filter(
+            Q(end_date__isnull=True) | Q(end_date__gte=timezone.now())
+        ).order_by('-priority', '-created_at')
+        
         context.update({
             'profile': profile,
             'total_investments': total_investments,
@@ -74,6 +84,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             'referral_code': referral_code,
             'referral_earnings': referral_earnings,
             'referred_users': referred_users,
+            'announcements': announcements,
         })
         
         return context

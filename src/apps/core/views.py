@@ -119,6 +119,7 @@ class AboutView(TemplateView):
         
         return context
 
+
 class TermsView(TemplateView):
     """Terms and conditions page"""
     template_name = 'core/terms.html'
